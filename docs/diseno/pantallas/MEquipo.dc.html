@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Móvil equipo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:0 24px;border-radius:16px;border:0;background:var(--ac);color:#fff;font-weight:800;font-size:16px}
+.btn:active{transform:scale(.97)}
+.mem{display:flex;align-items:center;gap:12px;padding:14px;border-radius:20px;border:1px solid var(--line);background:var(--surf);animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.role{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surf2);font-weight:700;font-size:12px}
+.seg{flex:1;min-height:46px;border:0;border-radius:10px;background:transparent;font-weight:700;font-size:14px;color:var(--muted)}
+.seg.on{background:var(--surf);color:var(--text);box-shadow:0 2px 8px rgba(15,20,32,.12)}
+.fld .box{display:flex;align-items:center;min-height:54px;padding:0 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--surf)}
+.fld .box:focus-within{border-color:var(--ac);box-shadow:0 0 0 4px var(--ac-soft)}
+.fld input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-weight:600;font-size:16px}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;font-size:11px;font-weight:700;color:var(--muted)}
+.tb.on{color:var(--ac-ink)}
+@keyframes rise{
+from{opacity:0;transform:translateY(16px)}
+to{opacity:1;transform:translateY(0)}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; position:relative; width:390px; height:844px; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; overflow:hidden">
+
+<header style="flex:0 0 auto; display:flex; flex-direction:column; gap:12px; padding:16px 16px 14px; border-bottom:1px solid var(--line)">
+<span style="font-weight:800; font-size:26px; letter-spacing:-0.03em">Equipo</span>
+<div style="display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:16px; background:var(--ac-soft)">
+<span style="font-weight:800; font-size:13px; color:var(--ac-ink); white-space:nowrap">{{used}} de 5 lugares</span>
+<span style="flex:1; height:8px; border-radius:4px; background:var(--surf); overflow:hidden"><span style="display:block; height:100%; width:{{usedPct}}; background:var(--ac); border-radius:4px; transition:width .5s"></span></span>
+</div>
+</header>
+
+<div style="flex:1 1 auto; overflow-y:auto; padding:14px 16px 20px; display:flex; flex-direction:column; gap:12px">
+<sc-for list="{{members}}" as="m" hint-placeholder-count="3">
+<div class="mem">
+<span style="flex:0 0 48px; height:48px; border-radius:50%; background:{{m.color}}; color:#fff; display:grid; place-items:center; font-weight:800; font-size:16px">{{m.ini}}</span>
+<span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px"><span style="font-weight:800; font-size:16px">{{m.name}}</span><span style="font-size:12px; color:var(--muted)">{{m.sub}}</span></span>
+<button class="role" onClick="{{m.cycle}}">{{m.role}}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+</div>
+</sc-for>
+
+<div style="display:flex; flex-direction:column; gap:12px; margin-top:8px; padding:18px; border-radius:22px; border:1px solid var(--line); background:var(--surf2)">
+<span style="font-weight:800; font-size:18px">Invitar a un agente</span>
+<label class="fld"><span class="box"><input type="text" placeholder="agente@correo.com" value="{{email}}" onInput="{{onEmail}}" aria-label="Correo del agente" /></span></label>
+<div style="display:flex; padding:4px; border-radius:14px; background:var(--surf); border:1px solid var(--line)">
+<button class="{{agCls}}" onClick="{{setAg}}">Agente</button><button class="{{adCls}}" onClick="{{setAd}}">Administrador</button>
+</div>
+<button class="btn" onClick="{{invite}}">Enviar invitación</button>
+<span style="font-size:12px; line-height:1.5; color:var(--muted)">Le llega un correo para crear su contraseña. Puedes quitarle el acceso cuando quieras.</span>
+</div>
+</div>
+
+<nav style="flex:0 0 76px; display:flex; align-items:center; padding:0 6px 8px; border-top:1px solid var(--line); background:var(--surf)">
+<a href="MPanel.dc.html" class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.500"/><rect x="14" y="3" width="7" height="5" rx="1.500"/><rect x="14" y="12" width="7" height="9" rx="1.500"/><rect x="3" y="16" width="7" height="5" rx="1.500"/></svg>Resumen</a>
+<a href="MInventario.dc.html" class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Propiedades</a>
+<a href="MPublicar.dc.html" aria-label="Publicar" style="flex:0 0 58px; height:58px; margin:-18px 6px 0; border-radius:50%; background:var(--ac); color:#fff; display:grid; place-items:center; box-shadow:0 10px 24px color-mix(in srgb, var(--ac) 50%, transparent)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
+<a href="MLeads.dc.html" class="tb"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.400 7.800L3 21l1.300-4.400A9 9 0 1121 12z"/></svg>Leads</a>
+<a href="MEquipo.dc.html" class="tb on"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.500"/><path d="M2 21c0-4 3.100-7 7-7s7 3 7 7M17 4.500a3.500 3.500 0 010 7M22 21c0-3.200-2-5.700-5-6.700"/></svg>Equipo</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5B4BE8","options":["#2563EB","#5B4BE8","#0E8A5F","#C2410C"],"section":"Marca"},"dark":{"editor":"boolean","default":false,"section":"Marca"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { email: '', role: 'Agente', extra: [], roles: {} };
+
+  renderVals() {
+    const dark = !!this.props.dark;
+    const ac = this.props.accent ?? '#5B4BE8';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line;
+
+    const s = this.state;
+    const base = [
+      { id: 'a', name: 'Andrea', sub: '18 propiedades · 6 leads', role: 'Administrador', color: ac },
+      { id: 'l', name: 'Luis', sub: '14 propiedades · 4 leads', role: 'Agente', color: '#0E8A5F' },
+      { id: 'm', name: 'Marta', sub: '10 propiedades · 5 leads', role: 'Agente', color: '#C2410C' }
+    ];
+    const extra = s.extra.map((e, i) => ({ id: 'x' + i, name: e.email.split('@')[0], sub: 'Invitación pendiente', role: e.role, color: '#6B7488' }));
+    const members = [...base, ...extra].map((m) => {
+      const role = s.roles[m.id] || m.role;
+      return { ...m, role, ini: m.name.slice(0, 2).toUpperCase(), cycle: () => this.setState({ roles: { ...s.roles, [m.id]: role === 'Agente' ? 'Administrador' : 'Agente' } }) };
+    });
+    const used = members.length;
+    return {
+      themeStyle, members, used, usedPct: Math.min(100, used / 5 * 100) + '%',
+      email: s.email, onEmail: (e) => this.setState({ email: e.target.value }),
+      agCls: s.role === 'Agente' ? 'seg on' : 'seg', adCls: s.role === 'Administrador' ? 'seg on' : 'seg',
+      setAg: () => this.setState({ role: 'Agente' }), setAd: () => this.setState({ role: 'Administrador' }),
+      invite: () => { if (s.email.indexOf('@') > 0 && used < 5) this.setState({ extra: [...s.extra, { email: s.email, role: s.role }], email: '' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

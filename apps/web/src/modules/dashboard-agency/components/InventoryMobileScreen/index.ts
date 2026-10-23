@@ -1,0 +1,1 @@
+export { InventoryMobileScreen } from './InventoryMobileScreen';

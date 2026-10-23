@@ -1,0 +1,33 @@
+node_modules/
+dist/
+.next/
+coverage/
+.turbo/
+*.log
+
+# entorno (el .env.example SI se versiona)
+.env
+.env.*
+!.env.example
+
+# sistema / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# subidas locales y bases GeoIP
+uploads/
+*.mmdb
+.test-report/
+
+# worker de MapLibre copiado por apps/web/scripts/copy-maplibre-worker.mjs
+apps/web/public/maplibre/
+
+# generados por TypeScript / Next
+*.tsbuildinfo
+next-env.d.ts
+
+# claude code: configuracion local personal
+.claude/settings.local.json

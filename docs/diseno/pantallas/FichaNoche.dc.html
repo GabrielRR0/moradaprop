@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ficha de propiedad noche</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 24px;border-radius:16px;border:0;background:var(--ac);color:#fff;font-weight:800;font-size:16px;transition:transform .18s, box-shadow .18s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px color-mix(in srgb, var(--ac) 38%, transparent)}
+.btn2{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--text);font-weight:700;font-size:14px;transition:all .18s}
+.btn2:hover{border-color:var(--ac);background:var(--surf2)}
+.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:62px;min-height:64px;padding:0 10px;border-radius:16px;border:1.5px solid var(--line);background:var(--surf);font-weight:700;font-size:13px;transition:all .2s}
+.chip:hover{border-color:var(--ac)}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff;transform:translateY(-2px)}
+.slot{min-height:44px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surf);font-weight:700;font-size:14px;transition:all .2s}
+.slot:hover{border-color:var(--ac)}
+.slot.on{background:var(--ac-soft);border-color:var(--ac);color:var(--ac-ink)}
+.ph{position:relative;display:grid;place-items:center;color:var(--ac-ink);overflow:hidden;transition:filter .3s}
+.ph:hover{filter:brightness(.96)}
+.ph svg{transition:transform .5s}
+.ph:hover svg{transform:scale(1.12)}
+.am{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:18px;border:1px solid var(--line);background:var(--surf);font-weight:700;font-size:15px;transition:all .2s}
+.am:hover{border-color:var(--ac);transform:translateY(-3px)}
+.am .i{flex:0 0 46px;height:46px;border-radius:14px;background:var(--ac-soft);color:var(--ac-ink);display:grid;place-items:center}
+.heart{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surf);display:grid;place-items:center;transition:transform .2s}
+.heart:hover{transform:scale(1.1)}
+.heart.on{animation:beat .5s}
+.sim{display:flex;flex-direction:column;border-radius:22px;border:1px solid var(--line);background:var(--surf);overflow:hidden;transition:transform .25s, border-color .25s, box-shadow .25s}
+.sim:hover{transform:translateY(-6px);border-color:var(--ac);box-shadow:0 22px 44px rgba(15,20,32,.14)}
+@keyframes beat{
+0%{transform:scale(1)}
+40%{transform:scale(1.35)}
+100%{transform:scale(1)}
+}
+@keyframes rise{
+from{opacity:0;transform:translateY(20px)}
+to{opacity:1;transform:translateY(0)}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; width:100%; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; display:flex; flex-direction:column">
+
+<header style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:16px 48px; border-bottom:1px solid var(--line)">
+<a href="Main.dc.html" style="display:flex; align-items:center; gap:10px; font-weight:800; font-size:19px; letter-spacing:-0.02em">
+<span style="width:36px; height:36px; border-radius:11px; background:var(--ac); display:grid; place-items:center; color:#fff"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>
+[NOMBRE]
+</a>
+<a href="Mapa.dc.html" class="btn2">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+Volver al mapa</a>
+</header>
+
+<div style="padding:28px 48px 64px; max-width:1360px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:28px">
+
+<!-- GALLERY -->
+<div style="display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows:200px 200px; gap:12px; border-radius:26px; overflow:hidden">
+<div class="ph" style="grid-row:span 2; background:color-mix(in srgb, var(--ac) 18%, var(--surf2))"><svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><span style="position:absolute; top:16px; left:16px; padding:6px 14px; border-radius:999px; background:var(--surf); font-size:13px; font-weight:800; color:var(--ac-ink)">Portada</span></div>
+<div class="ph" style="background:color-mix(in srgb, var(--ac) 12%, var(--surf2))"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.300" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/></svg></div>
+<div class="ph" style="background:color-mix(in srgb, var(--ac) 22%, var(--surf2))"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.300" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/></svg></div>
+<div class="ph" style="background:color-mix(in srgb, var(--ac) 9%, var(--surf2))"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.300" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/></svg></div>
+<div class="ph" style="background:color-mix(in srgb, var(--ac) 26%, var(--surf2))"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.300" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/></svg>
+<span style="position:absolute; right:14px; bottom:14px; padding:9px 16px; border-radius:12px; background:var(--surf); font-size:13px; font-weight:800; color:var(--text); box-shadow:0 6px 16px rgba(15,20,32,.2)">Ver las 12 fotos</span></div>
+</div>
+
+<div style="display:flex; flex-wrap:wrap; gap:40px; align-items:flex-start">
+
+<!-- LEFT -->
+<div style="flex:999 1 560px; min-width:0; display:flex; flex-direction:column; gap:32px">
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px">
+<div style="display:flex; flex-direction:column; gap:10px">
+<span style="align-self:flex-start; padding:6px 14px; border-radius:999px; background:var(--ac-soft); color:var(--ac-ink); font-size:13px; font-weight:800">Disponible</span>
+<h1 style="margin:0; font-size:38px; line-height:1.1; font-weight:800; letter-spacing:-0.03em">Apartamento moderno con vista</h1>
+<div style="display:flex; align-items:center; gap:8px; font-size:16px; color:var(--muted)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.800 7 11 7 11z"/><circle cx="12" cy="10" r="2.500"/></svg>
+Los Palos Grandes, Chacao · Caracas</div>
+</div>
+<div style="display:flex; gap:10px">
+<button class="{{favCls}}" onClick="{{toggleFav}}" aria-label="Guardar en favoritos" style="color:{{favColor}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="{{favFill}}" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.800 5.600a5.200 5.200 0 00-7.400 0L12 7l-1.400-1.400a5.200 5.200 0 00-7.400 7.400L12 21.800l8.800-8.800a5.200 5.200 0 000-7.400z"/></svg></button>
+<button class="heart" aria-label="Compartir"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.600 13.500l6.800 4M15.400 6.500l-6.800 4"/></svg></button>
+</div>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:12px">
+<div style="display:flex; flex-direction:column; gap:4px; padding:16px; border-radius:18px; background:var(--surf2)"><span style="font-weight:800; font-size:26px">2</span><span style="font-size:13px; color:var(--muted); font-weight:600">Habitaciones</span></div>
+<div style="display:flex; flex-direction:column; gap:4px; padding:16px; border-radius:18px; background:var(--surf2)"><span style="font-weight:800; font-size:26px">2</span><span style="font-size:13px; color:var(--muted); font-weight:600">Baños</span></div>
+<div style="display:flex; flex-direction:column; gap:4px; padding:16px; border-radius:18px; background:var(--surf2)"><span style="font-weight:800; font-size:26px">1</span><span style="font-size:13px; color:var(--muted); font-weight:600">Puesto</span></div>
+<div style="display:flex; flex-direction:column; gap:4px; padding:16px; border-radius:18px; background:var(--surf2)"><span style="font-weight:800; font-size:26px">85 m²</span><span style="font-size:13px; color:var(--muted); font-weight:600">Área</span></div>
+</div>
+
+<section style="display:flex; flex-direction:column; gap:16px">
+<h2 style="margin:0; font-size:24px; font-weight:800; letter-spacing:-0.02em">Servicios del inmueble</h2>
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px">
+<div class="am"><span class="i"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span>Planta eléctrica</div>
+<div class="am"><span class="i"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s6 6.500 6 11a6 6 0 01-12 0c0-4.500 6-11 6-11z"/></svg></span>Tanque de agua</div>
+<div class="am"><span class="i"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a15 15 0 0120 0M5 12.500a10.500 10.500 0 0114 0M8.500 16a5.500 5.500 0 017 0M12 19.500h.01"/></svg></span>Fibra óptica</div>
+<div class="am"><span class="i"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.500-3.400 8-8 9-4.600-1-8-4.500-8-9V6z"/></svg></span>Vigilancia 24 h</div>
+</div>
+</section>
+
+<section style="display:flex; flex-direction:column; gap:12px">
+<h2 style="margin:0; font-size:24px; font-weight:800; letter-spacing:-0.02em">Descripción</h2>
+<p style="margin:0; font-size:16px; line-height:1.7; color:var(--muted)">[Descripción escrita por el dueño o la inmobiliaria: luz natural, vista, cercanía a transporte y comercios, condiciones del contrato.]</p>
+</section>
+
+<section style="display:flex; flex-direction:column; gap:14px">
+<h2 style="margin:0; font-size:24px; font-weight:800; letter-spacing:-0.02em">Ubicación</h2>
+<div style="position:relative; height:260px; border-radius:24px; overflow:hidden; border:1px solid var(--line); background:var(--map-bg)">
+<svg viewBox="0 0 800 260" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="position:absolute; inset:0" aria-hidden="true">
+<rect width="800" height="260" style="fill:var(--map-bg)"/>
+<path d="M560 10 C 650 0 760 40 770 100 C 780 160 700 180 640 150 C 580 120 520 30 560 10z" style="fill:var(--map-park)"/>
+<path d="M-10 210 C 150 180 280 240 420 215 S 680 180 810 225" style="fill:none; stroke:var(--map-water); stroke-width:44; stroke-linecap:round"/>
+<path d="M-10 80 C 180 110 340 50 520 90 S 720 110 810 80" style="fill:none; stroke:var(--map-road); stroke-width:16; stroke-linecap:round"/>
+<path d="M300 -10 C 320 80 270 160 330 270" style="fill:none; stroke:var(--map-road); stroke-width:14; stroke-linecap:round"/>
+<path d="M-10 150 L 810 160 M150 -10 L 140 270 M480 -10 L 500 270 M660 -10 L 670 270" style="fill:none; stroke:var(--map-road); stroke-width:5; stroke-linecap:round"/>
+</svg>
+<span style="position:absolute; left:42%; top:52%; width:96px; height:96px; margin:-48px 0 0 -48px; border-radius:50%; background:var(--ac); opacity:.18"></span>
+<span style="position:absolute; left:42%; top:52%; transform:translate(-50%,-100%); padding:8px 14px; border-radius:999px; background:var(--ac); color:#fff; font-weight:800; font-size:14px; box-shadow:0 6px 16px rgba(15,20,32,.3)">$450</span>
+<span style="position:absolute; left:16px; bottom:16px; padding:8px 14px; border-radius:12px; background:var(--surf); border:1px solid var(--line); font-size:13px; font-weight:700">Zona aproximada · la dirección exacta se comparte al agendar</span>
+</div>
+</section>
+
+<section style="display:flex; align-items:center; gap:16px; padding:20px; border-radius:22px; border:1px solid var(--line); background:var(--surf)">
+<span style="flex:0 0 60px; height:60px; border-radius:50%; background:#0E8A5F; color:#fff; display:grid; place-items:center; font-weight:800; font-size:20px">AN</span>
+<span style="flex:1; display:flex; flex-direction:column; gap:3px"><span style="font-weight:800; font-size:17px">Andrea · Inmobiliaria [Nombre]</span><span style="font-size:14px; color:var(--muted)">Responde en menos de 1 hora · 42 propiedades</span></span>
+<a href="Main.dc.html" class="btn2">Ver perfil</a>
+</section>
+</div>
+
+<!-- RIGHT -->
+<aside style="flex:1 1 380px; min-width:0; max-width:440px; display:flex; flex-direction:column; gap:18px; padding:24px; border-radius:26px; border:1px solid var(--line); background:var(--surf); box-shadow:0 24px 54px rgba(15,20,32,.1)">
+<div style="display:flex; align-items:baseline; justify-content:space-between">
+<span style="font-weight:800; font-size:38px; letter-spacing:-0.03em">$450<span style="font-size:16px; font-weight:600; color:var(--muted)"> /mes</span></span>
+<span style="font-size:14px; font-weight:800; color:var(--ac-ink)">Ver en Bs.</span>
+</div>
+<a href="Ficha.dc.html" class="btn" style="background:#1F9D55">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.400 7.800L3 21l1.300-4.400A9 9 0 1121 12z"/></svg>
+Escribir por WhatsApp</a>
+<div style="display:flex; align-items:center; gap:12px; color:var(--muted); font-size:13px; font-weight:700"><span style="flex:1; height:1px; background:var(--line)"></span>o agenda una visita<span style="flex:1; height:1px; background:var(--line)"></span></div>
+<div style="display:flex; flex-wrap:wrap; gap:8px">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="5"><button class="{{d.cls}}" onClick="{{d.pick}}"><span style="font-size:11px; opacity:.85">{{d.dow}}</span><span style="font-size:18px; font-weight:800">{{d.num}}</span></button></sc-for>
+</div>
+<div style="display:flex; flex-wrap:wrap; gap:8px">
+<sc-for list="{{slots}}" as="t" hint-placeholder-count="4"><button class="{{t.cls}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for>
+</div>
+<button class="btn" style="background:var(--surf); color:var(--ac-ink); border:2px solid var(--ac)">Solicitar visita · {{pickedLabel}}</button>
+<a href="Ficha.dc.html" class="btn" style="min-height:52px">Apartar esta propiedad</a>
+<span style="font-size:12px; line-height:1.5; color:var(--muted); text-align:center">Apartar no te compromete: el agente confirma contigo antes de reservarla.</span>
+</aside>
+</div>
+
+<section style="display:flex; flex-direction:column; gap:18px; margin-top:12px">
+<h2 style="margin:0; font-size:26px; font-weight:800; letter-spacing:-0.02em">Propiedades parecidas</h2>
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px">
+<sc-for list="{{similar}}" as="p" hint-placeholder-count="3">
+<a href="Ficha.dc.html" class="sim">
+<div style="{{p.photo}}; height:170px; display:grid; place-items:center; color:var(--ac-ink)"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.100" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></div>
+<div style="display:flex; flex-direction:column; gap:6px; padding:18px"><span style="font-weight:800; font-size:22px">{{p.price}}<span style="font-size:13px; font-weight:600; color:var(--muted)"> /mes</span></span><span style="font-weight:700; font-size:15px">{{p.title}}</span><span style="font-size:13px; color:var(--muted)">{{p.place}} · {{p.specs}}</span></div>
+</a>
+</sc-for>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5B4BE8","options":["#2563EB","#5B4BE8","#0E8A5F","#C2410C"],"section":"Marca"},"dark":{"editor":"boolean","default":true,"section":"Marca"},"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  state = { fav: false, day: 1, slot: 1 };
+
+  renderVals() {
+    const dark = this.props.dark ?? true;
+    const ac = this.props.accent ?? '#5B4BE8';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)', mbg: '#1A212C', road: '#2B3544', park: '#1B3A2F', water: '#18304A' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)', mbg: '#EEF1F6', road: '#FFFFFF', park: '#D3EBDA', water: '#CFE3F6' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line + ';--map-bg:' + t.mbg + ';--map-road:' + t.road + ';--map-park:' + t.park + ';--map-water:' + t.water;
+
+    const s = this.state;
+    const dayDefs = [['Hoy', '22'], ['Mañana', '23'], ['Sáb', '24'], ['Dom', '25'], ['Lun', '26']];
+    const days = dayDefs.map(([dow, num], i) => ({ dow, num, cls: s.day === i ? 'chip on' : 'chip', pick: () => this.setState({ day: i }) }));
+    const slotDefs = ['9:00', '10:30', '15:00', '16:30'];
+    const slots = slotDefs.map((label, i) => ({ label, cls: s.slot === i ? 'slot on' : 'slot', pick: () => this.setState({ slot: i }) }));
+    const similar = [
+      { price: '$520', title: 'Apartamento con balcón', place: 'Campo Alegre', specs: '3 hab · 2 baños' },
+      { price: '$390', title: 'Apartamento céntrico', place: 'Chacao', specs: '2 hab · 1 baño' },
+      { price: '$480', title: 'Apartamento luminoso', place: 'Altamira', specs: '2 hab · 2 baños' }
+    ].map((p, i) => ({ ...p, photo: 'background:color-mix(in srgb, var(--ac) ' + (12 + i * 6) + '%, var(--surf2))' }));
+
+    return {
+      themeStyle, days, slots, similar,
+      pickedLabel: dayDefs[s.day][0] + ' ' + slotDefs[s.slot],
+      favCls: s.fav ? 'heart on' : 'heart',
+      favFill: s.fav ? 'currentColor' : 'none',
+      favColor: s.fav ? 'var(--ac-ink)' : 'var(--text)',
+      toggleFav: () => this.setState({ fav: !s.fav })
+    };
+  }
+}
+</script>
+</body>
+</html>

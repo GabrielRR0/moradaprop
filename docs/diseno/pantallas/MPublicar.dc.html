@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Móvil publicar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 24px;border-radius:16px;border:0;background:var(--ac);color:#fff;font-weight:800;font-size:16px}
+.btn2{display:flex;align-items:center;justify-content:center;min-height:56px;padding:0 20px;border-radius:16px;border:1px solid var(--line);background:var(--surf);font-weight:700;font-size:15px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:16px;border-radius:20px;border:2px solid var(--line);background:var(--surf);text-align:left;font-weight:800;font-size:15px;transition:all .2s}
+.tile .ico{width:46px;height:46px;border-radius:14px;background:var(--surf2);display:grid;place-items:center;transition:all .2s}
+.tile.on{border-color:var(--ac);background:var(--ac-soft);color:var(--ac-ink)}
+.tile.on .ico{background:var(--ac);color:#fff;transform:rotate(-6deg)}
+.cnt{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:18px;border:1px solid var(--line);background:var(--surf)}
+.cb{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--line);background:var(--surf);display:grid;place-items:center}
+.cb:active{transform:scale(.9);background:var(--ac-soft)}
+.amen{display:flex;align-items:center;gap:14px;min-height:68px;padding:0 16px;border-radius:18px;border:2px solid var(--line);background:var(--surf);text-align:left;font-weight:700;font-size:15px;transition:all .2s}
+.amen.on{border-color:var(--ac);background:var(--ac-soft);color:var(--ac-ink)}
+.amen .sw{margin-left:auto;flex:0 0 46px;height:26px;border-radius:13px;background:var(--line);position:relative;transition:background .2s}
+.amen .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
+.amen.on .sw{background:var(--ac)}
+.amen.on .sw::after{transform:translateX(20px)}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld .l{font-size:13px;font-weight:700}
+.fld .box{display:flex;align-items:center;gap:10px;min-height:54px;padding:0 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--surf)}
+.fld .box:focus-within{border-color:var(--ac);box-shadow:0 0 0 4px var(--ac-soft)}
+.fld input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-weight:600;font-size:16px}
+.step{animation:slidein .4s cubic-bezier(.2,.8,.2,1) both}
+.ph{border-radius:16px;display:grid;place-items:center;color:var(--ac-ink);position:relative;height:100px;animation:pop .45s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes slidein{
+from{opacity:0;transform:translateX(24px)}
+to{opacity:1;transform:translateX(0)}
+}
+@keyframes pop{
+from{opacity:0;transform:scale(.8)}
+to{opacity:1;transform:scale(1)}
+}
+@keyframes pin{
+0%{margin-top:0}
+50%{margin-top:-8px}
+100%{margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; position:relative; width:390px; height:844px; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; overflow:hidden">
+
+<header style="flex:0 0 auto; display:flex; flex-direction:column; gap:12px; padding:14px 16px 12px">
+<div style="display:flex; align-items:center; justify-content:space-between">
+<a href="MInventario.dc.html" aria-label="Cerrar" style="width:46px; height:46px; border-radius:50%; background:var(--surf2); display:grid; place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.400" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+<span style="font-weight:800; font-size:15px">Nueva propiedad</span>
+<span style="min-width:46px; text-align:right; font-size:13px; font-weight:800; color:var(--ac-ink)">{{quality}}%</span>
+</div>
+<div style="display:flex; gap:5px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="6"><span style="flex:1; height:6px; border-radius:3px; background:{{b.c}}; transition:background .3s"></span></sc-for>
+</div>
+</header>
+
+<div style="flex:1 1 auto; overflow-y:auto; padding:8px 16px 20px; display:flex; flex-direction:column">
+
+<sc-if value="{{s1}}" hint-placeholder-val="{{ true }}">
+<div class="step" style="display:flex; flex-direction:column; gap:20px">
+<div><h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.03em">¿Qué vas a alquilar?</h1><p style="margin:6px 0 0; font-size:15px; color:var(--muted)">Toca una opción.</p></div>
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px">
+<sc-for list="{{types}}" as="t" hint-placeholder-count="6"><button class="{{t.cls}}" onClick="{{t.pick}}"><span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.icon}}"/></svg></span>{{t.label}}</button></sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; gap:18px">
+<div><h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.03em">¿Dónde está?</h1><p style="margin:6px 0 0; font-size:15px; color:var(--muted)">Ajusta el pin en el mapa.</p></div>
+<div style="position:relative; height:210px; border-radius:22px; overflow:hidden; border:1px solid var(--line); background:var(--map-bg)">
+<svg viewBox="0 0 360 210" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="position:absolute; inset:0" aria-hidden="true">
+<rect width="360" height="210" style="fill:var(--map-bg)"/>
+<path d="M230 10 C 300 0 360 40 350 90 C 340 130 280 140 240 110 C 200 80 190 20 230 10z" style="fill:var(--map-park)"/>
+<path d="M-10 170 C 80 150 160 190 250 170 S 340 150 380 175" style="fill:none; stroke:var(--map-water); stroke-width:34; stroke-linecap:round"/>
+<path d="M-10 70 C 100 90 200 50 380 80" style="fill:none; stroke:var(--map-road); stroke-width:14; stroke-linecap:round"/>
+<path d="M120 -10 C 140 70 100 140 140 220" style="fill:none; stroke:var(--map-road); stroke-width:12; stroke-linecap:round"/>
+<path d="M-10 120 L 380 130 M60 -10 L 50 220 M260 -10 L 270 220" style="fill:none; stroke:var(--map-road); stroke-width:5; stroke-linecap:round"/>
+</svg>
+<div style="position:absolute; left:50%; top:50%; margin-left:-20px; margin-top:-52px; animation:pin 1.4s ease-in-out infinite"><svg width="40" height="52" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 58C24 58 4 36 4 22a20 20 0 0140 0c0 14-20 36-20 36z" style="fill:var(--ac)"/><circle cx="24" cy="22" r="8" fill="#fff"/></svg></div>
+<button class="btn2" style="position:absolute; right:10px; bottom:10px; min-height:44px; font-size:13px; box-shadow:0 6px 16px rgba(15,20,32,.2)">Usar mi ubicación</button>
+</div>
+<label class="fld"><span class="l">Urbanización o zona</span><span class="box"><input type="text" value="Altamira, Chacao" /></span></label>
+<label class="fld"><span class="l">Referencia (opcional)</span><span class="box"><input type="text" placeholder="Cerca de la plaza…" /></span></label>
+</div>
+</sc-if>
+
+<sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; gap:14px">
+<div><h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.03em">Los detalles</h1><p style="margin:6px 0 4px; font-size:15px; color:var(--muted)">Toca + y −.</p></div>
+<sc-for list="{{counters}}" as="c" hint-placeholder-count="3">
+<div class="cnt"><span style="font-weight:800; font-size:16px">{{c.label}}</span><span style="display:flex; align-items:center; gap:14px"><button class="cb" aria-label="Menos" onClick="{{c.dec}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button><span style="min-width:24px; text-align:center; font-weight:800; font-size:24px">{{c.val}}</span><button class="cb" aria-label="Más" onClick="{{c.inc}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></span></div>
+</sc-for>
+<label class="fld"><span class="l">Área (m²)</span><span class="box"><input type="text" value="85" /></span></label>
+</div>
+</sc-if>
+
+<sc-if value="{{s4}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; gap:12px">
+<div><h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.03em">¿Qué servicios tiene?</h1><p style="margin:6px 0 6px; font-size:15px; color:var(--muted)">Lo primero que preguntan.</p></div>
+<sc-for list="{{amen}}" as="a" hint-placeholder-count="4">
+<button class="{{a.cls}}" onClick="{{a.toggle}}"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{a.icon}}"/></svg>{{a.label}}<span class="sw"></span></button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{s5}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; gap:16px">
+<div><h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.03em">Agrega fotos</h1><p style="margin:6px 0 0; font-size:15px; color:var(--muted)">La primera es la portada.</p></div>
+<div style="display:flex; gap:10px">
+<button class="btn" style="flex:1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.500"/></svg>Tomar foto</button>
+<button class="btn2" style="flex:1">Galería</button>
+</div>
+<div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px">
+<sc-for list="{{photos}}" as="f" hint-placeholder-count="6">
+<div class="ph" style="{{f.style}}; animation-delay:{{f.delay}}"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.400" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 16l-5-5-8 8"/></svg><span style="position:absolute; top:6px; left:6px; padding:2px 8px; border-radius:999px; background:var(--surf); font-size:10px; font-weight:800; color:var(--ac-ink)">{{f.tag}}</span></div>
+</sc-for>
+</div>
+<span style="font-size:13px; color:var(--muted)">Se comprimen solas para gastar pocos datos.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{s6}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; gap:16px">
+<div><h1 style="margin:0; font-size:28px; font-weight:800; letter-spacing:-0.03em">Precio y contacto</h1><p style="margin:6px 0 0; font-size:15px; color:var(--muted)">¡Último paso!</p></div>
+<label class="fld"><span class="l">Precio mensual (USD)</span><span class="box"><span style="font-weight:800; color:var(--muted)">$</span><input type="text" value="{{priceNum}}" onInput="{{onPrice}}" style="font-size:24px; font-weight:800" /></span></label>
+<div style="padding:14px 16px; border-radius:14px; background:var(--surf2); font-size:13px; color:var(--muted); font-weight:600">En bolívares: Bs. [según tasa del día]</div>
+<label class="fld"><span class="l">WhatsApp para interesados</span><span class="box"><span style="font-weight:700; color:var(--muted)">+58</span><input type="text" value="412 000 0000" /></span></label>
+<div style="display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:16px; background:var(--ac-soft); color:var(--ac-ink); font-weight:700; font-size:13px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.500-3.400 8-8 9-4.600-1-8-4.500-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Pasa por una revisión rápida antes de salir en el mapa.</div>
+</div>
+</sc-if>
+</div>
+
+<footer style="flex:0 0 auto; display:flex; gap:10px; padding:12px 16px 20px; border-top:1px solid var(--line); background:var(--bg)">
+<button class="btn2" onClick="{{back}}" style="flex:0 0 100px">Atrás</button>
+<button class="btn" onClick="{{next}}" style="flex:1">{{nextLabel}}</button>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5B4BE8","options":["#2563EB","#5B4BE8","#0E8A5F","#C2410C"],"section":"Marca"},"dark":{"editor":"boolean","default":false,"section":"Marca"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { step: 1, type: 'Apartamento', beds: 2, baths: 2, park: 1, price: '450', amen: { planta: true, agua: false, fibra: true, vigil: false } };
+
+  renderVals() {
+    const dark = !!this.props.dark;
+    const ac = this.props.accent ?? '#5B4BE8';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)', mbg: '#1A212C', road: '#2B3544', park: '#1B3A2F', water: '#18304A' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)', mbg: '#EEF1F6', road: '#FFFFFF', park: '#D3EBDA', water: '#CFE3F6' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line + ';--map-bg:' + t.mbg + ';--map-road:' + t.road + ';--map-park:' + t.park + ';--map-water:' + t.water;
+
+    const s = this.state;
+    const typeDefs = [
+      ['Apartamento', 'M4 21V5l8-2v18M12 7h8v14M8 9h.01M8 13h.01M8 17h.01M16 11h.01M16 15h.01'],
+      ['Casa', 'M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6'],
+      ['Anexo', 'M4 20V9l8-5 8 5v11zM9 20v-6h6v6'],
+      ['Habitación', 'M3 18v-7a3 3 0 013-3h12a3 3 0 013 3v7M3 15h18M7 8V6h4v2'],
+      ['Local', 'M4 9l1-5h14l1 5M4 9v11h16V9M4 9a3 3 0 006 0 3 3 0 006 0 3 3 0 004 0M10 20v-5h4v5'],
+      ['Terreno', 'M3 20h18M5 20l4-9 3 5 3-8 4 12']
+    ];
+    const types = typeDefs.map(([label, icon]) => ({ label, icon, cls: s.type === label ? 'tile on' : 'tile', pick: () => this.setState({ type: label }) }));
+    const clamp = (k, d, min) => () => this.setState({ [k]: Math.max(min, s[k] + d) });
+    const counters = [
+      { label: 'Habitaciones', k: 'beds', min: 0 }, { label: 'Baños', k: 'baths', min: 1 }, { label: 'Estacionamiento', k: 'park', min: 0 }
+    ].map((c) => ({ label: c.label, val: s[c.k], inc: clamp(c.k, 1, c.min), dec: clamp(c.k, -1, c.min) }));
+    const icons = {
+      planta: 'M13 2L4 14h7l-1 8 9-12h-7z', agua: 'M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z',
+      fibra: 'M2 9a15 15 0 0120 0M5 12.5a10.5 10.5 0 0114 0M8.5 16a5.5 5.5 0 017 0M12 19.5h.01', vigil: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z'
+    };
+    const amen = [['planta', 'Planta eléctrica'], ['agua', 'Agua constante'], ['fibra', 'Fibra óptica'], ['vigil', 'Vigilancia 24 h']]
+      .map(([k, label]) => ({ label, icon: icons[k], cls: s.amen[k] ? 'amen on' : 'amen', toggle: () => this.setState({ amen: { ...s.amen, [k]: !s.amen[k] } }) }));
+    const photos = ['Portada', '2', '3', '4', '5', '6'].map((tag, i) => ({ tag, delay: (i * 60) + 'ms', style: 'background:color-mix(in srgb, var(--ac) ' + (12 + i * 4) + '%, var(--surf2))' }));
+    const nAm = Object.values(s.amen).filter(Boolean).length;
+
+    return {
+      themeStyle, types, counters, amen, photos,
+      bars: [1, 2, 3, 4, 5, 6].map((n) => ({ c: n <= s.step ? 'var(--ac)' : 'var(--line)' })),
+      quality: Math.min(100, 10 + (s.step - 1) * 15 + nAm * 3),
+      s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, s4: s.step === 4, s5: s.step === 5, s6: s.step === 6,
+      priceNum: s.price, onPrice: (e) => this.setState({ price: e.target.value }),
+      nextLabel: s.step === 6 ? 'Publicar' : 'Continuar',
+      next: () => this.setState({ step: Math.min(6, s.step + 1) }),
+      back: () => this.setState({ step: Math.max(1, s.step - 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

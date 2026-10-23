@@ -1,0 +1,130 @@
+.ds-dashboardmobilescreen * {
+  box-sizing: border-box;
+}
+.ds-dashboardmobilescreen button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-dashboardmobilescreen a {
+  color: inherit;
+  text-decoration: none;
+}
+.ds-dashboardmobilescreen :focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+.ds-dashboardmobilescreen .qa {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 84px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  font-weight: 800;
+  font-size: 12px;
+  text-align: center;
+  transition:
+    transform 0.18s,
+    border-color 0.18s;
+}
+.ds-dashboardmobilescreen .qa:active {
+  transform: scale(0.95);
+}
+.ds-dashboardmobilescreen .qa .i {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--ac-soft);
+  color: var(--ac-ink);
+  display: grid;
+  place-items: center;
+}
+.ds-dashboardmobilescreen .qa.main {
+  background: var(--ac);
+  color: #fff;
+  border-color: var(--ac);
+}
+.ds-dashboardmobilescreen .qa.main .i {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.ds-dashboardmobilescreen .kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  animation: rise-dashboardmobilescreen 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ds-dashboardmobilescreen .todo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.ds-dashboardmobilescreen .todo .ck {
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: 2px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition: all 0.2s;
+}
+.ds-dashboardmobilescreen .todo.done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.ds-dashboardmobilescreen .todo.done .ck {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+}
+.ds-dashboardmobilescreen .tb {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.ds-dashboardmobilescreen .tb.on {
+  color: var(--ac-ink);
+}
+@keyframes rise-dashboardmobilescreen {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-dashboardmobilescreen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

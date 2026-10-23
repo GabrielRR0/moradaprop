@@ -1,0 +1,6 @@
+export enum PropertyStatus {
+  PUBLICADA = 'PUBLICADA',
+  RESERVADA = 'RESERVADA',
+  ALQUILADA = 'ALQUILADA',
+  PAUSADA = 'PAUSADA',
+}

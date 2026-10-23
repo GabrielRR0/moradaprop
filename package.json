@@ -1,0 +1,46 @@
+{
+  "name": "proyecto-alquiler",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Portal de alquileres Venezuela (nombre pendiente de definir)",
+  "packageManager": "pnpm@10.34.3",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "docker compose up",
+    "dev:build": "docker compose up --build",
+    "dev:db": "docker compose up db redis mailpit",
+    "dev:api": "docker compose up api",
+    "dev:web": "docker compose up web",
+    "dev:mobile": "pnpm --filter @app/mobile start",
+    "stop": "docker compose down",
+    "logs": "docker compose logs -f",
+    "db:migrate": "pnpm --filter @app/api db dev",
+    "db:seed": "pnpm --filter @app/api prisma:seed",
+    "db:reset": "pnpm --filter @app/api db reset",
+    "test": "pnpm -r --if-present test",
+    "test:api": "pnpm --filter @app/api test",
+    "test:web": "pnpm --filter @app/web test",
+    "test:module": "pnpm --filter @app/api test:module",
+    "test:watch": "pnpm --filter @app/api test:watch",
+    "test:e2e": "pnpm --filter @app/api test:e2e",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md,yml}\"",
+    "build": "pnpm -r --if-present build",
+    "db:create": "pnpm --filter @app/api db create",
+    "db:deploy": "pnpm --filter @app/api db deploy",
+    "db:status": "pnpm --filter @app/api db status"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-boundaries": "^7.2.1",
+    "globals": "^17.13.0",
+    "htmlparser2": "^12.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
+  }
+}

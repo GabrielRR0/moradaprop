@@ -1,0 +1,1 @@
+export { MapMobileScreen } from './MapMobileScreen';

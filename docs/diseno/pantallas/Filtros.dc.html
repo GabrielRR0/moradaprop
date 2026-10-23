@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Filtros avanzados</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 24px;border-radius:14px;border:0;background:var(--ac);color:#fff;font-weight:800;font-size:15px;transition:transform .18s, box-shadow .18s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px color-mix(in srgb, var(--ac) 38%, transparent)}
+.pill{min-width:56px;min-height:46px;padding:0 16px;border-radius:14px;border:1px solid var(--line);background:var(--surf);font-weight:700;font-size:14px;transition:all .18s}
+.pill:hover{border-color:var(--ac)}
+.pill.on{background:var(--ac);border-color:var(--ac);color:#fff;transform:scale(1.04)}
+.amen{display:flex;align-items:center;gap:12px;min-height:64px;padding:0 16px;border-radius:16px;border:1.5px solid var(--line);background:var(--surf);text-align:left;font-weight:700;font-size:14px;transition:all .2s}
+.amen:hover{border-color:var(--ac)}
+.amen.on{border-color:var(--ac);background:var(--ac-soft);color:var(--ac-ink)}
+.amen .box{margin-left:auto;width:24px;height:24px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;color:transparent;transition:all .2s}
+.amen.on .box{background:var(--ac);border-color:var(--ac);color:#fff}
+.seg{flex:1;min-height:42px;border:0;border-radius:10px;background:transparent;font-weight:700;font-size:14px;color:var(--muted);transition:all .2s}
+.seg.on{background:var(--surf);color:var(--text);box-shadow:0 2px 8px rgba(15,20,32,.12)}
+.sel{display:flex;align-items:center;justify-content:space-between;min-height:50px;padding:0 16px;border-radius:14px;border:1px solid var(--line);background:var(--surf);font-weight:600;font-size:14px}
+.in{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{
+from{opacity:0;transform:translateY(14px)}
+to{opacity:1;transform:translateY(0)}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; width:560px; height:940px; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; overflow:hidden">
+
+<header style="flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:20px 28px 16px">
+<span style="font-weight:800; font-size:24px; letter-spacing:-0.02em">Filtros</span>
+<a href="Mapa.dc.html" aria-label="Cerrar filtros" style="width:44px; height:44px; border-radius:50%; background:var(--surf2); display:grid; place-items:center">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+</a>
+</header>
+
+<div style="flex:0 0 auto; padding:0 28px 16px">
+<div style="display:flex; padding:4px; border-radius:14px; background:var(--surf2); border:1px solid var(--line)">
+<button class="{{basicCls}}" onClick="{{setBasic}}">Básico</button>
+<button class="{{advCls}}" onClick="{{setAdv}}">Avanzado</button>
+</div>
+</div>
+
+<div style="flex:1 1 auto; overflow-y:auto; padding:8px 28px 24px; display:flex; flex-direction:column; gap:30px; border-top:1px solid var(--line)">
+
+<section style="display:flex; flex-direction:column; gap:14px; padding-top:20px">
+<div style="display:flex; align-items:center; justify-content:space-between">
+<span style="font-weight:800; font-size:17px">Presupuesto mensual</span>
+<div style="display:flex; padding:3px; border-radius:10px; background:var(--surf2); border:1px solid var(--line); width:132px">
+<button class="{{usdCls}}" onClick="{{setUsd}}" style="min-height:34px">USD</button>
+<button class="{{vesCls}}" onClick="{{setVes}}" style="min-height:34px">Bs.</button>
+</div>
+</div>
+<div style="display:flex; align-items:flex-end; gap:3px; height:44px" aria-hidden="true">
+<span style="flex:1; height:30%; background:var(--ac-soft); border-radius:3px"></span><span style="flex:1; height:50%; background:var(--ac-soft); border-radius:3px"></span><span style="flex:1; height:80%; background:var(--ac); opacity:.55; border-radius:3px"></span><span style="flex:1; height:100%; background:var(--ac); opacity:.55; border-radius:3px"></span><span style="flex:1; height:70%; background:var(--ac); opacity:.55; border-radius:3px"></span><span style="flex:1; height:55%; background:var(--ac); opacity:.55; border-radius:3px"></span><span style="flex:1; height:40%; background:var(--ac-soft); border-radius:3px"></span><span style="flex:1; height:25%; background:var(--ac-soft); border-radius:3px"></span><span style="flex:1; height:15%; background:var(--ac-soft); border-radius:3px"></span><span style="flex:1; height:10%; background:var(--ac-soft); border-radius:3px"></span>
+</div>
+<div style="position:relative; height:28px" aria-hidden="true">
+<span style="position:absolute; left:0; right:0; top:12px; height:4px; border-radius:2px; background:var(--line)"></span>
+<span style="position:absolute; left:18%; right:34%; top:12px; height:4px; border-radius:2px; background:var(--ac)"></span>
+<span style="position:absolute; left:18%; top:2px; width:24px; height:24px; margin-left:-12px; border-radius:50%; background:var(--surf); border:3px solid var(--ac); box-shadow:0 3px 8px rgba(15,20,32,.25)"></span>
+<span style="position:absolute; left:66%; top:2px; width:24px; height:24px; margin-left:-12px; border-radius:50%; background:var(--surf); border:3px solid var(--ac); box-shadow:0 3px 8px rgba(15,20,32,.25)"></span>
+</div>
+<div style="display:flex; gap:12px">
+<label style="flex:1; display:flex; flex-direction:column; gap:2px; padding:10px 16px; border-radius:14px; border:1px solid var(--line)">
+<span style="font-size:12px; font-weight:700; color:var(--muted)">Mínimo</span>
+<input type="text" value="{{minVal}}" style="border:0; outline:0; background:transparent; font-weight:800; font-size:18px; width:100%" />
+</label>
+<label style="flex:1; display:flex; flex-direction:column; gap:2px; padding:10px 16px; border-radius:14px; border:1px solid var(--line)">
+<span style="font-size:12px; font-weight:700; color:var(--muted)">Máximo</span>
+<input type="text" value="{{maxVal}}" style="border:0; outline:0; background:transparent; font-weight:800; font-size:18px; width:100%" />
+</label>
+</div>
+</section>
+
+<section style="display:flex; flex-direction:column; gap:14px">
+<span style="font-weight:800; font-size:17px">Habitaciones</span>
+<div style="display:flex; flex-wrap:wrap; gap:8px">
+<sc-for list="{{beds}}" as="b" hint-placeholder-count="5"><button class="{{b.cls}}" onClick="{{b.pick}}">{{b.label}}</button></sc-for>
+</div>
+<span style="font-weight:800; font-size:17px; margin-top:6px">Baños</span>
+<div style="display:flex; flex-wrap:wrap; gap:8px">
+<sc-for list="{{baths}}" as="b" hint-placeholder-count="4"><button class="{{b.cls}}" onClick="{{b.pick}}">{{b.label}}</button></sc-for>
+</div>
+</section>
+
+<section style="display:flex; flex-direction:column; gap:14px">
+<div style="display:flex; align-items:baseline; justify-content:space-between">
+<span style="font-weight:800; font-size:17px">Servicios que necesito</span>
+<span style="font-size:13px; color:var(--muted)">Pensado para Venezuela</span>
+</div>
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px">
+<sc-for list="{{amen}}" as="a" hint-placeholder-count="4">
+<button class="{{a.cls}}" onClick="{{a.toggle}}">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{a.icon}}"/></svg>
+{{a.label}}
+<span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<sc-if value="{{isAdv}}" hint-placeholder-val="{{ true }}">
+<div class="in" style="display:flex; flex-direction:column; gap:30px">
+<section style="display:flex; flex-direction:column; gap:14px">
+<span style="font-weight:800; font-size:17px">Tipo de inmueble</span>
+<div style="display:flex; flex-wrap:wrap; gap:8px">
+<sc-for list="{{types}}" as="t" hint-placeholder-count="5"><button class="{{t.cls}}" onClick="{{t.pick}}">{{t.label}}</button></sc-for>
+</div>
+</section>
+
+<section style="display:flex; flex-direction:column; gap:14px">
+<span style="font-weight:800; font-size:17px">Ubicación exacta</span>
+<div class="sel"><span>Distrito Capital</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div>
+<div style="display:flex; gap:10px">
+<div class="sel" style="flex:1"><span>Chacao</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div>
+<div class="sel" style="flex:1"><span style="color:var(--muted)">Urbanización</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div>
+</div>
+</section>
+
+<section style="display:flex; flex-direction:column; gap:14px">
+<span style="font-weight:800; font-size:17px">Estacionamiento y área</span>
+<div style="display:flex; flex-wrap:wrap; gap:8px">
+<sc-for list="{{park}}" as="b" hint-placeholder-count="4"><button class="{{b.cls}}" onClick="{{b.pick}}">{{b.label}}</button></sc-for>
+</div>
+<div style="display:flex; gap:12px">
+<label style="flex:1; display:flex; flex-direction:column; gap:2px; padding:10px 16px; border-radius:14px; border:1px solid var(--line)">
+<span style="font-size:12px; font-weight:700; color:var(--muted)">Área mínima (m²)</span>
+<input type="text" value="40" style="border:0; outline:0; background:transparent; font-weight:800; font-size:18px; width:100%" />
+</label>
+<label style="flex:1; display:flex; flex-direction:column; gap:2px; padding:10px 16px; border-radius:14px; border:1px solid var(--line)">
+<span style="font-size:12px; font-weight:700; color:var(--muted)">Disponible desde</span>
+<input type="text" value="Cualquier fecha" style="border:0; outline:0; background:transparent; font-weight:800; font-size:16px; width:100%" />
+</label>
+</div>
+</section>
+</div>
+</sc-if>
+</div>
+
+<footer style="flex:0 0 auto; display:flex; flex-direction:column; gap:14px; padding:16px 28px 22px; border-top:1px solid var(--line); background:var(--bg)">
+<label style="display:flex; align-items:center; gap:12px; font-size:14px; font-weight:600; cursor:pointer">
+<input type="checkbox" checked style="width:20px; height:20px; accent-color:var(--ac)" />
+Avísame cuando haya propiedades nuevas con estos filtros
+</label>
+<div style="display:flex; align-items:center; gap:12px">
+<button style="min-height:52px; padding:0 8px; border:0; background:transparent; font-weight:700; font-size:15px; text-decoration:underline; color:var(--muted)" onClick="{{reset}}">Limpiar</button>
+<a href="Mapa.dc.html" class="btn" style="flex:1">Ver {{count}} propiedades</a>
+</div>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5B4BE8","options":["#2563EB","#5B4BE8","#0E8A5F","#C2410C"],"section":"Marca"},"dark":{"editor":"boolean","default":false,"section":"Marca"},"$preview":{"width":560,"height":940}}'>
+class Component extends DCLogic {
+  state = { mode: 'adv', cur: 'usd', beds: 2, baths: 1, park: 1, type: 'Apartamento', amen: { planta: true, agua: false, fibra: true, vigil: false } };
+
+  renderVals() {
+    const dark = !!this.props.dark;
+    const ac = this.props.accent ?? '#5B4BE8';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line;
+
+    const s = this.state;
+    const pills = (labels, key) => labels.map((l, i) => ({ label: l, cls: s[key] === i ? 'pill on' : 'pill', pick: () => this.setState({ [key]: i }) }));
+    const icons = {
+      planta: 'M13 2L4 14h7l-1 8 9-12h-7z',
+      agua: 'M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z',
+      fibra: 'M2 9a15 15 0 0120 0M5 12.5a10.5 10.5 0 0114 0M8.5 16a5.5 5.5 0 017 0M12 19.5h.01',
+      vigil: 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z'
+    };
+    const amenDefs = [['planta', 'Planta eléctrica'], ['agua', 'Agua constante'], ['fibra', 'Fibra óptica'], ['vigil', 'Vigilancia 24h']];
+    const amen = amenDefs.map(([k, label]) => ({ label, icon: icons[k], cls: s.amen[k] ? 'amen on' : 'amen', toggle: () => this.setState({ amen: { ...s.amen, [k]: !s.amen[k] } }) }));
+    const types = ['Apartamento', 'Casa', 'Anexo', 'Habitación', 'Local'].map((l) => ({ label: l, cls: s.type === l ? 'pill on' : 'pill', pick: () => this.setState({ type: l }) }));
+
+    const nAmen = Object.values(s.amen).filter(Boolean).length;
+    const count = Math.max(3, 128 - s.beds * 14 - s.baths * 6 - s.park * 5 - nAmen * 11);
+    const usd = s.cur === 'usd';
+
+    return {
+      themeStyle,
+      beds: pills(['Todas', '1', '2', '3', '4+'], 'beds'),
+      baths: pills(['Todos', '1', '2', '3+'], 'baths'),
+      park: pills(['Sin', '1', '2', '3+'], 'park'),
+      amen,
+      types,
+      count,
+      isAdv: s.mode === 'adv',
+      basicCls: s.mode === 'basic' ? 'seg on' : 'seg',
+      advCls: s.mode === 'adv' ? 'seg on' : 'seg',
+      setBasic: () => this.setState({ mode: 'basic' }),
+      setAdv: () => this.setState({ mode: 'adv' }),
+      usdCls: usd ? 'seg on' : 'seg',
+      vesCls: usd ? 'seg' : 'seg on',
+      setUsd: () => this.setState({ cur: 'usd' }),
+      setVes: () => this.setState({ cur: 'ves' }),
+      minVal: usd ? '$ 150' : 'Bs. [MIN]',
+      maxVal: usd ? '$ 800' : 'Bs. [MAX]',
+      reset: () => this.setState({ beds: 0, baths: 0, park: 0, type: '', amen: { planta: false, agua: false, fibra: false, vigil: false } })
+    };
+  }
+}
+</script>
+</body>
+</html>

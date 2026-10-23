@@ -1,0 +1,223 @@
+/* Tailwind SIN preflight: el diseno trae sus propios estilos base y se ve igual que en las maquetas. */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* ---------- Tokens de tema ----------
+   --ac (color de marca) lo cambia ThemeProvider; todo lo demas se deriva de el.
+   data-theme="dark" en <html> activa el modo noche. */
+:root {
+  --ac: #5b4be8;
+  --ac-ink: var(--ac);
+  --ac-soft: color-mix(in srgb, var(--ac) 12%, white);
+  --bg: #ffffff;
+  --surf: #ffffff;
+  --surf2: #f4f6fa;
+  --text: #0f1420;
+  --muted: #566073;
+  --ink2: var(--muted);
+  --line: #e6e9f0;
+  --map-bg: #eef1f6;
+  --map-road: #ffffff;
+  --map-park: #d3ebda;
+  --map-water: #cfe3f6;
+}
+
+:root[data-theme='dark'] {
+  --ac-ink: color-mix(in srgb, var(--ac) 55%, white);
+  --ac-soft: color-mix(in srgb, var(--ac) 22%, #161b24);
+  --bg: #0e1117;
+  --surf: #161b24;
+  --surf2: #1d2430;
+  --text: #f3f5f9;
+  --muted: #a3adbf;
+  --line: #2a3342;
+  --map-bg: #1a212c;
+  --map-road: #2b3544;
+  --map-park: #1b3a2f;
+  --map-water: #18304a;
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Cambio suave entre modo dia y noche */
+html.theme-anim,
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    fill 0.35s ease !important;
+}
+
+/* ---------- Escritorio / movil ----------
+   Cada pantalla tiene version de escritorio y version movil; se alterna por ancho. */
+.only-mobile {
+  display: none;
+}
+@media (max-width: 899px) {
+  .only-desktop {
+    display: none;
+  }
+  .only-mobile {
+    display: block;
+  }
+}
+
+/* ---------- Micro-interacciones globales ---------- */
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+button:not(:disabled):active,
+a[class]:active {
+  filter: brightness(0.96);
+}
+
+/* Aparicion al hacer scroll (RevealObserver). Sin JS todo se ve normal. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.js [data-reveal].in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Avisos (Toaster) ---------- */
+.toaster {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 16px;
+  background: #12151c;
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+}
+.toast-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ---------- Selector de tema (herramienta de diseno) ---------- */
+.theme-picker {
+  position: fixed;
+  right: 10px;
+  top: 52%;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+.theme-fab {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 22px rgba(15, 20, 32, 0.22);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.theme-fab:hover {
+  transform: rotate(-12deg) scale(1.08);
+}
+.theme-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  color: var(--text);
+  box-shadow: 0 22px 54px rgba(15, 20, 32, 0.3);
+}
+.theme-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.theme-swatches {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--surf);
+  box-shadow: 0 0 0 2px var(--line);
+  cursor: pointer;
+  transition: transform 0.18s;
+}
+.swatch:hover {
+  transform: scale(1.12);
+}
+.swatch.on {
+  box-shadow: 0 0 0 3px var(--text);
+}
+.swatch-custom {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.theme-toggle {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surf2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

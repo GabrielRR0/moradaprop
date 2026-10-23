@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mapa y lista noche</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:12px;border:0;background:var(--ac);color:#fff;font-weight:700;font-size:14px;transition:transform .18s, box-shadow .18s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px color-mix(in srgb, var(--ac) 38%, transparent)}
+.btn2{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--text);font-weight:600;font-size:14px;transition:background .18s, border-color .18s}
+.btn2:hover{background:var(--surf2);border-color:var(--ac)}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surf);color:var(--text);font-weight:600;font-size:14px;transition:all .18s;white-space:nowrap}
+.chip:hover{border-color:var(--ac)}
+.chip.on{background:var(--ac-soft);border-color:var(--ac);color:var(--ac-ink)}
+.row{display:flex;gap:14px;width:100%;text-align:left;padding:12px;border-radius:20px;border:1px solid var(--line);background:var(--surf);opacity:0;animation:rise .55s cubic-bezier(.2,.8,.2,1) forwards;transition:transform .2s, box-shadow .2s, border-color .2s}
+.row:hover{transform:translateX(4px);border-color:var(--ac)}
+.row.sel{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac-soft)}
+.tag{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:var(--surf2);color:var(--muted);font-size:12px;font-weight:600}
+.pin{position:absolute;display:flex;align-items:center;padding:7px 12px;border-radius:999px;background:var(--surf);color:var(--text);font-weight:800;font-size:13px;border:1px solid var(--line);box-shadow:0 6px 16px rgba(15,20,32,.22);transform:translate(-50%,-100%);transition:transform .2s;animation:drop .7s cubic-bezier(.3,1.4,.5,1) both}
+.pin::after{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:inherit;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.pin:hover{transform:translate(-50%,-100%) scale(1.1);z-index:5}
+.pin.sel{background:var(--ac);color:#fff;border-color:var(--ac);z-index:6;transform:translate(-50%,-100%) scale(1.15)}
+.pin.sel::after{border-color:var(--ac)}
+.pin.seen{opacity:.7}
+.cluster{position:absolute;width:56px;height:56px;border-radius:50%;background:var(--ac);color:#fff;font-weight:800;border:3px solid var(--surf);display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 6px 16px rgba(15,20,32,.25);transition:transform .2s}
+.cluster:hover{transform:translate(-50%,-50%) scale(1.12)}
+.cluster::before{content:"";position:absolute;inset:-10px;border-radius:50%;background:var(--ac);opacity:.25;animation:pulse 2.4s ease-out infinite;z-index:-1}
+.mc{width:46px;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--surf);display:grid;place-items:center;box-shadow:0 6px 16px rgba(15,20,32,.16);transition:background .18s}
+.mc:hover{background:var(--surf2)}
+.pop{position:absolute;width:330px;display:flex;flex-direction:column;border-radius:22px;background:var(--surf);border:1px solid var(--line);box-shadow:0 26px 60px rgba(15,20,32,.3);overflow:hidden;z-index:10;animation:pop .35s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes rise{
+from{opacity:0;transform:translateY(20px)}
+to{opacity:1;transform:translateY(0)}
+}
+@keyframes drop{
+from{opacity:0;margin-top:-22px}
+to{opacity:1;margin-top:0}
+}
+@keyframes pulse{
+0%{transform:scale(.7);opacity:.35}
+100%{transform:scale(1.5);opacity:0}
+}
+@keyframes pop{
+from{opacity:0;margin-top:14px}
+to{opacity:1;margin-top:0}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+.row{opacity:1}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; width:1440px; height:900px; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; overflow:hidden">
+
+<!-- TOP BAR -->
+<header style="flex:0 0 72px; display:flex; align-items:center; gap:20px; padding:0 24px; border-bottom:1px solid var(--line)">
+<a href="Main.dc.html" style="display:flex; align-items:center; gap:10px; font-weight:800; font-size:19px; letter-spacing:-0.02em">
+<span style="width:36px; height:36px; border-radius:11px; background:var(--ac); display:grid; place-items:center; color:#fff">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+</span>
+[NOMBRE]
+</a>
+<label style="flex:1 1 auto; max-width:560px; display:flex; align-items:center; gap:10px; min-height:48px; padding:0 16px; border-radius:999px; background:var(--surf2); border:1px solid var(--line)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+<input type="text" value="Caracas, Distrito Capital" aria-label="Buscar ubicación" style="flex:1; border:0; outline:0; background:transparent; font:inherit; font-weight:600; font-size:15px; color:var(--text)" />
+</label>
+<div style="margin-left:auto; display:flex; align-items:center; gap:10px">
+<button class="btn2" aria-label="Favoritos">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5.2 5.2 0 00-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 00-7.4 7.4L12 21.8l8.8-8.8a5.2 5.2 0 000-7.4z"/></svg>
+Favoritos</button>
+<button class="btn2" aria-label="Crear alerta">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+Alertas</button>
+<a href="Main.dc.html" class="btn">Publicar</a>
+</div>
+</header>
+
+<!-- FILTER BAR -->
+<div style="flex:0 0 68px; display:flex; align-items:center; gap:10px; padding:0 24px; border-bottom:1px solid var(--line); overflow:hidden">
+<button class="chip">Precio · hasta $800
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+</button>
+<button class="chip">Habitaciones · 2+
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+</button>
+<span style="width:1px; height:28px; background:var(--line); margin:0 4px"></span>
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="4">
+<button class="{{c.cls}}" onClick="{{c.toggle}}">{{c.label}}</button>
+</sc-for>
+<a href="Filtros.dc.html" class="btn2" style="margin-left:auto">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+Más filtros
+<span style="min-width:22px; height:22px; border-radius:11px; background:var(--ac); color:#fff; font-size:12px; font-weight:800; display:grid; place-items:center">3</span>
+</a>
+</div>
+
+<!-- BODY -->
+<div style="flex:1 1 auto; display:flex; min-height:0">
+
+<!-- LIST -->
+<aside style="flex:0 0 470px; display:flex; flex-direction:column; border-right:1px solid var(--line); min-height:0">
+<div style="flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:18px 20px 12px">
+<div style="display:flex; flex-direction:column; gap:2px">
+<span style="font-weight:800; font-size:20px; letter-spacing:-0.01em">128 propiedades</span>
+<span style="font-size:13px; color:var(--muted)">en esta zona del mapa</span>
+</div>
+<button class="btn2" style="min-height:40px">Más recientes
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+</button>
+</div>
+<div style="flex:1 1 auto; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding:4px 20px 20px">
+<sc-for list="{{items}}" as="p" hint-placeholder-count="5">
+<button class="{{p.rowCls}}" onClick="{{p.pick}}" style="animation-delay:{{p.delay}}">
+<span style="{{p.photoStyle}}; flex:0 0 132px; height:132px; border-radius:14px; display:grid; place-items:center; color:var(--ac-ink)">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+</span>
+<span style="flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:6px">
+<span style="display:flex; align-items:baseline; justify-content:space-between">
+<span style="font-weight:800; font-size:20px; letter-spacing:-0.02em">{{p.price}}<span style="font-size:12px; font-weight:600; color:var(--muted)"> /mes</span></span>
+<span style="font-size:11px; font-weight:800; color:var(--ac-ink); text-transform:uppercase; letter-spacing:.04em">{{p.badge}}</span>
+</span>
+<span style="font-weight:700; font-size:15px">{{p.title}}</span>
+<span style="font-size:13px; color:var(--muted)">{{p.place}}</span>
+<span style="font-size:13px; font-weight:600">{{p.beds}} hab · {{p.baths}} baños · {{p.area}} m²</span>
+<span style="display:flex; flex-wrap:wrap; gap:6px">
+<sc-for list="{{p.tags}}" as="t" hint-placeholder-count="2">
+<span class="tag">{{t.label}}</span>
+</sc-for>
+</span>
+</span>
+</button>
+</sc-for>
+</div>
+</aside>
+
+<!-- MAP -->
+<main style="flex:1 1 auto; position:relative; overflow:hidden; background:var(--map-bg)">
+<svg viewBox="0 0 970 764" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="position:absolute; inset:0" aria-hidden="true">
+<rect width="970" height="764" style="fill:var(--map-bg)"/>
+<path d="M-20 620 C 150 560 300 690 480 630 S 780 540 1000 600" style="fill:none; stroke:var(--map-water); stroke-width:64; stroke-linecap:round"/>
+<path d="M420 60 C 520 40 640 100 650 190 C 660 280 560 300 490 250 C 420 200 360 90 420 60z" style="fill:var(--map-park)"/>
+<path d="M60 380 C 130 340 220 360 240 420 C 250 480 160 500 100 470 C 50 450 30 400 60 380z" style="fill:var(--map-park)"/>
+<path d="M-10 160 C 160 210 300 140 480 190 S 780 270 980 210" style="fill:none; stroke:var(--map-road); stroke-width:20; stroke-linecap:round"/>
+<path d="M200 -10 C 230 140 150 280 230 420 S 290 640 260 780" style="fill:none; stroke:var(--map-road); stroke-width:18; stroke-linecap:round"/>
+<path d="M-10 420 C 200 390 420 450 620 400 S 860 420 980 450" style="fill:none; stroke:var(--map-road); stroke-width:14; stroke-linecap:round"/>
+<path d="M640 -10 C 610 120 700 260 660 400 S 690 600 720 780" style="fill:none; stroke:var(--map-road); stroke-width:14; stroke-linecap:round"/>
+<path d="M-10 300 L 980 330 M-10 520 L 980 500 M100 -10 L 80 780 M400 -10 L 420 780 M540 -10 L 560 780 M850 -10 L 830 780 M-10 90 L 980 110" style="fill:none; stroke:var(--map-road); stroke-width:6; stroke-linecap:round"/>
+</svg>
+
+<div class="cluster" style="left:11%; top:30%; animation:drop .7s .1s both"><span>14</span></div>
+<div class="cluster" style="left:88%; top:44%; animation:drop .7s .25s both"><span>9</span></div>
+<div class="cluster" style="left:50%; top:88%; animation:drop .7s .4s both"><span>6</span></div>
+
+<sc-for list="{{pins}}" as="n" hint-placeholder-count="6">
+<button class="{{n.cls}}" onClick="{{n.pick}}" style="left:{{n.x}}; top:{{n.y}}; animation-delay:{{n.delay}}" aria-label="{{n.aria}}">{{n.price}}</button>
+</sc-for>
+
+<!-- POPUP CARD -->
+<div class="pop" style="left:{{cur.x}}; top:{{cur.y}}; transform:translate(-50%, calc(-100% - 58px))">
+<div style="{{cur.photoStyle}}; position:relative; height:150px; display:grid; place-items:center; color:var(--ac-ink)">
+<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+<span style="position:absolute; top:12px; left:12px; padding:5px 11px; border-radius:999px; background:var(--surf); font-size:12px; font-weight:800; color:var(--ac-ink)">{{cur.badge}}</span>
+<span style="position:absolute; bottom:10px; right:12px; padding:4px 10px; border-radius:999px; background:rgba(15,20,32,.7); color:#fff; font-size:12px; font-weight:700">1 / 12</span>
+</div>
+<div style="display:flex; flex-direction:column; gap:8px; padding:16px">
+<div style="display:flex; align-items:baseline; justify-content:space-between">
+<span style="font-weight:800; font-size:24px; letter-spacing:-0.02em">{{cur.price}}<span style="font-size:13px; font-weight:600; color:var(--muted)"> /mes</span></span>
+<span style="font-size:13px; font-weight:700; color:var(--ac-ink)">Ver en Bs.</span>
+</div>
+<span style="font-weight:700; font-size:16px">{{cur.title}}</span>
+<span style="font-size:13px; color:var(--muted)">{{cur.place}} · {{cur.beds}} hab · {{cur.baths}} baños · {{cur.area}} m²</span>
+<div style="display:flex; gap:8px; margin-top:6px">
+<a href="Main.dc.html" class="btn" style="flex:1; background:#1F9D55">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.4 7.8L3 21l1.3-4.4A9 9 0 1121 12z"/></svg>
+WhatsApp</a>
+<a href="Main.dc.html" class="btn2" style="flex:1">Ver detalle</a>
+</div>
+</div>
+</div>
+
+<!-- MAP UI -->
+<button class="btn2" style="position:absolute; top:18px; left:50%; transform:translateX(-50%); min-height:46px; padding:0 22px; border-radius:999px; box-shadow:0 8px 22px rgba(15,20,32,.2); font-weight:700; color:var(--ac-ink)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 4v5h-5"/></svg>
+Buscar en esta zona</button>
+
+<div style="position:absolute; top:18px; right:18px; display:flex; flex-direction:column; gap:10px">
+<button class="mc" aria-label="Acercar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<button class="mc" aria-label="Alejar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+<button class="mc" aria-label="Mi ubicación" style="margin-top:6px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg></button>
+<button class="mc" aria-label="Tipo de mapa"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
+</div>
+
+<button class="btn2" style="position:absolute; left:18px; bottom:18px; box-shadow:0 8px 22px rgba(15,20,32,.2)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 11-11a2.1 2.1 0 00-3-3L5 16z"/><path d="M14 7l3 3"/></svg>
+Dibujar mi zona</button>
+
+<div style="position:absolute; right:18px; bottom:18px; display:flex; align-items:center; gap:14px; padding:10px 16px; border-radius:14px; background:var(--surf); border:1px solid var(--line); font-size:12px; font-weight:600; color:var(--muted); box-shadow:0 8px 22px rgba(15,20,32,.16)">
+<span style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; border-radius:50%; background:var(--ac)"></span>Seleccionada</span>
+<span style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; border-radius:50%; background:var(--surf); border:2px solid var(--muted)"></span>Disponible</span>
+<span style="display:flex; align-items:center; gap:6px"><span style="width:12px; height:12px; border-radius:50%; background:var(--surf2); border:2px dashed var(--muted)"></span>En reserva</span>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5B4BE8","options":["#2563EB","#5B4BE8","#0E8A5F","#C2410C"],"section":"Marca"},"dark":{"editor":"boolean","default":true,"section":"Marca"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  state = { sel: 2, on: { planta: true, fibra: true } };
+
+  renderVals() {
+    const dark = this.props.dark ?? true;
+    const ac = this.props.accent ?? '#5B4BE8';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)', mbg: '#1A212C', road: '#2B3544', park: '#1B3A2F', water: '#18304A' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)', mbg: '#EEF1F6', road: '#FFFFFF', park: '#D3EBDA', water: '#CFE3F6' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line + ';--map-bg:' + t.mbg + ';--map-road:' + t.road + ';--map-park:' + t.park + ';--map-water:' + t.water;
+
+    const sel = this.state.sel;
+    const base = [
+      { id: 1, title: 'Apartamento moderno con vista', place: 'Los Palos Grandes', price: '$450', beds: 2, baths: 2, area: 85, badge: 'Nuevo', tags: ['Planta eléctrica', 'Fibra óptica'], x: 36, y: 56 },
+      { id: 2, title: 'Casa familiar con jardín', place: 'La Lagunita', price: '$1.200', beds: 4, baths: 3, area: 240, badge: 'Destacado', tags: ['Vigilancia', 'Tanque de agua'], x: 56, y: 62 },
+      { id: 3, title: 'Anexo acogedor y luminoso', place: 'El Cafetal', price: '$280', beds: 1, baths: 1, area: 45, badge: 'Nuevo', tags: ['Fibra óptica'], x: 26, y: 78 },
+      { id: 4, title: 'Penthouse con terraza', place: 'Altamira', price: '$1.800', beds: 3, baths: 3, area: 210, badge: 'Destacado', tags: ['Planta eléctrica', 'Vigilancia'], x: 70, y: 76 },
+      { id: 5, title: 'Apartamento céntrico', place: 'Chacao', price: '$390', beds: 2, baths: 1, area: 70, badge: 'En reserva', tags: ['Tanque de agua'], x: 44, y: 80 },
+      { id: 6, title: 'Estudio amoblado', place: 'Las Mercedes', price: '$320', beds: 1, baths: 1, area: 38, badge: 'Nuevo', tags: ['Fibra óptica'], x: 76, y: 58 }
+    ];
+    const items = base.map((p, i) => ({
+      ...p,
+      tags: p.tags.map((label) => ({ label })),
+      delay: (i * 70) + 'ms',
+      rowCls: p.id === sel ? 'row sel' : 'row',
+      photoStyle: 'background:color-mix(in srgb, var(--ac) ' + (10 + i * 3) + '%, var(--surf2))',
+      pick: () => this.setState({ sel: p.id })
+    }));
+    const pins = base.map((p, i) => ({
+      x: p.x + '%',
+      y: p.y + '%',
+      price: p.price,
+      aria: p.title + ', ' + p.price,
+      delay: (300 + i * 110) + 'ms',
+      cls: p.id === sel ? 'pin sel' : 'pin',
+      pick: () => this.setState({ sel: p.id })
+    }));
+    const c = items.find((p) => p.id === sel);
+    const cur = { ...c, x: c.x + '%', y: c.y + '%' };
+
+    const on = this.state.on;
+    const chips = [
+      { k: 'planta', label: 'Planta eléctrica' },
+      { k: 'agua', label: 'Agua constante' },
+      { k: 'fibra', label: 'Fibra óptica' },
+      { k: 'vigil', label: 'Vigilancia' }
+    ].map((q) => ({ label: q.label, cls: on[q.k] ? 'chip on' : 'chip', toggle: () => this.setState({ on: { ...on, [q.k]: !on[q.k] } }) }));
+
+    return { themeStyle, items, pins, cur, chips };
+  }
+}
+</script>
+</body>
+</html>

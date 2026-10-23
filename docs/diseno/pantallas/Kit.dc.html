@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Kit de diseño</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+.pin{position:relative;display:inline-flex;align-items:center;padding:7px 12px;border-radius:999px;background:var(--surf);color:var(--text);font-weight:800;font-size:13px;border:1px solid var(--line);box-shadow:0 6px 16px rgba(15,20,32,.22)}
+.pin::after{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:inherit;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.pin.sel{background:var(--ac);color:#fff;border-color:var(--ac);transform:scale(1.15)}
+.pin.sel::after{border-color:var(--ac)}
+.pin.seen{opacity:.6}
+.pin.res{border-style:dashed;color:var(--muted);background:var(--surf2)}
+.pin.res::after{border-style:dashed}
+.pin.fav{padding-left:10px;gap:6px}
+.cluster{position:relative;width:52px;height:52px;border-radius:50%;background:var(--ac);color:#fff;font-weight:800;border:3px solid var(--surf);display:grid;place-items:center;box-shadow:0 6px 16px rgba(15,20,32,.25)}
+.cluster::before{content:"";position:absolute;inset:-10px;border-radius:50%;background:var(--ac);opacity:.25;animation:pulse 2.4s ease-out infinite;z-index:-1}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--ac);border:3px solid #fff;box-shadow:0 0 0 0 var(--ac);animation:ring 2s ease-out infinite}
+.tag{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:var(--surf2);color:var(--muted);font-size:12px;font-weight:600}
+.badge{display:inline-flex;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:800}
+.move{width:56px;height:56px;border-radius:16px;background:var(--ac);flex:0 0 auto}
+@keyframes pulse{
+0%{transform:scale(.7);opacity:.35}
+100%{transform:scale(1.5);opacity:0}
+}
+@keyframes ring{
+0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--ac) 55%, transparent)}
+100%{box-shadow:0 0 0 18px transparent}
+}
+@keyframes hop{
+0%{transform:translateY(0)}
+40%{transform:translateY(-14px)}
+70%{transform:translateY(0)}
+85%{transform:translateY(-4px)}
+100%{transform:translateY(0)}
+}
+@keyframes slide{
+0%{transform:translateX(0)}
+50%{transform:translateX(24px)}
+100%{transform:translateX(0)}
+}
+@keyframes beat{
+0%{transform:scale(1)}
+30%{transform:scale(1.35)}
+60%{transform:scale(.92)}
+100%{transform:scale(1)}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important}
+}
+</style>
+</helmet>
+<div style="--ac:#5B4BE8; --ac-ink:#5B4BE8; --ac-soft:color-mix(in srgb, #5B4BE8 12%, white); --bg:#FFFFFF; --surf:#FFFFFF; --surf2:#F4F6FA; --text:#0F1420; --muted:#566073; --line:#E6E9F0; width:1440px; height:820px; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; padding:48px; display:flex; flex-direction:column; gap:36px">
+
+<div style="display:flex; align-items:baseline; justify-content:space-between">
+<span style="font-weight:800; font-size:34px; letter-spacing:-0.03em">Kit: color, pines, cards y movimiento</span>
+<span style="font-size:15px; color:var(--muted)">Un solo color de marca. Todo lo demás son neutros.</span>
+</div>
+
+<div style="display:flex; gap:40px; flex:1 1 auto; min-height:0">
+
+<!-- COLUMN 1: ACCENTS -->
+<section style="flex:0 0 380px; display:flex; flex-direction:column; gap:18px">
+<span style="font-weight:800; font-size:18px">1 · Elige el color de marca</span>
+<div style="display:flex; flex-direction:column; gap:12px">
+<div style="display:flex; align-items:center; gap:14px; padding:14px; border-radius:18px; border:1px solid var(--line)">
+<span style="width:56px; height:56px; border-radius:16px; background:#2563EB"></span>
+<span style="flex:1; display:flex; flex-direction:column"><span style="font-weight:800">Azul</span><span style="font-size:13px; color:var(--muted)">Confianza, formal, "banco"</span></span>
+<span style="font-size:12px; font-weight:700; color:var(--muted)">#2563EB</span>
+</div>
+<div style="display:flex; align-items:center; gap:14px; padding:14px; border-radius:18px; border:2px solid var(--ac); background:var(--ac-soft)">
+<span style="width:56px; height:56px; border-radius:16px; background:#5B4BE8"></span>
+<span style="flex:1; display:flex; flex-direction:column"><span style="font-weight:800">Violeta</span><span style="font-size:13px; color:var(--muted)">Moderno, se distingue de la competencia</span></span>
+<span style="font-size:12px; font-weight:700; color:var(--muted)">#5B4BE8</span>
+</div>
+<div style="display:flex; align-items:center; gap:14px; padding:14px; border-radius:18px; border:1px solid var(--line)">
+<span style="width:56px; height:56px; border-radius:16px; background:#0E8A5F"></span>
+<span style="flex:1; display:flex; flex-direction:column"><span style="font-weight:800">Verde</span><span style="font-size:13px; color:var(--muted)">Hogar, crecimiento, tranquilo</span></span>
+<span style="font-size:12px; font-weight:700; color:var(--muted)">#0E8A5F</span>
+</div>
+<div style="display:flex; align-items:center; gap:14px; padding:14px; border-radius:18px; border:1px solid var(--line)">
+<span style="width:56px; height:56px; border-radius:16px; background:#C2410C"></span>
+<span style="flex:1; display:flex; flex-direction:column"><span style="font-weight:800">Terracota</span><span style="font-size:13px; color:var(--muted)">Cálido, cercano, llamativo</span></span>
+<span style="font-size:12px; font-weight:700; color:var(--muted)">#C2410C</span>
+</div>
+</div>
+<p style="margin:0; font-size:14px; line-height:1.6; color:var(--muted)">Cambia el acento con el botón Tweaks de cualquier pantalla. En modo noche el color se aclara solo para mantener la lectura.</p>
+</section>
+
+<!-- COLUMN 2: PINS + CARDS -->
+<section style="flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:18px">
+<span style="font-weight:800; font-size:18px">2 · Pines del mapa: un estado, un significado</span>
+<div style="display:flex; gap:20px">
+<div style="flex:1; display:flex; flex-wrap:wrap; align-items:flex-end; gap:30px 26px; padding:32px 28px 36px; border-radius:22px; background:#EEF1F6">
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="pin">$450</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Disponible</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="pin sel">$1.200</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Seleccionada</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="pin seen">$280</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Ya vista</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="pin res">$390</span><span style="font-size:12px; font-weight:700; color:var(--muted)">En reserva</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="pin fav"><svg width="14" height="14" viewBox="0 0 24 24" fill="#5B4BE8" stroke="#5B4BE8" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5.2 5.2 0 00-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 00-7.4 7.4L12 21.8l8.8-8.8a5.2 5.2 0 000-7.4z"/></svg>$320</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Favorita</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="cluster">14</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Grupo (zoom)</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="dot"></span><span style="font-size:12px; font-weight:700; color:var(--muted)">Tú estás aquí</span></div>
+</div>
+<div style="--bg:#0E1117; --surf:#161B24; --surf2:#1D2430; --text:#F3F5F9; --muted:#A3ADBF; --line:#2A3342; --ac:#8B7BFF; --ac-ink:#B9AFFF; flex:0 0 330px; display:flex; flex-wrap:wrap; align-items:flex-end; gap:30px 24px; padding:32px 28px 36px; border-radius:22px; background:#1A212C; color:var(--text)">
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="pin">$450</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Noche</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="pin sel" style="color:#0E1117">$1.200</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Seleccionada</span></div>
+<div style="display:flex; flex-direction:column; align-items:center; gap:18px"><span class="cluster" style="color:#0E1117">14</span><span style="font-size:12px; font-weight:700; color:var(--muted)">Grupo</span></div>
+</div>
+</div>
+
+<span style="font-weight:800; font-size:18px; margin-top:6px">3 · Insignias de estado (las del negocio)</span>
+<div style="display:flex; flex-wrap:wrap; align-items:center; gap:12px">
+<span class="badge" style="background:var(--ac-soft); color:var(--ac-ink)">Nuevo</span>
+<span class="badge" style="background:#FFF1D6; color:#7A4A00">Destacado</span>
+<span class="badge" style="background:#E3F4EA; color:#14633A">Disponible hoy</span>
+<span class="badge" style="background:#FDE7E3; color:#8F2A1B">En proceso de reserva</span>
+<span class="badge" style="background:var(--surf2); color:var(--muted)">Alquilada</span>
+<span class="tag">Planta eléctrica</span>
+<span class="tag">Fibra óptica</span>
+<span class="tag">Tanque de agua</span>
+</div>
+</section>
+
+<!-- COLUMN 3: MOTION -->
+<section style="flex:0 0 400px; display:flex; flex-direction:column; gap:18px">
+<span style="font-weight:800; font-size:18px">4 · Animaciones con propósito</span>
+<div style="display:flex; flex-direction:column; gap:14px">
+<div style="display:flex; align-items:center; gap:16px; padding:14px; border-radius:18px; border:1px solid var(--line)">
+<span class="move" style="animation:hop 1.8s ease-in-out infinite; width:44px; height:44px"></span>
+<span style="display:flex; flex-direction:column"><span style="font-weight:800; font-size:15px">Pines que caen</span><span style="font-size:13px; color:var(--muted); line-height:1.4">Al cargar la zona, aparecen uno a uno con rebote.</span></span>
+</div>
+<div style="display:flex; align-items:center; gap:16px; padding:14px; border-radius:18px; border:1px solid var(--line)">
+<span class="cluster" style="width:44px; height:44px; font-size:13px; flex:0 0 auto">9</span>
+<span style="display:flex; flex-direction:column"><span style="font-weight:800; font-size:15px">Grupos que laten</span><span style="font-size:13px; color:var(--muted); line-height:1.4">El halo invita a hacer zoom; al tocar se separan.</span></span>
+</div>
+<div style="display:flex; align-items:center; gap:16px; padding:14px; border-radius:18px; border:1px solid var(--line)">
+<span style="flex:0 0 44px; height:44px; display:grid; place-items:center; animation:beat 1.6s ease-in-out infinite; color:var(--ac)"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5.2 5.2 0 00-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 00-7.4 7.4L12 21.8l8.8-8.8a5.2 5.2 0 000-7.4z"/></svg></span>
+<span style="display:flex; flex-direction:column"><span style="font-weight:800; font-size:15px">Corazón con micro-pulso</span><span style="font-size:13px; color:var(--muted); line-height:1.4">Confirma el favorito sin mensajes ni ventanas.</span></span>
+</div>
+<div style="display:flex; align-items:center; gap:16px; padding:14px; border-radius:18px; border:1px solid var(--line)">
+<span style="flex:0 0 44px; height:44px; display:grid; place-items:center"><span class="move" style="width:28px; height:28px; border-radius:9px; animation:slide 2.2s ease-in-out infinite"></span></span>
+<span style="display:flex; flex-direction:column"><span style="font-weight:800; font-size:15px">Cards que suben al entrar</span><span style="font-size:13px; color:var(--muted); line-height:1.4">Escalonadas 80 ms; al pasar el cursor se elevan.</span></span>
+</div>
+</div>
+<p style="margin:0; font-size:13px; line-height:1.6; color:var(--muted)">Regla: se anima lo que ayuda a entender (dónde, qué cambió, qué se guardó). Todo se apaga con "reducir movimiento" del sistema.</p>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

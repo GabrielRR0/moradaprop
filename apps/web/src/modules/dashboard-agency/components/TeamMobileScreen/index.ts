@@ -1,0 +1,1 @@
+export { TeamMobileScreen } from './TeamMobileScreen';

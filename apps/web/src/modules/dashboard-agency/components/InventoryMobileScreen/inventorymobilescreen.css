@@ -1,0 +1,113 @@
+.ds-inventorymobilescreen * {
+  box-sizing: border-box;
+}
+.ds-inventorymobilescreen button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-inventorymobilescreen input {
+  font: inherit;
+  color: inherit;
+}
+.ds-inventorymobilescreen a {
+  color: inherit;
+  text-decoration: none;
+}
+.ds-inventorymobilescreen :focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+.ds-inventorymobilescreen .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+.ds-inventorymobilescreen .chip.on {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+}
+.ds-inventorymobilescreen .chip .n {
+  font-size: 12px;
+  opacity: 0.8;
+}
+.ds-inventorymobilescreen .pc {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  animation: rise-inventorymobilescreen 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ds-inventorymobilescreen .stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 0;
+  font-weight: 800;
+  font-size: 13px;
+}
+.ds-inventorymobilescreen .act {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surf2);
+  font-weight: 700;
+  font-size: 13px;
+  transition: transform 0.15s;
+}
+.ds-inventorymobilescreen .act:active {
+  transform: scale(0.95);
+}
+.ds-inventorymobilescreen .tb {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.ds-inventorymobilescreen .tb.on {
+  color: var(--ac-ink);
+}
+@keyframes rise-inventorymobilescreen {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-inventorymobilescreen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

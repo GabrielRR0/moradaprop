@@ -1,0 +1,180 @@
+.ds-importmobilescreen * {
+  box-sizing: border-box;
+}
+.ds-importmobilescreen button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-importmobilescreen input {
+  font: inherit;
+  color: inherit;
+}
+.ds-importmobilescreen a {
+  color: inherit;
+  text-decoration: none;
+}
+.ds-importmobilescreen :focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+.ds-importmobilescreen .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 24px;
+  border-radius: 16px;
+  border: 0;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+}
+.ds-importmobilescreen .btn:active {
+  transform: scale(0.97);
+}
+.ds-importmobilescreen .btn2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  font-weight: 700;
+  font-size: 15px;
+}
+.ds-importmobilescreen .sum {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+}
+.ds-importmobilescreen .err {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  transition: background 0.3s;
+}
+.ds-importmobilescreen .err.fixed {
+  background: color-mix(in srgb, #1f9d55 10%, var(--surf));
+}
+.ds-importmobilescreen .fi {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--surf);
+  font-weight: 600;
+  font-size: 15px;
+  outline: 0;
+  width: 100%;
+}
+.ds-importmobilescreen .fi:focus {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 4px var(--ac-soft);
+}
+.ds-importmobilescreen .fixb {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+}
+.ds-importmobilescreen .fixb.ok {
+  background: #1f9d55;
+}
+.ds-importmobilescreen .prog {
+  height: 14px;
+  border-radius: 7px;
+  background: var(--line);
+  overflow: hidden;
+}
+.ds-importmobilescreen .prog i {
+  display: block;
+  height: 100%;
+  border-radius: 7px;
+  background: var(--ac);
+  animation: fill-importmobilescreen 3.2s cubic-bezier(0.4, 0.1, 0.2, 1) forwards;
+}
+.ds-importmobilescreen .step {
+  animation: slidein-importmobilescreen 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ds-importmobilescreen .pn {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  transition: background 0.3s;
+}
+.ds-importmobilescreen .pn.on {
+  background: var(--ac);
+}
+@keyframes slidein-importmobilescreen {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes fill-importmobilescreen {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes bob-importmobilescreen {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes burst-importmobilescreen {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes check-importmobilescreen {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-importmobilescreen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

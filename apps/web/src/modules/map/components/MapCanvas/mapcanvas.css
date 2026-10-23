@@ -1,0 +1,60 @@
+/* Contenedor del mapa real. Los pines (.pin, .cluster) y la ficha (.pop) toman sus estilos de la
+   pantalla que contiene el mapa (.ds-mapscreen / .ds-mapmobilescreen). */
+.mc-wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--map-bg);
+}
+.mc-map {
+  position: absolute;
+  inset: 0;
+}
+.mc-loading {
+  position: absolute;
+  inset: 0;
+  background: var(--map-bg);
+  pointer-events: none;
+}
+.mc-host {
+  width: 0;
+  height: 0;
+}
+.mc-me {
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  background: var(--ac);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--ac) 55%, transparent);
+  animation: mc-ring 2s ease-out infinite;
+}
+@keyframes mc-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ac) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 20px transparent;
+  }
+}
+
+/* Atribucion del mapa (obligatoria): discreta y con los colores del tema. */
+.mc-wrap .maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--surf) 85%, transparent);
+  color: var(--muted);
+  border-radius: 10px;
+  margin: 10px 0 0 10px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+.mc-wrap .maplibregl-ctrl-attrib a {
+  color: var(--muted);
+}
+.mc-wrap .maplibregl-canvas {
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mc-me {
+    animation: none;
+  }
+}

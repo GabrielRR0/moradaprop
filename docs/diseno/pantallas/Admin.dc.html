@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Administrador moderación</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 22px;border-radius:14px;border:0;background:var(--ac);color:#fff;font-weight:800;font-size:15px;transition:transform .18s, box-shadow .18s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px color-mix(in srgb, var(--ac) 38%, transparent)}
+.btn2{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 18px;border-radius:14px;border:1px solid var(--line);background:var(--surf);color:var(--text);font-weight:700;font-size:15px;transition:all .18s}
+.btn2:hover{border-color:var(--ac);background:var(--surf2)}
+.nav{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 14px;border-radius:14px;font-weight:700;font-size:15px;color:var(--muted);transition:all .18s}
+.nav:hover{background:var(--surf2);color:var(--text)}
+.nav.on{background:var(--ac);color:#fff}
+.nav .c{margin-left:auto;min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:var(--ac-soft);color:var(--ac-ink);font-size:12px;font-weight:800;display:grid;place-items:center}
+.nav.on .c{background:rgba(255,255,255,.25);color:#fff}
+.kpi{display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:20px;border:1px solid var(--line);background:var(--surf);transition:transform .22s, border-color .22s}
+.kpi:hover{transform:translateY(-3px);border-color:var(--ac)}
+.q{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:12px;border-radius:18px;border:2px solid var(--line);background:var(--surf);animation:rise .45s cubic-bezier(.2,.8,.2,1) both;transition:all .2s}
+.q:hover{border-color:var(--ac);transform:translateX(4px)}
+.q.sel{border-color:var(--ac);background:var(--ac-soft)}
+.flag{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:800}
+.chk{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--surf2);font-weight:600;font-size:14px}
+.tab{min-height:44px;padding:0 16px;border:0;border-bottom:3px solid transparent;background:transparent;font-weight:700;font-size:14px;color:var(--muted)}
+.tab.on{color:var(--ac-ink);border-bottom-color:var(--ac)}
+.log{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+@keyframes rise{
+from{opacity:0;transform:translateY(14px)}
+to{opacity:1;transform:translateY(0)}
+}
+@keyframes burst{
+from{transform:scale(.5);opacity:0}
+to{transform:scale(1);opacity:1}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; width:1440px; height:960px; display:flex; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; overflow:hidden">
+
+<aside style="flex:0 0 264px; display:flex; flex-direction:column; gap:6px; padding:22px 16px; border-right:1px solid var(--line); background:var(--surf)">
+<div style="display:flex; align-items:center; gap:10px; padding:0 8px 6px; font-weight:800; font-size:19px; letter-spacing:-0.02em">
+<span style="width:38px; height:38px; border-radius:12px; background:var(--ac); display:grid; place-items:center; color:#fff"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>
+[NOMBRE]
+</div>
+<span style="margin:0 8px 14px; align-self:flex-start; padding:4px 10px; border-radius:999px; background:var(--ac-soft); color:var(--ac-ink); font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase">Administración</span>
+<a href="Admin.dc.html" class="nav"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Métricas</a>
+<a href="Admin.dc.html" class="nav on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.500-3.400 8-8 9-4.600-1-8-4.500-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Moderación<span class="c">{{pending}}</span></a>
+<a href="Admin.dc.html" class="nav"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.500"/><path d="M2 21c0-4 3.100-7 7-7s7 3 7 7M17 4.500a3.500 3.500 0 010 7M22 21c0-3.200-2-5.700-5-6.700"/></svg>Usuarios</a>
+<a href="Admin.dc.html" class="nav"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.600 5.600l12.800 12.800"/></svg>Bloqueos</a>
+<a href="Admin.dc.html" class="nav"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6M9 4a2 2 0 00-2 2v0H5a1 1 0 00-1 1v13a1 1 0 001 1h14a1 1 0 001-1V7a1 1 0 00-1-1h-2v0a2 2 0 00-2-2M8 12h8M8 16h5"/></svg>Auditoría</a>
+<div style="margin-top:auto; display:flex; align-items:center; gap:12px; padding:8px">
+<span style="width:42px; height:42px; border-radius:50%; background:#12151C; color:#fff; display:grid; place-items:center; font-weight:800; font-size:13px">ADM</span>
+<span style="display:flex; flex-direction:column; min-width:0"><span style="font-weight:800; font-size:14px">Equipo de la plataforma</span><span style="font-size:12px; color:var(--muted)">Sesión con doble factor</span></span>
+</div>
+</aside>
+
+<main style="flex:1 1 auto; min-width:0; display:flex; flex-direction:column; padding:28px 36px; gap:20px; overflow:hidden">
+<div style="display:flex; align-items:flex-end; justify-content:space-between">
+<div style="display:flex; flex-direction:column; gap:4px"><h1 style="margin:0; font-size:30px; font-weight:800; letter-spacing:-0.03em">Moderación de anuncios</h1><p style="margin:0; font-size:15px; color:var(--muted)">Revisa lo nuevo antes de que aparezca en el mapa. Cada decisión queda en la auditoría.</p></div>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px">
+<div class="kpi"><span style="font-size:13px; font-weight:700; color:var(--muted)">Por revisar</span><span style="font-weight:800; font-size:32px; letter-spacing:-0.03em; line-height:1">{{pending}}</span></div>
+<div class="kpi"><span style="font-size:13px; font-weight:700; color:var(--muted)">Reportes de usuarios</span><span style="font-weight:800; font-size:32px; letter-spacing:-0.03em; line-height:1">3</span></div>
+<div class="kpi"><span style="font-size:13px; font-weight:700; color:var(--muted)">Cuentas nuevas hoy</span><span style="font-weight:800; font-size:32px; letter-spacing:-0.03em; line-height:1">19</span></div>
+<div class="kpi"><span style="font-size:13px; font-weight:700; color:var(--muted)">Bloqueos activos</span><span style="font-weight:800; font-size:32px; letter-spacing:-0.03em; line-height:1">6</span></div>
+</div>
+
+<div style="display:flex; gap:4px; border-bottom:1px solid var(--line)">
+<button class="tab on">Anuncios nuevos</button><button class="tab">Reportes</button><button class="tab">Cuentas de inmobiliarias</button>
+</div>
+
+<div style="flex:1 1 auto; min-height:0; display:flex; gap:20px">
+<!-- QUEUE -->
+<section style="flex:0 0 440px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; padding-right:4px">
+<sc-for list="{{queue}}" as="q" hint-placeholder-count="5">
+<button class="{{q.cls}}" onClick="{{q.pick}}" style="animation-delay:{{q.delay}}">
+<span style="{{q.photo}}; flex:0 0 64px; height:64px; border-radius:14px; display:grid; place-items:center; color:var(--ac-ink)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.400" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>
+<span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px"><span style="font-weight:800; font-size:15px">{{q.title}}</span><span style="font-size:12px; color:var(--muted)">{{q.by}} · {{q.when}}</span>
+<span style="display:flex; gap:6px"><span class="flag" style="{{q.flagStyle}}">{{q.flag}}</span></span></span>
+</button>
+</sc-for>
+<sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:40px 20px; border-radius:20px; border:2px dashed var(--line); text-align:center">
+<span style="width:64px; height:64px; border-radius:50%; background:var(--ac); color:#fff; display:grid; place-items:center; animation:burst .5s cubic-bezier(.3,1.5,.5,1) both"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+<span style="font-weight:800; font-size:18px">¡Todo al día!</span><span style="font-size:14px; color:var(--muted)">No hay anuncios pendientes de revisión.</span>
+</div>
+</sc-if>
+</section>
+
+<!-- DETAIL -->
+<section style="flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:16px; padding:24px; border-radius:24px; border:1px solid var(--line); background:var(--surf); overflow-y:auto">
+<sc-if value="{{hasCur}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex; gap:20px">
+<span style="{{cur.photo}}; flex:0 0 200px; height:150px; border-radius:18px; display:grid; place-items:center; color:var(--ac-ink)"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.100" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>
+<span style="flex:1; display:flex; flex-direction:column; gap:6px"><span style="font-weight:800; font-size:24px; letter-spacing:-0.02em">{{cur.title}}</span><span style="font-size:15px; color:var(--muted)">{{cur.place}} · {{cur.price}}/mes</span><span style="font-size:14px; color:var(--muted)">Publicado por <b style="color:var(--text)">{{cur.by}}</b> · {{cur.when}}</span><a href="Ficha.dc.html" style="margin-top:6px; font-size:14px; font-weight:800; color:var(--ac-ink)">Abrir la ficha completa</a></span>
+</div>
+<span style="font-weight:800; font-size:16px; margin-top:4px">Revisión automática</span>
+<div style="display:flex; flex-direction:column; gap:8px">
+<sc-for list="{{cur.checks}}" as="c" hint-placeholder-count="4">
+<div class="chk"><span style="flex:0 0 26px; height:26px; border-radius:50%; background:{{c.bg}}; color:#fff; display:grid; place-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.400" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.icon}}"/></svg></span><span style="flex:1">{{c.label}}</span><span style="font-size:12px; font-weight:800; color:{{c.color}}">{{c.note}}</span></div>
+</sc-for>
+</div>
+<div style="display:flex; gap:10px; margin-top:auto; padding-top:12px">
+<button class="btn" onClick="{{approve}}" style="flex:1; background:#1F9D55">Aprobar y publicar</button>
+<button class="btn2" onClick="{{changes}}" style="flex:1">Pedir cambios</button>
+<button class="btn2" onClick="{{reject}}" style="flex:0 0 130px; color:#D64545; border-color:#D64545">Rechazar</button>
+</div>
+</sc-if>
+<sc-if value="{{noCur}}" hint-placeholder-val="{{ false }}">
+<div style="flex:1; display:grid; place-items:center; text-align:center; color:var(--muted); font-size:15px; font-weight:600">Selecciona un anuncio de la lista</div>
+</sc-if>
+</section>
+
+<!-- LOG -->
+<aside style="flex:0 0 300px; display:flex; flex-direction:column; gap:6px; padding:20px; border-radius:24px; border:1px solid var(--line); background:var(--surf2); overflow-y:auto">
+<span style="font-weight:800; font-size:16px; margin-bottom:6px">Auditoría reciente</span>
+<sc-for list="{{log}}" as="l" hint-placeholder-count="5">
+<div class="log"><span style="flex:0 0 10px; height:10px; margin-top:5px; border-radius:50%; background:{{l.color}}"></span><span style="flex:1; color:var(--muted)"><b style="color:var(--text)">{{l.what}}</b><br>{{l.who}} · {{l.when}}</span></div>
+</sc-for>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5B4BE8","options":["#2563EB","#5B4BE8","#0E8A5F","#C2410C"],"section":"Marca"},"dark":{"editor":"boolean","default":false,"section":"Marca"},"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  state = { sel: 1, done: {}, log: [] };
+
+  renderVals() {
+    const dark = !!this.props.dark;
+    const ac = this.props.accent ?? '#5B4BE8';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line;
+
+    const s = this.state;
+    const ok = (label, note) => ({ label, note: note || 'Correcto', bg: '#1F9D55', color: '#1F9D55', icon: 'M5 12l5 5 9-10' });
+    const warn = (label, note) => ({ label, note, bg: '#D98A00', color: '#D98A00', icon: 'M12 7v6M12 17h.01' });
+    const base = [
+      { id: 1, title: 'Casa familiar con jardín', place: 'La Lagunita', price: '$1.200', by: 'Particular · Carlos', when: 'Hace 8 min', flag: 'Precio alto para la zona', ok: false, checks: [ok('Fotos nítidas y sin marcas de agua'), warn('Precio dentro del rango de la zona', 'Un 38% sobre el promedio'), ok('Sin teléfono ni correo en el texto'), ok('Ubicación coincide con la zona indicada')] },
+      { id: 2, title: 'Apartamento amoblado', place: 'Chacao', price: '$480', by: 'Inmobiliaria [Nombre]', when: 'Hace 21 min', flag: 'Todo en orden', ok: true, checks: [ok('Fotos nítidas y sin marcas de agua'), ok('Precio dentro del rango de la zona'), ok('Sin teléfono ni correo en el texto'), ok('Ubicación coincide con la zona indicada')] },
+      { id: 3, title: 'Local comercial esquina', place: 'Sabana Grande', price: '$900', by: 'Particular · Luisa', when: 'Hace 1 h', flag: 'Contacto en el texto', ok: false, checks: [ok('Fotos nítidas y sin marcas de agua'), ok('Precio dentro del rango de la zona'), warn('Sin teléfono ni correo en el texto', 'Hay un número en la descripción'), ok('Ubicación coincide con la zona indicada')] },
+      { id: 4, title: 'Anexo con terraza', place: 'El Cafetal', price: '$300', by: 'Particular · Pedro', when: 'Hace 2 h', flag: 'Pocas fotos', ok: false, checks: [warn('Fotos nítidas y sin marcas de agua', 'Solo 2 fotos'), ok('Precio dentro del rango de la zona'), ok('Sin teléfono ni correo en el texto'), ok('Ubicación coincide con la zona indicada')] },
+      { id: 5, title: 'Penthouse con vista', place: 'Altamira', price: '$1.900', by: 'Inmobiliaria [Nombre]', when: 'Hace 3 h', flag: 'Todo en orden', ok: true, checks: [ok('Fotos nítidas y sin marcas de agua'), ok('Precio dentro del rango de la zona'), ok('Sin teléfono ni correo en el texto'), ok('Ubicación coincide con la zona indicada')] }
+    ];
+    const open = base.filter((p) => !s.done[p.id]);
+    const queue = open.map((p, i) => ({
+      ...p,
+      delay: (i * 60) + 'ms',
+      cls: p.id === s.sel ? 'q sel' : 'q',
+      photo: 'background:color-mix(in srgb, var(--ac) ' + (10 + p.id * 4) + '%, var(--surf2))',
+      flagStyle: p.ok ? 'background:color-mix(in srgb, #1F9D55 16%, var(--surf)); color:color-mix(in srgb, #1F9D55 75%, var(--text))' : 'background:color-mix(in srgb, #D98A00 18%, var(--surf)); color:color-mix(in srgb, #D98A00 75%, var(--text))',
+      pick: () => this.setState({ sel: p.id })
+    }));
+    const found = open.find((p) => p.id === s.sel) || open[0];
+    const cur = found ? { ...found, photo: 'background:color-mix(in srgb, var(--ac) ' + (10 + found.id * 4) + '%, var(--surf2))' } : null;
+    const decide = (word, color) => () => { if (found) { this.setState({ done: { ...s.done, [found.id]: true }, sel: 0, log: [{ what: word + ': ' + found.title, who: 'Tú', when: 'ahora', color }, ...s.log] }); } };
+
+    const log = [...s.log, { what: 'Aprobado: Estudio amoblado', who: 'Moderador 2', when: 'hace 12 min', color: '#1F9D55' }, { what: 'Bloqueo de IP creado', who: 'Moderador 1', when: 'hace 40 min', color: '#D64545' }, { what: 'Rechazado: anuncio duplicado', who: 'Moderador 2', when: 'hace 1 h', color: '#D64545' }, { what: 'Cuenta de inmobiliaria verificada', who: 'Moderador 1', when: 'hace 2 h', color: ac }, { what: 'Cambios pedidos: Local en Las Mercedes', who: 'Moderador 2', when: 'hace 3 h', color: '#D98A00' }].slice(0, 7);
+
+    return {
+      themeStyle, queue, cur, log,
+      pending: open.length + 7,
+      hasCur: !!cur, noCur: !cur, empty: open.length === 0,
+      approve: decide('Aprobado', '#1F9D55'), reject: decide('Rechazado', '#D64545'), changes: decide('Cambios pedidos', '#D98A00')
+    };
+  }
+}
+</script>
+</body>
+</html>

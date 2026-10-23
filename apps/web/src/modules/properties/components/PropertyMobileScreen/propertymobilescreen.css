@@ -1,0 +1,108 @@
+.ds-propertymobilescreen * {
+  box-sizing: border-box;
+}
+.ds-propertymobilescreen button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-propertymobilescreen a {
+  color: inherit;
+  text-decoration: none;
+}
+.ds-propertymobilescreen :focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+.ds-propertymobilescreen .round {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--surf);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 16px rgba(15, 20, 32, 0.25);
+}
+.ds-propertymobilescreen .round.on {
+  animation: beat-propertymobilescreen 0.5s;
+}
+.ds-propertymobilescreen .am {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  font-weight: 700;
+  font-size: 13px;
+}
+.ds-propertymobilescreen .am .i {
+  flex: 0 0 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ac-soft);
+  color: var(--ac-ink);
+  display: grid;
+  place-items: center;
+}
+.ds-propertymobilescreen .day {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 62px;
+  min-height: 64px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--surf);
+  font-weight: 700;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.ds-propertymobilescreen .day.on {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+}
+.ds-propertymobilescreen .dot {
+  height: 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  transition: all 0.25s;
+}
+.ds-propertymobilescreen .dot.on {
+  width: 22px;
+  background: #fff;
+}
+@keyframes beat-propertymobilescreen {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes up-propertymobilescreen {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-propertymobilescreen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

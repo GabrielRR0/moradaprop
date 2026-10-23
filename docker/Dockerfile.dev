@@ -1,0 +1,6 @@
+# Imagen unica de desarrollo (api, web y tareas). El codigo NO se copia: se monta como volumen.
+FROM node:22-alpine
+
+RUN corepack enable
+WORKDIR /app
+ENV CI=true

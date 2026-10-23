@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Móvil modo noche</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surf);color:var(--text);font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.25);transition:all .18s;white-space:nowrap}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.pin{position:absolute;display:flex;align-items:center;min-height:32px;padding:0 11px;border-radius:999px;background:var(--surf);color:var(--text);font-weight:800;font-size:12px;border:1px solid var(--line);box-shadow:0 6px 14px rgba(0,0,0,.4);transform:translate(-50%,-100%);transition:transform .2s;animation:drop .7s cubic-bezier(.3,1.4,.5,1) both}
+.pin::after{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:inherit;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.pin.sel{background:var(--ac);color:#fff;border-color:var(--ac);z-index:6;transform:translate(-50%,-100%) scale(1.18)}
+.pin.sel::after{border-color:var(--ac)}
+.cluster{position:absolute;width:48px;height:48px;border-radius:50%;background:var(--ac);color:#fff;font-weight:800;font-size:14px;border:3px solid var(--surf);display:grid;place-items:center;transform:translate(-50%,-50%);box-shadow:0 6px 14px rgba(0,0,0,.4)}
+.cluster::before{content:"";position:absolute;inset:-9px;border-radius:50%;background:var(--ac);opacity:.25;animation:pulse 2.4s ease-out infinite;z-index:-1}
+.slide{flex:0 0 322px;scroll-snap-align:center;display:flex;gap:12px;padding:10px;border-radius:20px;border:1.5px solid var(--line);background:var(--surf2);text-align:left;transition:border-color .2s, transform .2s}
+.slide.sel{border-color:var(--ac);background:var(--surf)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;border:0;background:transparent;font-size:11px;font-weight:700;color:var(--muted)}
+.tab.on{color:var(--ac-ink)}
+@keyframes drop{
+from{opacity:0;margin-top:-20px}
+to{opacity:1;margin-top:0}
+}
+@keyframes pulse{
+0%{transform:scale(.7);opacity:.35}
+100%{transform:scale(1.5);opacity:0}
+}
+@keyframes up{
+from{transform:translateY(60px);opacity:0}
+to{transform:translateY(0);opacity:1}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; position:relative; width:390px; height:844px; background:var(--map-bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; overflow:hidden">
+
+<svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="position:absolute; inset:0" aria-hidden="true">
+<rect width="390" height="844" style="fill:var(--map-bg)"/>
+<path d="M-20 700 C 80 640 160 740 260 690 S 380 620 420 650" style="fill:none; stroke:var(--map-water); stroke-width:50; stroke-linecap:round"/>
+<path d="M230 180 C 300 160 380 200 380 270 C 380 340 300 350 250 310 C 200 270 190 200 230 180z" style="fill:var(--map-park)"/>
+<path d="M-10 250 C 100 290 200 230 400 290" style="fill:none; stroke:var(--map-road); stroke-width:16; stroke-linecap:round"/>
+<path d="M120 -10 C 150 150 90 300 150 450 S 170 700 150 860" style="fill:none; stroke:var(--map-road); stroke-width:14; stroke-linecap:round"/>
+<path d="M-10 470 C 120 440 260 500 400 450" style="fill:none; stroke:var(--map-road); stroke-width:11; stroke-linecap:round"/>
+<path d="M-10 160 L 400 180 M-10 360 L 400 380 M60 -10 L 50 860 M260 -10 L 280 860 M340 -10 L 330 860" style="fill:none; stroke:var(--map-road); stroke-width:5; stroke-linecap:round"/>
+</svg>
+
+<div class="cluster" style="left:16%; top:30%; animation:drop .7s .1s both"><span>11</span></div>
+<div class="cluster" style="left:84%; top:44%; animation:drop .7s .25s both"><span>7</span></div>
+<sc-for list="{{pins}}" as="n" hint-placeholder-count="5">
+<button class="{{n.cls}}" onClick="{{n.pick}}" style="left:{{n.x}}; top:{{n.y}}; animation-delay:{{n.delay}}" aria-label="{{n.aria}}">{{n.price}}</button>
+</sc-for>
+
+<!-- TOP -->
+<div style="position:absolute; top:0; left:0; right:0; padding:16px 14px 0; display:flex; flex-direction:column; gap:10px">
+<div style="display:flex; gap:10px">
+<label style="flex:1; display:flex; align-items:center; gap:10px; min-height:52px; padding:0 16px; border-radius:999px; background:var(--surf); border:1px solid var(--line); box-shadow:0 8px 20px rgba(0,0,0,.3)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="color:var(--ac-ink)"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+<input type="text" value="Caracas" aria-label="Buscar ubicación" style="flex:1; border:0; outline:0; background:transparent; font:inherit; font-weight:700; font-size:15px; color:var(--text); min-width:0" />
+</label>
+<a href="Filtros.dc.html" aria-label="Abrir filtros" style="position:relative; width:52px; height:52px; border-radius:50%; background:var(--ac); color:#fff; display:grid; place-items:center; box-shadow:0 8px 20px rgba(0,0,0,.35)">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>
+<span style="position:absolute; top:-3px; right:-3px; min-width:20px; height:20px; border-radius:10px; background:#fff; color:#0F1420; font-size:11px; font-weight:800; display:grid; place-items:center">3</span>
+</a>
+</div>
+<div style="display:flex; gap:8px; overflow-x:auto; padding:2px 2px 6px; margin:0 -14px; padding-left:14px; padding-right:14px">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="4">
+<button class="{{c.cls}}" onClick="{{c.toggle}}">{{c.label}}</button>
+</sc-for>
+</div>
+</div>
+
+<!-- MAP BUTTONS -->
+<button aria-label="Mi ubicación" style="position:absolute; right:14px; bottom:318px; width:48px; height:48px; border-radius:50%; border:1px solid var(--line); background:var(--surf); display:grid; place-items:center; box-shadow:0 8px 20px rgba(0,0,0,.35)">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
+</button>
+
+<!-- SHEET -->
+<div style="position:absolute; left:0; right:0; bottom:72px; padding:10px 0 14px; border-radius:28px 28px 0 0; background:var(--surf); border-top:1px solid var(--line); box-shadow:0 -14px 40px rgba(0,0,0,.4); animation:up .6s .3s cubic-bezier(.2,.8,.2,1) both">
+<div style="width:44px; height:5px; border-radius:3px; background:var(--line); margin:0 auto 12px"></div>
+<div style="display:flex; align-items:center; justify-content:space-between; padding:0 18px 12px">
+<span style="font-weight:800; font-size:17px">128 propiedades</span>
+<a href="Main.dc.html" style="display:inline-flex; align-items:center; gap:6px; min-height:44px; font-weight:700; font-size:14px; color:var(--ac-ink)">
+Ver lista
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>
+</a>
+</div>
+<div style="display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding:0 34px 4px">
+<sc-for list="{{items}}" as="p" hint-placeholder-count="4">
+<button class="{{p.cls}}" onClick="{{p.pick}}">
+<span style="{{p.photoStyle}}; flex:0 0 96px; height:110px; border-radius:14px; display:grid; place-items:center; color:var(--ac-ink)">
+<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+</span>
+<span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px">
+<span style="font-weight:800; font-size:19px; letter-spacing:-0.02em">{{p.price}}<span style="font-size:11px; font-weight:600; color:var(--muted)"> /mes</span></span>
+<span style="font-weight:700; font-size:14px; line-height:1.25">{{p.title}}</span>
+<span style="font-size:12px; color:var(--muted)">{{p.place}}</span>
+<span style="font-size:12px; font-weight:600">{{p.beds}} hab · {{p.baths}} baños · {{p.area}} m²</span>
+<span style="display:flex; align-items:center; gap:6px; margin-top:2px; font-size:12px; font-weight:800; color:#34C77B">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.4 7.8L3 21l1.3-4.4A9 9 0 1121 12z"/></svg>
+Escribir por WhatsApp
+</span>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+
+<!-- TAB BAR -->
+<nav style="position:absolute; left:0; right:0; bottom:0; height:72px; display:flex; align-items:center; padding:0 8px 6px; background:var(--surf); border-top:1px solid var(--line)">
+<button class="tab on"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Explorar</button>
+<button class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 5.6a5.2 5.2 0 00-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 00-7.4 7.4L12 21.8l8.8-8.8a5.2 5.2 0 000-7.4z"/></svg>Favoritos</button>
+<button class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>Alertas</button>
+<button class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>Perfil</button>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#8B7BFF","options":["#4C8DFF","#8B7BFF","#2FBF8A","#FF8A4C"],"section":"Marca"},"dark":{"editor":"boolean","default":true,"section":"Marca"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { sel: 2, on: { planta: true } };
+
+  renderVals() {
+    const dark = this.props.dark ?? true;
+    const ac = this.props.accent ?? '#8B7BFF';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)', mbg: '#1A212C', road: '#2B3544', park: '#1B3A2F', water: '#18304A' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)', mbg: '#EEF1F6', road: '#FFFFFF', park: '#D3EBDA', water: '#CFE3F6' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line + ';--map-bg:' + t.mbg + ';--map-road:' + t.road + ';--map-park:' + t.park + ';--map-water:' + t.water;
+
+    const sel = this.state.sel;
+    const base = [
+      { id: 1, title: 'Apartamento moderno', place: 'Los Palos Grandes', price: '$450', beds: 2, baths: 2, area: 85, x: 38, y: 40 },
+      { id: 2, title: 'Casa familiar con jardín', place: 'La Lagunita', price: '$1.200', beds: 4, baths: 3, area: 240, x: 60, y: 52 },
+      { id: 3, title: 'Anexo acogedor', place: 'El Cafetal', price: '$280', beds: 1, baths: 1, area: 45, x: 28, y: 58 },
+      { id: 4, title: 'Penthouse con terraza', place: 'Altamira', price: '$1.800', beds: 3, baths: 3, area: 210, x: 74, y: 32 }
+    ];
+    const items = base.map((p, i) => ({
+      ...p,
+      cls: p.id === sel ? 'slide sel' : 'slide',
+      photoStyle: 'background:color-mix(in srgb, var(--ac) ' + (14 + i * 4) + '%, var(--surf2))',
+      pick: () => this.setState({ sel: p.id })
+    }));
+    const pins = base.map((p, i) => ({
+      x: p.x + '%',
+      y: p.y + '%',
+      price: p.price,
+      aria: p.title + ', ' + p.price,
+      delay: (300 + i * 120) + 'ms',
+      cls: p.id === sel ? 'pin sel' : 'pin',
+      pick: () => this.setState({ sel: p.id })
+    }));
+
+    const on = this.state.on;
+    const chips = [
+      { k: 'planta', label: 'Planta eléctrica' },
+      { k: 'agua', label: 'Agua constante' },
+      { k: 'fibra', label: 'Fibra óptica' },
+      { k: 'vigil', label: 'Vigilancia' }
+    ].map((q) => ({ label: q.label, cls: on[q.k] ? 'chip on' : 'chip', toggle: () => this.setState({ on: { ...on, [q.k]: !on[q.k] } }) }));
+
+    return { themeStyle, items, pins, chips };
+  }
+}
+</script>
+</body>
+</html>

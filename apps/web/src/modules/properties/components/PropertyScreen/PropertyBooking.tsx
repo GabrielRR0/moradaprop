@@ -1,0 +1,246 @@
+'use client';
+import Link from 'next/link';
+import { Fragment } from 'react';
+import { css } from '@/lib/dc';
+import { whatsappUrl } from '@/lib/whatsapp';
+import { PropertyDetails } from './PropertyDetails';
+import { Icon } from '@/components/icons';
+import type { PropertyScreenView } from '../../hooks/usePropertyScreen';
+
+export function PropertyBooking({ v }: { v: PropertyScreenView }) {
+  return (
+    <div
+      style={{
+        padding: '28px 48px 64px',
+        maxWidth: '1360px',
+        width: '100%',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '28px',
+      }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)',
+          gridTemplateRows: '200px 200px',
+          gap: '12px',
+          borderRadius: '26px',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          className="ph"
+          style={{
+            gridRow: 'span 2',
+            background: 'color-mix(in srgb, var(--ac) 18%, var(--surf2))',
+          }}
+        >
+          <Icon name="home" size={96} strokeWidth={1} />
+          <span
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              background: 'var(--surf)',
+              fontSize: '13px',
+              fontWeight: '800',
+              color: 'var(--ac-ink)',
+            }}
+          >
+            Portada
+          </span>
+        </div>
+        <div
+          className="ph"
+          style={{ background: 'color-mix(in srgb, var(--ac) 12%, var(--surf2))' }}
+        >
+          <Icon name="image" size={40} strokeWidth={1.3} />
+        </div>
+        <div
+          className="ph"
+          style={{ background: 'color-mix(in srgb, var(--ac) 22%, var(--surf2))' }}
+        >
+          <Icon name="image" size={40} strokeWidth={1.3} />
+        </div>
+        <div
+          className="ph"
+          style={{ background: 'color-mix(in srgb, var(--ac) 9%, var(--surf2))' }}
+        >
+          <Icon name="image" size={40} strokeWidth={1.3} />
+        </div>
+        <div
+          className="ph"
+          style={{ background: 'color-mix(in srgb, var(--ac) 26%, var(--surf2))' }}
+        >
+          <Icon name="image" size={40} strokeWidth={1.3} />
+          <span
+            style={{
+              position: 'absolute',
+              right: '14px',
+              bottom: '14px',
+              padding: '9px 16px',
+              borderRadius: '12px',
+              background: 'var(--surf)',
+              fontSize: '13px',
+              fontWeight: '800',
+              color: 'var(--text)',
+              boxShadow: '0 6px 16px rgba(15,20,32,.2)',
+            }}
+          >
+            Ver las 12 fotos
+          </span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'flex-start' }}>
+        <PropertyDetails v={v} />
+        <aside
+          style={{
+            flex: '1 1 380px',
+            minWidth: '0',
+            maxWidth: '440px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '18px',
+            padding: '24px',
+            borderRadius: '26px',
+            border: '1px solid var(--line)',
+            background: 'var(--surf)',
+            boxShadow: '0 24px 54px rgba(15,20,32,.1)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: '800', fontSize: '38px', letterSpacing: '-0.03em' }}>
+              $450
+              <span style={{ fontSize: '16px', fontWeight: '600', color: 'var(--muted)' }}>
+                {' /mes'}
+              </span>
+            </span>
+            <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--ac-ink)' }}>
+              Ver en Bs.
+            </span>
+          </div>
+          <a
+            href={whatsappUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="btn"
+            style={{ background: '#1F9D55' }}
+          >
+            <Icon name="whatsapp" size={22} />
+            {' Escribir por WhatsApp'}
+          </a>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              color: 'var(--muted)',
+              fontSize: '13px',
+              fontWeight: '700',
+            }}
+          >
+            <span style={{ flex: '1', height: '1px', background: 'var(--line)' }} />
+            o agenda una visita
+            <span style={{ flex: '1', height: '1px', background: 'var(--line)' }} />
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {v.visitDays.map((d, $index) => (
+              <Fragment key={$index}>
+                <button className={d.className} onClick={d.choose} type="button">
+                  <span style={{ fontSize: '11px', opacity: '.85' }}>{`${d.name}`}</span>
+                  <span style={{ fontSize: '18px', fontWeight: '800' }}>{`${d.number}`}</span>
+                </button>
+              </Fragment>
+            ))}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {v.visitSlots.map((t, $index) => (
+              <Fragment key={$index}>
+                <button
+                  className={t.className}
+                  onClick={t.choose}
+                  type="button"
+                >{`${t.label}`}</button>
+              </Fragment>
+            ))}
+          </div>
+          <button
+            className="btn"
+            style={{
+              background: 'var(--surf)',
+              color: 'var(--ac-ink)',
+              border: '2px solid var(--ac)',
+            }}
+            type="button"
+            onClick={v.requestVisit}
+          >{`Solicitar visita · ${v.visitSummary}`}</button>
+          <Link
+            href="/propiedad/ejemplo"
+            className="btn"
+            style={{ minHeight: '52px' }}
+            onClick={v.reserve}
+          >
+            Apartar esta propiedad
+          </Link>
+          <span
+            style={{
+              fontSize: '12px',
+              lineHeight: '1.5',
+              color: 'var(--muted)',
+              textAlign: 'center',
+            }}
+          >
+            Apartar no te compromete: el agente confirma contigo antes de reservarla.
+          </span>
+        </aside>
+      </div>
+      <section
+        style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginTop: '12px' }}
+        data-reveal=""
+      >
+        <h2 style={{ margin: '0', fontSize: '26px', fontWeight: '800', letterSpacing: '-0.02em' }}>
+          Propiedades parecidas
+        </h2>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '20px',
+          }}
+        >
+          {v.similarProperties.map((p, $index) => (
+            <Fragment key={$index}>
+              <Link href="/propiedad/ejemplo" className="sim">
+                <div
+                  style={css(
+                    `${p.tint}; height:170px; display:grid; place-items:center; color:var(--ac-ink)`,
+                  )}
+                >
+                  <Icon name="house" size={52} strokeWidth={1.1} />
+                </div>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '18px' }}
+                >
+                  <span style={{ fontWeight: '800', fontSize: '22px' }}>
+                    {`${p.price}`}
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--muted)' }}>
+                      {' /mes'}
+                    </span>
+                  </span>
+                  <span style={{ fontWeight: '700', fontSize: '15px' }}>{`${p.title}`}</span>
+                  <span
+                    style={{ fontSize: '13px', color: 'var(--muted)' }}
+                  >{`${p.place} · ${p.specs}`}</span>
+                </div>
+              </Link>
+            </Fragment>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

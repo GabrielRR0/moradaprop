@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Móvil registro</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 24px;border-radius:16px;border:0;background:var(--ac);color:#fff;font-weight:800;font-size:16px}
+.btn:active{transform:scale(.97)}
+.btn2{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 20px;border-radius:16px;border:1px solid var(--line);background:var(--surf);font-weight:700;font-size:15px}
+.role{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;border-radius:20px;border:2px solid var(--line);background:var(--surf);transition:all .22s}
+.role .ico{flex:0 0 48px;height:48px;border-radius:14px;background:var(--surf2);color:var(--muted);display:grid;place-items:center;transition:all .22s}
+.role .radio{margin-left:auto;flex:0 0 26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:transparent;transition:all .22s}
+.role.on{border-color:var(--ac);background:var(--ac-soft)}
+.role.on .ico{background:var(--ac);color:#fff;transform:rotate(-5deg)}
+.role.on .radio{background:var(--ac);border-color:var(--ac);color:#fff}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld .l{font-size:13px;font-weight:700}
+.fld .box{display:flex;align-items:center;gap:10px;min-height:54px;padding:0 16px;border-radius:14px;border:1.5px solid var(--line);background:var(--surf)}
+.fld .box:focus-within{border-color:var(--ac);box-shadow:0 0 0 4px var(--ac-soft)}
+.fld input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-weight:600;font-size:16px}
+.code{width:48px;height:60px;border-radius:14px;border:2px solid var(--line);background:var(--surf);text-align:center;font-weight:800;font-size:24px;color:var(--text)}
+.code:focus{border-color:var(--ac);box-shadow:0 0 0 4px var(--ac-soft);outline:0}
+.bar{height:6px;flex:1;border-radius:3px;background:var(--line);transition:background .3s}
+.bar.on{background:var(--ac)}
+.step{animation:slidein .4s cubic-bezier(.2,.8,.2,1) both}
+@keyframes slidein{
+from{opacity:0;transform:translateX(24px)}
+to{opacity:1;transform:translateX(0)}
+}
+@keyframes burst{
+from{transform:scale(.4);opacity:0}
+to{transform:scale(1);opacity:1}
+}
+@keyframes check{
+from{stroke-dashoffset:40}
+to{stroke-dashoffset:0}
+}
+@media (prefers-reduced-motion:reduce){
+*{animation:none!important;transition:none!important}
+}
+</style>
+</helmet>
+<div style="{{themeStyle}}; position:relative; width:390px; height:844px; display:flex; flex-direction:column; background:var(--bg); color:var(--text); font-family:'Plus Jakarta Sans',system-ui,sans-serif; overflow:hidden">
+
+<header style="flex:0 0 auto; display:flex; flex-direction:column; gap:14px; padding:18px 20px 12px">
+<div style="display:flex; align-items:center; justify-content:space-between">
+<span style="display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; letter-spacing:-0.02em"><span style="width:36px; height:36px; border-radius:11px; background:var(--ac); display:grid; place-items:center; color:#fff"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span>[NOMBRE]</span>
+<a href="MRegistro.dc.html" style="display:flex; align-items:center; min-height:44px; font-size:14px; font-weight:800; color:var(--ac-ink)">Ingresar</a>
+</div>
+<div style="display:flex; gap:6px"><span class="{{bar1}}"></span><span class="{{bar2}}"></span><span class="{{bar3}}"></span></div>
+</header>
+
+<div style="flex:1 1 auto; overflow-y:auto; padding:8px 20px 16px; display:flex; flex-direction:column">
+
+<sc-if value="{{s1}}" hint-placeholder-val="{{ true }}">
+<div class="step" style="display:flex; flex-direction:column; gap:18px">
+<div><h1 style="margin:0; font-size:30px; line-height:1.1; font-weight:800; letter-spacing:-0.03em">Crea tu cuenta</h1><p style="margin:8px 0 0; font-size:15px; color:var(--muted)">¿Qué quieres hacer?</p></div>
+<div style="display:flex; flex-direction:column; gap:10px">
+<sc-for list="{{roles}}" as="r" hint-placeholder-count="3">
+<button class="{{r.cls}}" onClick="{{r.pick}}"><span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.icon}}"/></svg></span><span style="display:flex; flex-direction:column; gap:2px"><span style="font-weight:800; font-size:16px">{{r.title}}</span><span style="font-size:13px; color:var(--muted)">{{r.desc}}</span></span><span class="radio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.400" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span></button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; gap:14px">
+<div><h1 style="margin:0; font-size:30px; line-height:1.1; font-weight:800; letter-spacing:-0.03em">{{s2Title}}</h1><p style="margin:8px 0 0; font-size:15px; color:var(--muted)">Menos de un minuto.</p></div>
+<button class="btn2"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.600 12.200c0-.7-.1-1.400-.2-2H12v3.800h5.400a4.600 4.600 0 01-2 3v2.500h3.200c1.900-1.700 3-4.300 3-7.300z" fill="#4285F4"/><path d="M12 22c2.700 0 5-.9 6.600-2.400l-3.200-2.500c-.9.600-2 1-3.400 1-2.600 0-4.800-1.800-5.600-4.100H3.100v2.600A10 10 0 0012 22z" fill="#34A853"/><path d="M6.400 14c-.2-.6-.3-1.300-.3-2s.1-1.400.3-2V7.400H3.100a10 10 0 000 9.200z" fill="#FBBC05"/><path d="M12 5.900c1.500 0 2.800.5 3.800 1.500l2.800-2.800A10 10 0 003.100 7.400L6.400 10C7.200 7.700 9.400 5.900 12 5.900z" fill="#EA4335"/></svg>Continuar con Google</button>
+<sc-if value="{{isAgency}}" hint-placeholder-val="{{ false }}">
+<label class="fld"><span class="l">Nombre de la inmobiliaria</span><span class="box"><input type="text" placeholder="[Nombre comercial]" /></span></label>
+<label class="fld"><span class="l">RIF</span><span class="box"><input type="text" placeholder="J-00000000-0" /></span></label>
+</sc-if>
+<label class="fld"><span class="l">Nombre y apellido</span><span class="box"><input type="text" placeholder="Tu nombre completo" /></span></label>
+<label class="fld"><span class="l">Correo electrónico</span><span class="box"><input type="text" placeholder="nombre@correo.com" /></span></label>
+<label class="fld"><span class="l">WhatsApp</span><span class="box"><span style="font-weight:700; color:var(--muted)">+58</span><input type="text" placeholder="412 000 0000" /></span></label>
+<label class="fld"><span class="l">Contraseña</span><span class="box"><input type="password" placeholder="Mínimo 8 caracteres" onInput="{{onPw}}" /></span></label>
+<div style="display:flex; align-items:center; gap:6px; margin-top:-4px"><span class="{{m1}}"></span><span class="{{m2}}"></span><span class="{{m3}}"></span><span class="{{m4}}"></span><span style="margin-left:6px; font-size:12px; font-weight:700; color:var(--muted); min-width:56px">{{pwLabel}}</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; gap:22px">
+<div><h1 style="margin:0; font-size:30px; line-height:1.1; font-weight:800; letter-spacing:-0.03em">Revisa tu correo</h1><p style="margin:8px 0 0; font-size:15px; line-height:1.5; color:var(--muted)">Enviamos un código de 6 dígitos a <b style="color:var(--text)">nombre@correo.com</b>.</p></div>
+<div style="display:flex; justify-content:space-between; gap:6px">
+<input class="code" type="text" maxlength="1" value="4" aria-label="Dígito 1" /><input class="code" type="text" maxlength="1" value="8" aria-label="Dígito 2" /><input class="code" type="text" maxlength="1" value="2" aria-label="Dígito 3" /><input class="code" type="text" maxlength="1" aria-label="Dígito 4" /><input class="code" type="text" maxlength="1" aria-label="Dígito 5" /><input class="code" type="text" maxlength="1" aria-label="Dígito 6" />
+</div>
+<div style="display:flex; align-items:center; justify-content:space-between; font-size:14px; color:var(--muted)"><span>¿No te llegó?</span><span style="font-weight:800; color:var(--ac-ink)">Reenviar en 0:42</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{s4}}" hint-placeholder-val="{{ false }}">
+<div class="step" style="display:flex; flex-direction:column; align-items:flex-start; gap:20px; padding-top:30px">
+<span style="width:88px; height:88px; border-radius:50%; background:var(--ac); display:grid; place-items:center; color:#fff; animation:burst .6s cubic-bezier(.3,1.5,.5,1) both"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10" style="stroke-dasharray:40; animation:check .6s .35s ease-out both"/></svg></span>
+<h1 style="margin:0; font-size:32px; line-height:1.1; font-weight:800; letter-spacing:-0.03em">¡Cuenta verificada!</h1>
+<p style="margin:0; font-size:16px; line-height:1.55; color:var(--muted)">{{doneText}}</p>
+<a href="{{doneHref}}" class="btn" style="align-self:stretch">{{doneCta}}</a>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{showFooter}}" hint-placeholder-val="{{ true }}">
+<footer style="flex:0 0 auto; display:flex; gap:10px; padding:12px 20px 22px; border-top:1px solid var(--line); background:var(--bg)">
+<sc-if value="{{canBack}}" hint-placeholder-val="{{ false }}"><button class="btn2" onClick="{{back}}" style="flex:0 0 100px">Atrás</button></sc-if>
+<button class="btn" onClick="{{next}}" style="flex:1">{{nextLabel}}</button>
+</footer>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#5B4BE8","options":["#2563EB","#5B4BE8","#0E8A5F","#C2410C"],"section":"Marca"},"dark":{"editor":"boolean","default":false,"section":"Marca"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  state = { step: 1, role: 'agency', pw: '' };
+
+  renderVals() {
+    const dark = !!this.props.dark;
+    const ac = this.props.accent ?? '#5B4BE8';
+    const t = dark
+      ? { bg: '#0E1117', surf: '#161B24', surf2: '#1D2430', text: '#F3F5F9', muted: '#A3ADBF', line: '#2A3342', ink: 'color-mix(in srgb, ' + ac + ' 55%, white)', soft: 'color-mix(in srgb, ' + ac + ' 22%, #161B24)' }
+      : { bg: '#FFFFFF', surf: '#FFFFFF', surf2: '#F4F6FA', text: '#0F1420', muted: '#566073', line: '#E6E9F0', ink: ac, soft: 'color-mix(in srgb, ' + ac + ' 12%, white)' };
+    const themeStyle = '--ac:' + ac + ';--ac-ink:' + t.ink + ';--ac-soft:' + t.soft + ';--bg:' + t.bg + ';--surf:' + t.surf + ';--surf2:' + t.surf2 + ';--text:' + t.text + ';--muted:' + t.muted + ';--line:' + t.line;
+
+    const s = this.state;
+    const copy = {
+      client: { title: 'Tus datos', done: 'Ya puedes guardar favoritos y crear alertas de búsqueda.', cta: 'Explorar propiedades', href: 'Movil.dc.html' },
+      owner: { title: 'Tus datos', done: 'Ahora publica tu primera propiedad. Te guiamos paso a paso.', cta: 'Publicar mi propiedad', href: 'MPublicar.dc.html' },
+      agency: { title: 'Datos de tu inmobiliaria', done: 'Tu espacio está listo. Publica tu primera propiedad o invita a tu equipo.', cta: 'Ir a mi panel', href: 'MPanel.dc.html' }
+    };
+    const c = copy[s.role];
+    const defs = [
+      ['client', 'Busco dónde vivir', 'Explora y guarda favoritos', 'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-3.500-3.500'],
+      ['owner', 'Tengo una propiedad', 'La publicas tú mismo', 'M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6'],
+      ['agency', 'Soy inmobiliaria', 'Inventario, equipo y reportes', 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6']
+    ];
+    const roles = defs.map(([k, title, desc, icon]) => ({ title, desc, icon, cls: s.role === k ? 'role on' : 'role', pick: () => this.setState({ role: k }) }));
+    const p = s.pw || '';
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+    if (/\d/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    const m = (i) => 'bar' + (score >= i ? ' on' : '');
+
+    return {
+      themeStyle, roles, s2Title: c.title, doneText: c.done, doneCta: c.cta, doneHref: c.href,
+      s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, s4: s.step === 4,
+      isAgency: s.role === 'agency',
+      bar1: 'bar' + (s.step >= 1 ? ' on' : ''), bar2: 'bar' + (s.step >= 2 ? ' on' : ''), bar3: 'bar' + (s.step >= 3 ? ' on' : ''),
+      m1: m(1), m2: m(2), m3: m(3), m4: m(4), pwLabel: ['', 'Débil', 'Regular', 'Buena', 'Fuerte'][score],
+      onPw: (e) => this.setState({ pw: e.target.value }),
+      showFooter: s.step < 4, canBack: s.step > 1,
+      nextLabel: s.step === 1 ? 'Continuar' : s.step === 2 ? 'Crear cuenta' : 'Verificar',
+      next: () => this.setState({ step: Math.min(4, s.step + 1) }),
+      back: () => this.setState({ step: Math.max(1, s.step - 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

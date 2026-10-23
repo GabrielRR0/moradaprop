@@ -1,0 +1,281 @@
+.ds-inventoryscreen * {
+  box-sizing: border-box;
+}
+.ds-inventoryscreen button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-inventoryscreen input {
+  font: inherit;
+  color: inherit;
+}
+.ds-inventoryscreen a {
+  color: inherit;
+  text-decoration: none;
+}
+.ds-inventoryscreen :focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+.ds-inventoryscreen .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 0;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
+}
+.ds-inventoryscreen .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--ac) 38%, transparent);
+}
+.ds-inventoryscreen .btn2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.18s;
+}
+.ds-inventoryscreen .btn2:hover {
+  border-color: var(--ac);
+  background: var(--surf2);
+}
+.ds-inventoryscreen .nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--muted);
+  transition: all 0.18s;
+}
+.ds-inventoryscreen .nav:hover {
+  background: var(--surf2);
+  color: var(--text);
+}
+.ds-inventoryscreen .nav.on {
+  background: var(--ac);
+  color: #fff;
+}
+.ds-inventoryscreen .nav .c {
+  margin-left: auto;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 12px;
+  background: var(--ac-soft);
+  color: var(--ac-ink);
+  font-size: 12px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.ds-inventoryscreen .nav.on .c {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.ds-inventoryscreen .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.ds-inventoryscreen .tab:hover {
+  color: var(--text);
+}
+.ds-inventoryscreen .tab.on {
+  color: var(--ac-ink);
+  border-bottom-color: var(--ac);
+}
+.ds-inventoryscreen .tab .n {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: var(--surf2);
+  font-size: 12px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.ds-inventoryscreen .tab.on .n {
+  background: var(--ac-soft);
+}
+.ds-inventoryscreen .th {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ds-inventoryscreen .tr {
+  display: grid;
+  grid-template-columns:
+    44px minmax(0, 2.6fr) minmax(0, 1.3fr) minmax(0, 0.9fr) 140px minmax(0, 1fr)
+    minmax(0, 0.9fr) 110px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.18s;
+  opacity: 0;
+  animation: rise-inventoryscreen 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.ds-inventoryscreen .tr:hover {
+  background: var(--surf2);
+}
+.ds-inventoryscreen .tr.sel {
+  background: var(--ac-soft);
+}
+.ds-inventoryscreen .cb {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2px solid var(--line);
+  background: var(--surf);
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition: all 0.18s;
+}
+.ds-inventoryscreen .cb.on {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+}
+.ds-inventoryscreen .stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 0;
+  font-weight: 800;
+  font-size: 13px;
+  transition: transform 0.18s;
+}
+.ds-inventoryscreen .stat:hover {
+  transform: scale(1.06);
+}
+.ds-inventoryscreen .ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  transition: all 0.18s;
+}
+.ds-inventoryscreen .ic:hover {
+  background: var(--surf);
+  color: var(--ac-ink);
+  box-shadow: 0 0 0 1px var(--line);
+}
+.ds-inventoryscreen .gcard {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  overflow: hidden;
+  opacity: 0;
+  animation: rise-inventoryscreen 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transition:
+    transform 0.22s,
+    border-color 0.22s;
+}
+.ds-inventoryscreen .gcard:hover {
+  transform: translateY(-4px);
+  border-color: var(--ac);
+}
+.ds-inventoryscreen .bulk {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 12px 22px;
+  border-radius: 20px;
+  background: #12151c;
+  color: #fff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  animation: up-inventoryscreen 0.4s cubic-bezier(0.3, 1.3, 0.5, 1) both;
+}
+.ds-inventoryscreen .bulk button {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  transition: background 0.18s;
+}
+.ds-inventoryscreen .bulk button:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+@keyframes rise-inventoryscreen {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes up-inventoryscreen {
+  from {
+    opacity: 0;
+    margin-bottom: -40px;
+  }
+  to {
+    opacity: 1;
+    margin-bottom: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-inventoryscreen * {
+    animation: none !important;
+    transition: none !important;
+  }
+  .ds-inventoryscreen .tr,
+  .ds-inventoryscreen .gcard {
+    opacity: 1;
+  }
+}

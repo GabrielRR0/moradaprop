@@ -1,0 +1,269 @@
+.ds-importscreen * {
+  box-sizing: border-box;
+}
+.ds-importscreen button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-importscreen input {
+  font: inherit;
+  color: inherit;
+}
+.ds-importscreen a {
+  color: inherit;
+  text-decoration: none;
+}
+.ds-importscreen :focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+.ds-importscreen .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 26px;
+  border-radius: 14px;
+  border: 0;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  transition:
+    transform 0.18s,
+    box-shadow 0.18s;
+}
+.ds-importscreen .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--ac) 38%, transparent);
+}
+.ds-importscreen .btn2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.18s;
+}
+.ds-importscreen .btn2:hover {
+  border-color: var(--ac);
+  background: var(--surf2);
+}
+.ds-importscreen .nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--muted);
+  transition: all 0.18s;
+}
+.ds-importscreen .nav:hover {
+  background: var(--surf2);
+  color: var(--text);
+}
+.ds-importscreen .nav.on {
+  background: var(--ac);
+  color: #fff;
+}
+.ds-importscreen .nav .c {
+  margin-left: auto;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 12px;
+  background: var(--ac-soft);
+  color: var(--ac-ink);
+  font-size: 12px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.ds-importscreen .pn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--muted);
+}
+.ds-importscreen .pn .n {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  transition: all 0.3s;
+}
+.ds-importscreen .pn.act {
+  color: var(--text);
+}
+.ds-importscreen .pn.act .n {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+  transform: scale(1.1);
+}
+.ds-importscreen .pn.done .n {
+  background: var(--ac-soft);
+  border-color: var(--ac);
+  color: var(--ac-ink);
+}
+.ds-importscreen .drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 260px;
+  border-radius: 26px;
+  border: 2.5px dashed var(--ac);
+  background: var(--ac-soft);
+  color: var(--ac-ink);
+  transition:
+    transform 0.25s,
+    background 0.25s;
+}
+.ds-importscreen .drop:hover {
+  transform: scale(1.01);
+}
+.ds-importscreen .drop .up {
+  animation: bob-importscreen 2.2s ease-in-out infinite;
+}
+.ds-importscreen .step {
+  animation: slidein-importscreen 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ds-importscreen .sum {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+}
+.ds-importscreen .err {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1.3fr) minmax(0, 1.4fr) 120px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.3s;
+}
+.ds-importscreen .err.fixed {
+  background: color-mix(in srgb, #1f9d55 10%, var(--surf));
+}
+.ds-importscreen .fi {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--surf);
+  font-weight: 600;
+  font-size: 14px;
+  outline: 0;
+  width: 100%;
+}
+.ds-importscreen .fi:focus {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 4px var(--ac-soft);
+}
+.ds-importscreen .fixb {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  transition: transform 0.18s;
+}
+.ds-importscreen .fixb:hover {
+  transform: scale(1.05);
+}
+.ds-importscreen .fixb.ok {
+  background: #1f9d55;
+}
+.ds-importscreen .prog {
+  height: 14px;
+  border-radius: 7px;
+  background: var(--line);
+  overflow: hidden;
+}
+.ds-importscreen .prog i {
+  display: block;
+  height: 100%;
+  border-radius: 7px;
+  background: var(--ac);
+  animation: fill-importscreen 3.2s cubic-bezier(0.4, 0.1, 0.2, 1) forwards;
+}
+@keyframes slidein-importscreen {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes bob-importscreen {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes fill-importscreen {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes burst-importscreen {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes check-importscreen {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-importscreen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

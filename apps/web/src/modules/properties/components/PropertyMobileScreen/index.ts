@@ -1,0 +1,1 @@
+export { PropertyMobileScreen } from './PropertyMobileScreen';

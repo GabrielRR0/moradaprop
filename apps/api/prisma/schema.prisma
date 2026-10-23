@@ -1,0 +1,435 @@
+// Esquema de base de datos. Equivale a las migraciones + modelos de Laravel.
+// Los enums se mantienen iguales a packages/shared/src/enums.
+// PostGIS: se activa despues (ver README, "simple primero"); por ahora lat/lng normales.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------
+
+enum Role {
+  CLIENT
+  OWNER
+  AGENCY
+  ADMIN
+}
+
+enum AgencyMemberRole {
+  AGENCY_ADMIN
+  AGENT
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum VerificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_EMAIL
+  LINK_SOCIAL_ACCOUNT
+}
+
+enum BlockType {
+  IP
+  CIDR
+  COUNTRY
+  USER
+  EMAIL
+  EMAIL_DOMAIN
+}
+
+enum PropertyStatus {
+  PUBLICADA
+  RESERVADA
+  ALQUILADA
+  PAUSADA
+}
+
+enum PropertyType {
+  APARTAMENTO
+  CASA
+  TOWNHOUSE
+  HABITACION
+  LOCAL
+  OFICINA
+  GALPON
+  TERRENO
+}
+
+enum Currency {
+  USD
+  VES
+}
+
+enum AppointmentType {
+  VISITA
+  RESERVA
+}
+
+enum AppointmentStatus {
+  PENDIENTE
+  CONFIRMADA
+  RECHAZADA
+  CANCELADA
+  COMPLETADA
+}
+
+enum ContactChannel {
+  EMAIL
+  WHATSAPP
+  TELEFONO
+}
+
+enum ImportStatus {
+  PROCESANDO
+  COMPLETADA
+  FALLIDA
+}
+
+// ---------------------------------------------------------------
+// Usuarios y autenticacion
+// ---------------------------------------------------------------
+
+model User {
+  id                String     @id @default(uuid())
+  email             String     @unique
+  /// null cuando la cuenta se creo solo con Google
+  passwordHash      String?
+  name              String
+  phone             String?
+  avatarUrl         String?
+  roles             Role[]     @default([CLIENT])
+  status            UserStatus @default(ACTIVE)
+  emailVerifiedAt   DateTime?
+  twoFactorEnabled  Boolean    @default(false)
+  /// secreto TOTP cifrado (nunca en claro)
+  twoFactorSecret   String?
+  /// ultimo paso TOTP aceptado: impide reutilizar el mismo codigo (anti-replay)
+  twoFactorLastStep Int?
+  failedLogins      Int        @default(0)
+  lockedUntil       DateTime?
+  lastLoginAt       DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  socialAccounts     SocialAccount[]
+  sessions           Session[]
+  verifications      VerificationCode[]
+  backupCodes        TwoFactorBackupCode[]
+  agencyMembers      AgencyMember[]
+  ownedProperties    Property[]            @relation("PropertyOwner")
+  assignedProperties Property[]            @relation("PropertyAgent")
+  favorites          Favorite[]
+  appointments       Appointment[]         @relation("AppointmentClient")
+  auditLogs          AuditLog[]
+  imports            ImportJob[]
+
+  @@index([status])
+}
+
+model SocialAccount {
+  id         String   @id @default(uuid())
+  userId     String
+  provider   String
+  providerId String
+  email      String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+}
+
+/// Sesion = refresh token rotativo (se guarda el hash, nunca el token)
+model Session {
+  id                String    @id @default(uuid())
+  userId            String
+  refreshTokenHash  String    @unique
+  userAgent         String?
+  ip                String?
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  lastUsedAt        DateTime  @default(now())
+  /// true si en esta sesion se completo el 2FA (el refresh lo conserva)
+  twoFactorVerified Boolean   @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Codigos de 6 digitos (correo, reset, 2FA por email) - se guarda el hash
+model VerificationCode {
+  id        String           @id @default(uuid())
+  userId    String
+  type      VerificationType
+  codeHash  String
+  /// datos extra, ej. el providerId de Google que se va a vincular
+  payload   Json?
+  attempts  Int              @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([expiresAt])
+}
+
+model TwoFactorBackupCode {
+  id        String    @id @default(uuid())
+  userId    String
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------
+// Agencias (organizacion con subcuentas)
+// ---------------------------------------------------------------
+
+model AgencyProfile {
+  id            String   @id @default(uuid())
+  name          String
+  legalName     String?
+  rif           String?  @unique
+  description   String?
+  logoUrl       String?
+  bannerUrl     String?
+  phone         String?
+  whatsapp      String?
+  website       String?
+  maxProperties Int      @default(100)
+  maxAgents     Int      @default(5)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  members    AgencyMember[]
+  properties Property[]
+  imports    ImportJob[]
+}
+
+model AgencyMember {
+  id                  String           @id @default(uuid())
+  agencyId            String
+  /// null mientras la invitacion sigue pendiente
+  userId              String?
+  invitedEmail        String
+  role                AgencyMemberRole @default(AGENT)
+  invitationStatus    InvitationStatus @default(PENDING)
+  invitationTokenHash String?          @unique
+  invitationExpiresAt DateTime?
+  createdAt           DateTime         @default(now())
+
+  agency AgencyProfile @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  user   User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([agencyId, invitedEmail])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------
+// Propiedades
+// ---------------------------------------------------------------
+
+model Property {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  type        PropertyType
+  status      PropertyStatus @default(PUBLICADA)
+
+  priceAmount Decimal  @db.Decimal(12, 2)
+  currency    Currency @default(USD)
+
+  bedrooms     Int      @default(0)
+  bathrooms    Int      @default(0)
+  parkingSpots Int      @default(0)
+  areaM2       Decimal? @db.Decimal(10, 2)
+  furnished    Boolean  @default(false)
+  petsAllowed  Boolean  @default(false)
+
+  // Ubicacion
+  state        String
+  municipality String
+  urbanization String?
+  address      String?
+  latitude     Float
+  longitude    Float
+
+  // Amenities locales
+  hasGenerator  Boolean @default(false) // planta electrica
+  hasWaterTank  Boolean @default(false) // tanque / hidroneumatico
+  hasFiberOptic Boolean @default(false)
+  hasSecurity   Boolean @default(false) // vigilancia
+
+  ownerUserId     String
+  agencyId        String?
+  assignedAgentId String?
+
+  /// fila de importacion que la creo (trazabilidad)
+  importJobId String?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  owner         User            @relation("PropertyOwner", fields: [ownerUserId], references: [id])
+  agency        AgencyProfile?  @relation(fields: [agencyId], references: [id])
+  assignedAgent User?           @relation("PropertyAgent", fields: [assignedAgentId], references: [id])
+  importJob     ImportJob?      @relation(fields: [importJobId], references: [id])
+  images        PropertyImage[]
+  appointments  Appointment[]
+  favorites     Favorite[]
+
+  @@index([status, state, municipality])
+  @@index([latitude, longitude])
+  @@index([priceAmount])
+  @@index([ownerUserId])
+  @@index([agencyId])
+  @@index([assignedAgentId])
+}
+
+model PropertyImage {
+  id          String   @id @default(uuid())
+  propertyId  String
+  /// rutas dentro del bucket (no URLs completas): properties/{propertyId}/thumb/{uuid}.webp
+  originalKey String
+  thumbKey    String
+  mediumKey   String
+  hdKey       String
+  position    Int      @default(0)
+  isCover     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId, position])
+}
+
+model Favorite {
+  userId     String
+  propertyId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, propertyId])
+}
+
+// ---------------------------------------------------------------
+// Citas / leads
+// ---------------------------------------------------------------
+
+model Appointment {
+  id               String            @id @default(uuid())
+  propertyId       String
+  clientId         String
+  type             AppointmentType   @default(VISITA)
+  status           AppointmentStatus @default(PENDIENTE)
+  /// fecha propuesta para la visita (null en una reserva directa)
+  scheduledAt      DateTime?
+  message          String?
+  contactName      String
+  contactPhone     String?
+  preferredChannel ContactChannel    @default(WHATSAPP)
+  responseNote     String?
+  respondedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  client   User     @relation("AppointmentClient", fields: [clientId], references: [id])
+
+  @@index([propertyId, status])
+  @@index([clientId])
+}
+
+// ---------------------------------------------------------------
+// Importacion masiva
+// ---------------------------------------------------------------
+
+model ImportJob {
+  id           String       @id @default(uuid())
+  userId       String
+  agencyId     String?
+  status       ImportStatus @default(PROCESANDO)
+  fileKey      String
+  totalRows    Int          @default(0)
+  importedRows Int          @default(0)
+  failedRows   Int          @default(0)
+  /// [{ row: 3, errors: ["precio invalido"] }]
+  errors       Json?
+  createdAt    DateTime     @default(now())
+  finishedAt   DateTime?
+
+  user       User           @relation(fields: [userId], references: [id])
+  agency     AgencyProfile? @relation(fields: [agencyId], references: [id])
+  properties Property[]
+
+  @@index([userId])
+  @@index([agencyId])
+}
+
+// ---------------------------------------------------------------
+// Seguridad y auditoria
+// ---------------------------------------------------------------
+
+model BlockRule {
+  id        String    @id @default(uuid())
+  type      BlockType
+  /// IP, CIDR, codigo de pais (VE), userId, email o dominio segun el tipo
+  value     String
+  reason    String?
+  createdBy String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([type, value])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  resource   String?
+  resourceId String?
+  ip         String?
+  userAgent  String?
+  /// estado antes/despues y metadatos (NUNCA contrasenas, tokens ni codigos)
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([resource, resourceId])
+}

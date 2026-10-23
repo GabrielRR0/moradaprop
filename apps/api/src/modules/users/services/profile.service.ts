@@ -1,0 +1,73 @@
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Role } from '@prisma/client';
+import { PrismaService } from '../../../common/prisma';
+import type { RequestContext } from '../../../common/security/types';
+import { AuditService } from '../../audit';
+import type { UpdateProfileDto } from '../dto/update-profile.dto';
+
+@Injectable()
+export class ProfileService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
+
+  /** Perfil del usuario del token, con sus agencias y proveedores vinculados. Sin hashes ni secretos. */
+  async me(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        avatarUrl: true,
+        roles: true,
+        emailVerifiedAt: true,
+        twoFactorEnabled: true,
+        passwordHash: true,
+        createdAt: true,
+        socialAccounts: { select: { provider: true, email: true } },
+        agencyMembers: {
+          where: { invitationStatus: 'ACCEPTED' },
+          select: { role: true, agency: { select: { id: true, name: true, logoUrl: true } } },
+        },
+      },
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const { passwordHash, emailVerifiedAt, ...rest } = user;
+    return { ...rest, emailVerified: Boolean(emailVerifiedAt), hasPassword: Boolean(passwordHash) };
+  }
+
+  async update(userId: string, dto: UpdateProfileDto, context: RequestContext) {
+    await this.prisma.user.update({ where: { id: userId }, data: { name: dto.name, phone: dto.phone } });
+    await this.audit.log({
+      action: 'users.profile.updated',
+      userId,
+      resource: 'User',
+      resourceId: userId,
+      ip: context.ip,
+      userAgent: context.userAgent,
+      metadata: { fields: Object.keys(dto) },
+    });
+    return this.me(userId);
+  }
+
+  /** Un cliente pasa a poder publicar propiedades como dueno directo. */
+  async becomeOwner(userId: string, context: RequestContext) {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (user.roles.includes(Role.OWNER)) throw new ConflictException('Ya eres dueno directo');
+
+    await this.prisma.user.update({ where: { id: userId }, data: { roles: { set: [...user.roles, Role.OWNER] } } });
+    await this.audit.log({
+      action: 'users.role.owner-added',
+      userId,
+      resource: 'User',
+      resourceId: userId,
+      ip: context.ip,
+      userAgent: context.userAgent,
+    });
+    return this.me(userId);
+  }
+}

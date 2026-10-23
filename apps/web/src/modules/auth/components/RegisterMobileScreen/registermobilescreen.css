@@ -1,0 +1,192 @@
+.ds-registermobilescreen * {
+  box-sizing: border-box;
+}
+.ds-registermobilescreen button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ds-registermobilescreen input {
+  font: inherit;
+  color: inherit;
+}
+.ds-registermobilescreen a {
+  color: inherit;
+  text-decoration: none;
+}
+.ds-registermobilescreen :focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+.ds-registermobilescreen .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 24px;
+  border-radius: 16px;
+  border: 0;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+}
+.ds-registermobilescreen .btn:active {
+  transform: scale(0.97);
+}
+.ds-registermobilescreen .btn2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  font-weight: 700;
+  font-size: 15px;
+}
+.ds-registermobilescreen .role {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 2px solid var(--line);
+  background: var(--surf);
+  transition: all 0.22s;
+}
+.ds-registermobilescreen .role .ico {
+  flex: 0 0 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--surf2);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  transition: all 0.22s;
+}
+.ds-registermobilescreen .role .radio {
+  margin-left: auto;
+  flex: 0 0 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition: all 0.22s;
+}
+.ds-registermobilescreen .role.on {
+  border-color: var(--ac);
+  background: var(--ac-soft);
+}
+.ds-registermobilescreen .role.on .ico {
+  background: var(--ac);
+  color: #fff;
+  transform: rotate(-5deg);
+}
+.ds-registermobilescreen .role.on .radio {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+}
+.ds-registermobilescreen .fld {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ds-registermobilescreen .fld .l {
+  font-size: 13px;
+  font-weight: 700;
+}
+.ds-registermobilescreen .fld .box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--surf);
+}
+.ds-registermobilescreen .fld .box:focus-within {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 4px var(--ac-soft);
+}
+.ds-registermobilescreen .fld input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-weight: 600;
+  font-size: 16px;
+}
+.ds-registermobilescreen .code {
+  width: 48px;
+  height: 60px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: var(--surf);
+  text-align: center;
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--text);
+}
+.ds-registermobilescreen .code:focus {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 4px var(--ac-soft);
+  outline: 0;
+}
+.ds-registermobilescreen .bar {
+  height: 6px;
+  flex: 1;
+  border-radius: 3px;
+  background: var(--line);
+  transition: background 0.3s;
+}
+.ds-registermobilescreen .bar.on {
+  background: var(--ac);
+}
+.ds-registermobilescreen .step {
+  animation: slidein-registermobilescreen 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes slidein-registermobilescreen {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes burst-registermobilescreen {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes check-registermobilescreen {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-registermobilescreen * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
