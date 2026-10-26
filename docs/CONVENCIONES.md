@@ -6,6 +6,7 @@ Reglas de arquitectura. Varias las hace cumplir ESLint (`pnpm lint`), las marcad
 
 - Cada lógica vive en **su carpeta de módulo**, con un **archivo padre** que importa a los hijos.
 - 🔒 **De otro módulo solo se importa su archivo padre** (`<modulo>.module.ts` o `index.ts`), nunca archivos internos. Regla local: `eslint-rules/module-boundaries.mjs`.
+- 🔒 **Mini módulos:** una carpeta dentro de un módulo con su propio `<nombre>.module.ts` (ej. `modules/security/ownership/`) es **privada de su módulo padre**: desde fuera solo se importa el `index.ts` del padre, y entre hermanos solo por el `index.ts` del otro. Así toda una familia (como la seguridad) vive en un módulo y cada pieza se puede agregar o quitar sin tocar las demás.
 - 🔒 **Máximo 600 líneas por archivo.** Si crece, se parte en mini archivos dentro del módulo.
 - Componentes con poca lógica; la lógica va en `hooks/` y `services/` del módulo.
 

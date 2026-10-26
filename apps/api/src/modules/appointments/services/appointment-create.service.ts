@@ -5,6 +5,7 @@ import { PrismaService } from '../../../common/prisma';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
+import { AppointmentVault, UserVault } from '../../security';
 import { PropertyPolicyService } from '../../properties';
 import type { CreateAppointmentDto } from '../dto/appointments.dto';
 import { appointmentInclude, toClientView } from '../utils/appointment-mapper';
@@ -20,6 +21,8 @@ export class AppointmentCreateService {
     private readonly mail: MailService,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
+    private readonly vault: UserVault,
+    private readonly appointmentVault: AppointmentVault,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -41,7 +44,7 @@ export class AppointmentCreateService {
     }
 
     const scheduledAt = this.parseSchedule(dto);
-    const client = await this.prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+    const client = this.vault.decode(await this.prisma.user.findUniqueOrThrow({ where: { id: user.id } }));
     const contactName = dto.contactName ?? client.name;
     const contactPhone = dto.contactPhone ?? client.phone ?? undefined;
     const channel = dto.preferredChannel ?? 'WHATSAPP';
@@ -52,7 +55,7 @@ export class AppointmentCreateService {
     await this.assertNoSpam(user.id, property.id, dto.type);
 
     const created = await this.prisma.appointment.create({
-      data: {
+      data: this.appointmentVault.encode({
         propertyId: property.id,
         clientId: user.id,
         type: dto.type,
@@ -61,12 +64,12 @@ export class AppointmentCreateService {
         contactName,
         contactPhone,
         preferredChannel: channel,
-      },
+      }),
       include: appointmentInclude,
     });
 
     // Aviso a quien gestiona la propiedad (dueno y/o agente asignado).
-    const recipients = new Set([property.owner.email, property.assignedAgent?.email].filter(Boolean) as string[]);
+    const recipients = new Set([this.vault.decode(property.owner).email, property.assignedAgent && this.vault.decode(property.assignedAgent).email].filter(Boolean) as string[]);
     await Promise.all(
       [...recipients].map((email) =>
         this.mail.send(email, {
@@ -87,7 +90,7 @@ export class AppointmentCreateService {
       userAgent: context.userAgent,
       metadata: { propertyId: property.id, type: dto.type },
     });
-    return toClientView(created, this.storage);
+    return toClientView(this.appointmentVault.decode(created), this.storage);
   }
 
   /** VISITA exige una fecha futura (maximo 90 dias); RESERVA no lleva fecha. */

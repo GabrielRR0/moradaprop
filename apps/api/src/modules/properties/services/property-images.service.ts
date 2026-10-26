@@ -5,6 +5,7 @@ import { ImagesService } from '../../../common/images';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
+import { ThreatModelService } from '../../security';
 import { PropertyWriteService } from './property-write.service';
 
 export const MAX_IMAGES_PER_PROPERTY = 20;
@@ -22,12 +23,17 @@ export class PropertyImagesService {
     private readonly images: ImagesService,
     private readonly writer: PropertyWriteService,
     private readonly audit: AuditService,
+    private readonly threats: ThreatModelService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
   async upload(user: AuthUser, propertyId: string, files: Express.Multer.File[], context: RequestContext) {
-    await this.writer.findManaged(user, propertyId);
+    await this.writer.findManaged(user, propertyId, context);
     if (!files?.length) throw new BadRequestException('Envia al menos una imagen en el campo "files"');
+    await this.threats.inspectFiles(
+      files.map((f) => ({ buffer: f.buffer, filename: f.originalname, mimetype: f.mimetype })),
+      { userId: user.id, ip: context.ip, roles: user.roles },
+    );
 
     const existing = await this.prisma.propertyImage.count({ where: { propertyId } });
     if (existing + files.length > MAX_IMAGES_PER_PROPERTY) {

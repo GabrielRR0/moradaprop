@@ -5,10 +5,16 @@ import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { PrismaService } from '../../../common/prisma';
 import type { AccessTokenPayload, TwoFactorChallengePayload } from '../../../common/security/types';
-import { SecurityService } from '../../security';
+import { SecurityService, SessionVault, UserVault } from '../../security';
 import { toPublicUser, type AuthTokens, type RequestContext } from '../utils/auth-context';
 
 const INVALID_SESSION = 'Sesion invalida o vencida';
+
+/**
+ * Margen para el doble uso legitimo: dos pestañas (o un reintento de red) pueden refrescar a la vez con el
+ * mismo token. Un token rotado hace menos de esto solo se rechaza; pasado el margen, reusarlo = posible robo.
+ */
+const REUSE_GRACE_MS = 10_000;
 
 /** Access tokens (JWT corto) y sesiones con refresh token rotativo. */
 @Injectable()
@@ -19,20 +25,22 @@ export class TokenService {
     private readonly crypto: CryptoService,
     private readonly config: AppConfig,
     private readonly security: SecurityService,
+    private readonly vault: UserVault,
+    private readonly sessionVault: SessionVault,
   ) {}
 
   /** Crea una sesion nueva (refresh token) y su primer access token. */
   async startSession(user: User, context: RequestContext, twoFactorVerified: boolean): Promise<AuthTokens> {
     const refreshToken = this.crypto.randomToken();
     const session = await this.prisma.session.create({
-      data: {
+      data: this.sessionVault.encode({
         userId: user.id,
         refreshTokenHash: this.crypto.hashToken(refreshToken),
         ip: context.ip,
         userAgent: context.userAgent?.slice(0, 300),
         twoFactorVerified,
         expiresAt: this.refreshExpiry(),
-      },
+      }),
     });
 
     await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
@@ -44,18 +52,21 @@ export class TokenService {
   }
 
   /**
-   * Rota el refresh token. Si llega uno ya usado (posible robo), se cierran
-   * TODAS las sesiones del usuario.
+   * Rota el refresh token. Si llega uno ya usado hace mas de REUSE_GRACE_MS (posible robo), se cierran
+   * TODAS las sesiones del usuario. La rotacion es atomica: si dos peticiones llegan a la vez con el mismo
+   * token, solo una gana y la otra recibe 401 sin cerrar nada (el cliente reintenta con el token nuevo).
    */
   async refresh(rawToken: string, context: RequestContext): Promise<AuthTokens> {
-    const session = await this.prisma.session.findUnique({
+    const found = await this.prisma.session.findUnique({
       where: { refreshTokenHash: this.crypto.hashToken(rawToken) },
       include: { user: true },
     });
-    if (!session) throw new UnauthorizedException(INVALID_SESSION);
+    if (!found) throw new UnauthorizedException(INVALID_SESSION);
+    const session = { ...found, user: this.vault.decode(found.user) };
 
     if (session.revokedAt) {
-      await this.revokeAll(session.userId);
+      const justRotated = Date.now() - session.revokedAt.getTime() < REUSE_GRACE_MS;
+      if (!justRotated) await this.revokeAll(session.userId);
       throw new UnauthorizedException(INVALID_SESSION);
     }
     if (session.expiresAt < new Date() || session.user.status !== 'ACTIVE') {
@@ -65,18 +76,25 @@ export class TokenService {
 
     const nextToken = this.crypto.randomToken();
     const next = await this.prisma.$transaction(async (tx) => {
-      await tx.session.update({ where: { id: session.id }, data: { revokedAt: new Date() } });
+      // Solo gana quien logra revocar la sesion todavia activa; el que llega segundo (count 0) pierde.
+      const { count } = await tx.session.updateMany({
+        where: { id: session.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      if (count === 0) return null;
       return tx.session.create({
-        data: {
+        data: this.sessionVault.encode({
           userId: session.userId,
           refreshTokenHash: this.crypto.hashToken(nextToken),
           ip: context.ip,
           userAgent: context.userAgent?.slice(0, 300),
           twoFactorVerified: session.twoFactorVerified,
           expiresAt: this.refreshExpiry(),
-        },
+        }),
       });
     });
+
+    if (!next) throw new UnauthorizedException(INVALID_SESSION);
 
     return {
       user: toPublicUser(session.user),
@@ -159,7 +177,7 @@ export class TokenService {
         orderBy: { lastUsedAt: 'desc' },
         select: { id: true, ip: true, userAgent: true, createdAt: true, lastUsedAt: true },
       })
-      .then((sessions) => sessions.map((s) => ({ ...s, current: s.id === currentSessionId })));
+      .then((sessions) => sessions.map((s) => ({ ...this.sessionVault.decode(s), current: s.id === currentSessionId })));
   }
 
   /** Solo se puede cerrar una sesion propia (el userId viene del token). */

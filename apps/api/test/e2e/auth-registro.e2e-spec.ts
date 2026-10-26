@@ -1,4 +1,6 @@
+import { userByEmail } from '../support/auth-helpers';
 import request from 'supertest';
+import { CryptoService } from '../../src/common/crypto';
 import { describeCase } from '../support/describe-case';
 import { createTestApp, MOBILE_HEADERS, PASSWORD, type TestApp } from '../support/test-app';
 
@@ -12,7 +14,6 @@ const cookieOf = (res: request.Response, name: string) =>
 describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
   let t: TestApp;
   let accessToken = '';
-  let refreshCookie = '';
 
   beforeAll(async () => {
     t = await createTestApp();
@@ -93,7 +94,7 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
     espera: '201, usuario con emailVerifiedAt nulo, roles [CLIENT], hash argon2 y un correo con codigo',
     ejecutar: async () => {
       const res = await t.web('post')('/api/auth/register').send(registro);
-      const user = await t.prisma.user.findUnique({ where: { email: EMAIL } });
+      const user = await userByEmail(t, EMAIL);
       return { res, user, correos: t.mail.sent.length };
     },
     verificar: ({ res, user, correos }) => {
@@ -132,10 +133,7 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
         accountType: 'AGENCY',
         agencyName: 'Inmuebles Caracas',
       });
-      return t.prisma.user.findUnique({
-        where: { email: 'agencia@correo.com' },
-        include: { agencyMembers: { include: { agency: true } } },
-      });
+      return userByEmail(t, 'agencia@correo.com', { include: { agencyMembers: { include: { agency: true } } } });
     },
     verificar: (user) => {
       expect(user?.roles).toEqual(['CLIENT', 'AGENCY']);
@@ -185,7 +183,6 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
       expect(cookie).toContain('HttpOnly');
       expect(cookie).toContain('Path=/api/auth');
       accessToken = res.body.accessToken;
-      refreshCookie = (cookie as string).split(';')[0];
     },
     describirObtenido: (res) =>
       `${res.status}, cookie ${cookieOf(res, 'refresh_token')?.includes('HttpOnly') ? 'httpOnly' : 'no httpOnly'}, refreshToken en body: ${'refreshToken' in res.body}`,
@@ -262,17 +259,65 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
     verificar: (status) => expect(status).toBe(401),
   });
 
+  /** Login nuevo (sesion propia) para los casos de rotacion, que no se pisan con los demas. */
+  const nuevaSesion = async () => {
+    const res = await t.web('post')('/api/auth/login').send({ email: EMAIL, password: PASSWORD });
+    return (cookieOf(res, 'refresh_token') as string).split(';')[0];
+  };
+  const refrescar = (cookie: string) => t.web('post')('/api/auth/refresh').set('Cookie', cookie).send({});
+  const cookieNueva = (res: request.Response) => (cookieOf(res, 'refresh_token') as string).split(';')[0];
+
   describeCase('sesiones (e2e)', {
-    que: 'refresh rota el token: el nuevo sirve y reusar el viejo cierra TODAS las sesiones',
-    espera: 'primer refresh 200; reuso del cookie viejo 401; despues el refresh nuevo tambien falla',
+    que: 'refresh rota el token y el viejo reusado de inmediato (doble pestana, reintento de red) solo se rechaza',
+    espera: 'primer refresh 200; reuso inmediato del cookie viejo 401 SIN cerrar sesiones; el cookie nuevo sigue sirviendo',
     ejecutar: async () => {
-      const primero = await t.web('post')('/api/auth/refresh').set('Cookie', refreshCookie).send({});
-      const nuevaCookie = (cookieOf(primero, 'refresh_token') as string).split(';')[0];
-      const reuso = await t.web('post')('/api/auth/refresh').set('Cookie', refreshCookie).send({});
-      const trasRobo = await t.web('post')('/api/auth/refresh').set('Cookie', nuevaCookie).send({});
+      const vieja = await nuevaSesion();
+      const primero = await refrescar(vieja);
+      const reuso = await refrescar(vieja);
+      const conLaNueva = await refrescar(cookieNueva(primero));
+      return [primero.status, reuso.status, conLaNueva.status];
+    },
+    verificar: (estados) => expect(estados).toEqual([200, 401, 200]),
+  });
+
+  describeCase('sesiones (e2e)', {
+    que: 'reusar un token ya rotado pasado el margen de 10 s (robo real) cierra TODAS las sesiones',
+    espera: 'reuso tardio 401; despues el refresh del cookie nuevo tambien falla',
+    ejecutar: async () => {
+      const vieja = await nuevaSesion();
+      const primero = await refrescar(vieja);
+      // Se envejece la revocacion de la sesion vieja: como si el reuso llegara un minuto despues.
+      const haceUnMinuto = new Date(Date.now() - 60_000);
+      await t.prisma.session.updateMany({ where: { revokedAt: { not: null, gt: new Date(Date.now() - 5_000) } }, data: { revokedAt: haceUnMinuto } });
+      const reuso = await refrescar(vieja);
+      const trasRobo = await refrescar(cookieNueva(primero));
       return [primero.status, reuso.status, trasRobo.status];
     },
     verificar: (estados) => expect(estados).toEqual([200, 401, 401]),
+  });
+
+  describeCase('sesiones (e2e)', {
+    que: 'ocho refresh SIMULTANEOS con el mismo token (carrera)',
+    espera: 'exactamente uno gana (200), los demas se rechazan (401, o 429 si agotan el limite); no se crea ninguna sesion de mas y la del ganador queda activa',
+    ejecutar: async () => {
+      const vieja = await nuevaSesion();
+      const usuario = await userByEmail(t, EMAIL);
+      const antes = await t.prisma.session.count({ where: { userId: usuario.id, revokedAt: null } });
+      const respuestas = await Promise.all(Array.from({ length: 8 }, () => refrescar(vieja)));
+      const ganador = respuestas.find((r) => r.status === 200);
+      const despues = await t.prisma.session.count({ where: { userId: usuario.id, revokedAt: null } });
+      // La sesion del ganador sigue activa en la base (se comprueba ahi: 8 peticiones seguidas agotan el limite HTTP).
+      const hash = ganador ? t.app.get(CryptoService).hashToken(cookieNueva(ganador).split('=')[1]) : '';
+      const activa = await t.prisma.session.count({ where: { refreshTokenHash: hash, revokedAt: null } });
+      return { estados: respuestas.map((r) => r.status), antes, despues, activa };
+    },
+    verificar: ({ estados, antes, despues, activa }) => {
+      expect(estados.filter((s) => s === 200)).toHaveLength(1);
+      expect(estados.filter((s) => s !== 200).every((s) => s === 401 || s === 429)).toBe(true);
+      expect(despues).toBe(antes); // la sesion vieja se cambio por UNA nueva, no por varias
+      expect(activa).toBe(1);
+    },
+    describirObtenido: ({ estados, antes, despues, activa }) => `${estados.filter((s) => s === 200).length} ganador(es) de ${estados.length}; sesiones activas antes ${antes}, despues ${despues}; sesion del ganador activa: ${activa}`,
   });
 
   describeCase('sesiones (e2e)', {

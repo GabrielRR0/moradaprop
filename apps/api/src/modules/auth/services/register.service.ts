@@ -3,10 +3,11 @@ import { Prisma, Role } from '@prisma/client';
 import { MailService } from '../../../common/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
-import { SecurityService } from '../../security';
+import { AgencyVault, SecurityService, ThreatModelService, UserVault } from '../../security';
 import { AccountType, type RegisterDto } from '../dto/register.dto';
 import { normalizeEmail, type RequestContext } from '../utils/auth-context';
 import { hashPassword } from '../../../common/password';
+import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
 
 export const REGISTER_RESPONSE = {
@@ -20,7 +21,11 @@ export class RegisterService {
     private readonly codes: VerificationCodeService,
     private readonly mail: MailService,
     private readonly security: SecurityService,
+    private readonly threats: ThreatModelService,
     private readonly audit: AuditService,
+    private readonly accounts: UserAccountService,
+    private readonly vault: UserVault,
+    private readonly agencyVault: AgencyVault,
   ) {}
 
   /**
@@ -31,7 +36,7 @@ export class RegisterService {
     const email = normalizeEmail(dto.email);
     await this.security.assertNotBlocked({ ip: context.ip, email });
 
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const existing = await this.accounts.findByEmail(email);
     if (existing) {
       // Cuenta sin verificar: se reenvia el codigo. Cuenta verificada: no se hace nada.
       if (!existing.emailVerifiedAt) await this.sendVerificationCode(existing.id, email).catch(() => undefined);
@@ -42,9 +47,7 @@ export class RegisterService {
       const user = await this.prisma.$transaction(async (tx) => {
         const created = await tx.user.create({
           data: {
-            email,
-            name: dto.name,
-            phone: dto.phone,
+            ...this.vault.encode({ email, name: dto.name, phone: dto.phone ?? null }),
             passwordHash: await hashPassword(dto.password),
             roles: this.rolesFor(dto.accountType),
           },
@@ -56,7 +59,7 @@ export class RegisterService {
               members: {
                 create: {
                   userId: created.id,
-                  invitedEmail: email,
+                  ...this.agencyVault.encodeMember({ invitedEmail: email }),
                   role: 'AGENCY_ADMIN',
                   invitationStatus: 'ACCEPTED',
                 },
@@ -67,6 +70,8 @@ export class RegisterService {
         return created;
       });
 
+      // Cada cuenta nueva cuenta contra el escudo mass-registration (quien crea muchas desde una IP acaba bloqueado).
+      await this.threats.report('mass-registration', { ip: context.ip });
       await this.sendVerificationCode(user.id, email);
       await this.audit.log({
         action: 'auth.register',
@@ -87,7 +92,7 @@ export class RegisterService {
   /** Reenvia el codigo de verificacion (con cooldown). Respuesta generica. */
   async resendVerification(rawEmail: string) {
     const email = normalizeEmail(rawEmail);
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.accounts.findByEmail(email);
     if (user && !user.emailVerifiedAt) await this.sendVerificationCode(user.id, email);
     return REGISTER_RESPONSE;
   }

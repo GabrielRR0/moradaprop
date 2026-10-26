@@ -14,7 +14,7 @@ Toda petición (salvo `GET /api/health`) debe llevar:
 
 Sin ellas responde `403 Cliente no autorizado`. Más sobre el porqué en [SEGURIDAD.md](SEGURIDAD.md).
 
-**Sesión:** el login devuelve `accessToken` (15 min). En la **web** el refresh token va en una cookie `httpOnly` (envía las peticiones con `credentials: 'include'`); en **móvil** viene en el body como `refreshToken`. Cuando el access token vence, llama a `POST /api/auth/refresh`.
+**Sesión:** el login devuelve `accessToken` (15 min). En la **web** el refresh token va en una cookie `httpOnly` (envía las peticiones con `credentials: 'include'`); en **móvil** viene en el body como `refreshToken`. Cuando el access token vence, llama a `POST /api/auth/refresh`. Si varias pestañas o peticiones refrescan a la vez con el mismo token, solo una gana: las demás reciben `401`. **El cliente debe reintentar el refresh una vez** (ya con el cookie nuevo que dejó la ganadora) antes de cerrar la sesión del usuario.
 
 **Errores comunes:** `400` datos inválidos · `401` sin sesión/token vencido · `403` sin permiso (o `code: TWO_FACTOR_REQUIRED`, `EMAIL_NOT_VERIFIED`) · `404` no existe o no te corresponde · `409` conflicto (duplicado, límite de plan) · `429` demasiadas peticiones.
 

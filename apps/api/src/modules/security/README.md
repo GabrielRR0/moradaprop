@@ -1,6 +1,30 @@
 # security
-Bloqueos de acceso y su panel admin (/api/admin/security).
+Toda la seguridad de la aplicación en un solo módulo. Cada defensa es un **mini módulo** privado dentro de su carpeta; el resto de la app solo habla con `security/index.ts`.
 
-**Tipos de bloqueo:** IP, rango CIDR, país, usuario, correo y dominio de correo; con vencimiento opcional.
-**Piezas:** block-check.service (decide, con caché de 30 s), block-rule.service (CRUD con validación por tipo), guards/block.guard (guard global que corta antes de llegar a cualquier ruta), utils/cidr.ts.
-El país se lee de cabeceras de CDN (cf-ipcountry, etc.). Funciona igual en REST y GraphQL.
+| Mini módulo | Qué defiende | Documentación |
+|---|---|---|
+| [blocks/](blocks/README.md) | Bloqueos de IP, rango, país, usuario, correo y dominio (panel admin) | `blocks/README.md` |
+| [encryption/](encryption/README.md) | Cifrado de datos personales en la DB (AES-256-GCM, claves versionadas) e índice ciego para buscar por igualdad | `encryption/README.md` |
+| [ownership/](ownership/README.md) | Que un usuario no toque datos que no son suyos (404 uniforme + auditoría) | `ownership/README.md` |
+| [threat-model/](threat-model/README.md) | Modelo de amenazas STRIDE: escudos que vigilan el tráfico y revisiones de archivos subidos | `threat-model/README.md` |
+
+**Cómo se usa desde otro módulo** (nunca se importan archivos de las subcarpetas):
+```ts
+import { SecurityModule, SecurityService, OwnershipService, ThreatModelService } from '../security';
+// en el @Module:  imports: [SecurityModule]
+```
+
+**Reglas** (las impone ESLint, ver `eslint-rules/module-boundaries.mjs`):
+- Un mini módulo es una carpeta con su propio `<nombre>.module.ts` e `index.ts`.
+- Desde fuera de `security` solo se importa `security/index.ts`. Desde dentro, un hermano solo se importa por el `index.ts` del otro (`../blocks`, nunca `../blocks/services/...`).
+- Las rutas admin de la seguridad se declaran en `security.routes.ts` y las monta `routes/admin.routes.ts`.
+
+**Agregar un mini módulo de seguridad**
+1. Crea `security/<nombre>/` con `<nombre>.module.ts`, `index.ts` y `README.md`.
+2. Súmalo en `security.module.ts` (`imports` y `exports`).
+3. Exporta desde `security/index.ts` lo que otros módulos necesiten (servicios, tipos).
+4. Si tiene rutas admin, agrégalas en `security.routes.ts`.
+
+**Quitar uno**: borra su carpeta, su línea en `security.module.ts` y sus exportaciones en `index.ts`. Los módulos que lo usaban dejan de compilar justo en las líneas que lo llaman (ej. `ownership.require(...)`), así que no queda nada colgado.
+
+**Tests**: `pnpm test:module security` corre los de todos los mini módulos; `pnpm test:module threat-model` solo los de uno.

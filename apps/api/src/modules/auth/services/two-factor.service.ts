@@ -13,10 +13,12 @@ import { CryptoService } from '../../../common/crypto';
 import { MailService } from '../../../common/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
+import { FieldCipher } from '../../security';
 import type { LoginResult, RequestContext } from '../utils/auth-context';
 import { verifyPassword } from '../../../common/password';
 import { LoginService } from './login.service';
 import { TokenService } from './token.service';
+import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
 
 const INVALID_CODE = 'Codigo invalido';
@@ -36,6 +38,8 @@ export class TwoFactorService {
     private readonly codes: VerificationCodeService,
     private readonly mail: MailService,
     private readonly audit: AuditService,
+    private readonly cipher: FieldCipher,
+    private readonly accounts: UserAccountService,
     private readonly config: AppConfig,
   ) {}
 
@@ -51,7 +55,7 @@ export class TwoFactorService {
     const secret = authenticator.generateSecret();
     await this.prisma.user.update({
       where: { id: userId },
-      data: { twoFactorSecret: this.crypto.encrypt(secret), twoFactorLastStep: null },
+      data: { twoFactorSecret: this.cipher.encrypt('User.twoFactorSecret', secret), twoFactorLastStep: null },
     });
 
     const otpauthUrl = authenticator.keyuri(user.email, this.config.app.name, secret);
@@ -164,7 +168,7 @@ export class TwoFactorService {
     if (!user.twoFactorSecret) throw new UnauthorizedException(INVALID_CODE);
 
     // delta: 0 = paso actual, -1 = anterior, 1 = siguiente; null = codigo incorrecto.
-    const delta = authenticator.checkDelta(code, this.crypto.decrypt(user.twoFactorSecret));
+    const delta = authenticator.checkDelta(code, this.cipher.decrypt('User.twoFactorSecret', user.twoFactorSecret));
     if (delta === null) throw new UnauthorizedException(INVALID_CODE);
 
     // Anti-replay: un paso de tiempo ya aceptado no se puede volver a usar.
@@ -206,7 +210,7 @@ export class TwoFactorService {
   }
 
   private async getUser(userId: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.accounts.findById(userId);
     if (!user) throw new UnauthorizedException('Sesion invalida');
     return user;
   }

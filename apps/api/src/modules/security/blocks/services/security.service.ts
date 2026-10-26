@@ -32,6 +32,10 @@ export class SecurityService {
     return this.blockRules.blockUser(userId, reason, createdBy);
   }
 
+  blockTemporarily(...args: Parameters<BlockRuleService['blockTemporarily']>) {
+    return this.blockRules.blockTemporarily(...args);
+  }
+
   unblockUser(userId: string) {
     return this.blockRules.unblockUser(userId);
   }

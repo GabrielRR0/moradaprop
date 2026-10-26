@@ -3,6 +3,7 @@ import { Role } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
+import { SocialAccountVault, UserVault } from '../../security';
 import type { UpdateProfileDto } from '../dto/update-profile.dto';
 
 @Injectable()
@@ -10,6 +11,8 @@ export class ProfileService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly vault: UserVault,
+    private readonly social: SocialAccountVault,
   ) {}
 
   /** Perfil del usuario del token, con sus agencias y proveedores vinculados. Sin hashes ni secretos. */
@@ -36,12 +39,17 @@ export class ProfileService {
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const { passwordHash, emailVerifiedAt, ...rest } = user;
+    const { passwordHash, emailVerifiedAt, ...rest } = this.vault.decode(user);
+    rest.socialAccounts = rest.socialAccounts.map((account) => this.social.decode(account));
     return { ...rest, emailVerified: Boolean(emailVerifiedAt), hasPassword: Boolean(passwordHash) };
   }
 
   async update(userId: string, dto: UpdateProfileDto, context: RequestContext) {
-    await this.prisma.user.update({ where: { id: userId }, data: { name: dto.name, phone: dto.phone } });
+    const current = this.vault.decode(await this.prisma.user.findUniqueOrThrow({ where: { id: userId } }));
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: this.vault.encode({ email: current.email, name: dto.name ?? current.name, phone: dto.phone }),
+    });
     await this.audit.log({
       action: 'users.profile.updated',
       userId,

@@ -31,6 +31,8 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
     jwtAccessSecret: raw.JWT_ACCESS_SECRET,
     jwtRefreshSecret: raw.JWT_REFRESH_SECRET,
     encryptionKey: raw.ENCRYPTION_KEY,
+    encryptionKeys: raw.ENCRYPTION_KEYS,
+    encryptionActiveVersion: raw.ENCRYPTION_ACTIVE_VERSION,
     jwtAccessExpiresIn: raw.JWT_ACCESS_EXPIRES_IN,
     jwtRefreshExpiresIn: raw.JWT_REFRESH_EXPIRES_IN,
 
@@ -47,6 +49,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
     supabaseServiceKey: raw.SUPABASE_SERVICE_KEY,
 
     trustProxy: raw.TRUST_PROXY === 'true',
+    threatMode: raw.THREAT_MODE,
     corsAllowedOrigins: raw.CORS_ALLOWED_ORIGINS,
     appClientKeyWeb: raw.APP_CLIENT_KEY_WEB,
     appClientKeyMobile: raw.APP_CLIENT_KEY_MOBILE,

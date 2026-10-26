@@ -25,7 +25,11 @@ Cada petición, REST o GraphQL, pasa por esta cadena. Está declarada en `apps/a
 | 4 | Sesión | `modules/auth/guards/jwt-auth.guard.ts` | Exige token válido salvo rutas públicas; comprueba que el usuario no esté bloqueado. |
 | 5 | Roles y 2FA | `common/security/guards/roles.guard.ts` | Aplica `@Roles(...)` y `@RequireTwoFactor()`. |
 | 6 | Validación | `bootstrap/configure-app.ts` (ValidationPipe) | Rechaza campos desconocidos y datos inválidos. |
-| 7 | Permisos de datos | `*-policy.service.ts`, `agency-access.service.ts` | Decide si **este** usuario puede tocar **este** recurso. |
+| 7 | Permisos de datos | `modules/security/ownership/` + `*-policy.service.ts`, `*.policy.ts` | Decide si **este** usuario puede tocar **este** recurso (`OwnershipService.require`). Un recurso ajeno responde 404 y queda auditado (`access.denied`). |
+| 8 | Revisión de archivos | `modules/security/threat-model/file-checks/` | Antes de guardar o decodificar un archivo subido: nombre peligroso (doble extensión, `.php`, `.exe`…) y programas o scripts disfrazados de imagen o planilla. Código propio, sin servicios ni paquetes externos. |
+| 9 | Modelo de amenazas (STRIDE) | `modules/security/threat-model/` | Observa las respuestas (401, 400, 404, 429, 403) y, si alguien insiste, lo audita y (con `THREAT_MODE=enforce`) lo bloquea por tiempo. Un escudo por letra STRIDE. |
+
+> **Toda la seguridad vive en `modules/security`**, dividida en mini módulos privados (`blocks`, `ownership`, `threat-model`). El resto de la app solo importa `modules/security` (su `index.ts`). Ver `apps/api/src/modules/security/README.md`.
 
 > **Importante:** los roles (capa 5) dicen *qué tipo de usuario* eres; la capa 7 dice *si ese recurso concreto es tuyo*. Tener rol OWNER no te deja editar la propiedad de otro. Nunca confíes solo en `@Roles`.
 
@@ -46,7 +50,7 @@ Se declaran en `common/security/groups/index.ts`. Elige el grupo correcto en cad
 
 - **Contraseñas:** argon2id (`common/password`). Política: 8–128 caracteres con letras y números. Si el usuario no existe se ejecuta igual una verificación falsa para que el tiempo de respuesta no delate qué correos están registrados.
 - **Access token:** JWT de vida corta (15 min por defecto, `JWT_ACCESS_EXPIRES_IN`). Lleva `sub`, `roles`, `sid` (sesión) y `twoFactor`.
-- **Refresh token:** aleatorio, de **un solo uso** y rotativo (7 días). Se guarda solo su hash. **Si llega uno ya usado (posible robo) se cierran todas las sesiones del usuario.** Web: cookie `httpOnly`, `sameSite=lax`, `secure` en producción, ruta `/api/auth`; el JavaScript de la página no puede leerlo. Móvil: viaja en el body.
+- **Refresh token:** aleatorio, de **un solo uso** y rotativo (7 días). Se guarda solo su hash. **Si llega uno ya usado hace más de 10 s (posible robo) se cierran todas las sesiones del usuario.** Dentro de esos 10 s (dos pestañas o un reintento de red que refrescan a la vez) solo se rechaza con 401 sin cerrar nada, y la rotación es atómica: si varias peticiones llegan con el mismo token, una sola gana y no se crean sesiones de más. Web: cookie `httpOnly`, `sameSite=lax`, `secure` en producción, ruta `/api/auth`; el JavaScript de la página no puede leerlo. Móvil: viaja en el body.
 - **Bloqueo de cuenta:** 5 contraseñas incorrectas seguidas bloquean la cuenta 15 minutos (`auth.config.ts`).
 - **Códigos de 6 dígitos** (verificar correo, recuperar clave, 2FA por correo, vincular Google): se guardan como HMAC con contexto (usuario + tipo, no sirven en otro lado), vencen en 10 min, permiten 5 intentos y no se pueden pedir más de uno por minuto.
 - **No se revela si un correo existe:** registro, reenvío y recuperar clave responden igual.
@@ -79,6 +83,9 @@ Se declaran en `common/security/groups/index.ts`. Elige el grupo correcto en cad
 - **Bloqueos** (`modules/security`): por IP, CIDR, país, usuario, correo y dominio. Un usuario bloqueado pierde acceso en la siguiente petición.
 - **Suspender una cuenta** (`modules/admin-users`) hace tres cosas: cambia su estado, **cierra todas sus sesiones** y le pone un **bloqueo de usuario**, así que el token que ya tenía deja de servir al instante. Reactivar quita el bloqueo. Se registra en la auditoría.
 
+### Cifrado de datos personales en la DB
+Mini módulo `security/encryption`. Los datos personales se guardan como `v<N>.iv.tag.dato` (AES-256-GCM, el campo va como AAD) y las búsquedas por igualdad usan un índice ciego (HMAC, clave distinta a la de cifrado). Claves en `ENCRYPTION_KEYS` (`v1:...,v2:...`); para rotar se agrega una versión nueva y se re-cifra lo antiguo. En `User` ya van cifrados `email`, `name`, `phone` y el secreto 2FA; el admin busca por texto parcial con tokens ciegos (HMAC de prefijos). **Respalda las claves aparte de la DB:** sin ellas los datos no se recuperan.
+
 ## 5. Archivos e importaciones
 
 Nunca se confía en la extensión ni en el `Content-Type` que manda el cliente.
@@ -109,6 +116,7 @@ Las claves de desarrollo están en el repositorio (`docker-compose.yml`, `.env.e
 - [ ] `ENCRYPTION_KEY` respaldada en un gestor de secretos. **Si se pierde o cambia, todos los 2FA activos dejan de funcionar** (el secreto no se puede descifrar).
 - [ ] `APP_CLIENT_KEY_*` propias y `CORS_ALLOWED_ORIGINS` con el dominio real.
 - [ ] `TRUST_PROXY=true` **solo si** el API está detrás de un proxy/CDN de confianza. Con `true` sin proxy, cualquiera falsifica su IP con `X-Forwarded-For` y evade bloqueos y límites. Con `false` detrás de un proxy, todos los usuarios parecen tener la IP del proxy y se limitan entre sí.
+- [ ] `THREAT_MODE=enforce` (empieza unos días en `monitor`, revisa `GET /api/admin/audit?action=threat.` y ajusta los límites de `threat-model/shields/` antes de activar el bloqueo automático).
 - [ ] `CACHE_DRIVER=redis` si hay más de un servidor (si no, cada uno cuenta sus límites por separado).
 - [ ] HTTPS en todo el recorrido (la cookie `secure` solo viaja por HTTPS).
 - [ ] CDN/WAF delante (ej. Cloudflare): es la defensa real contra tráfico masivo; ver `docs/RENDIMIENTO.md`.
@@ -124,7 +132,8 @@ Las claves de desarrollo están en el repositorio (`docker-compose.yml`, `.env.e
 1. Elige el **grupo** de rutas correcto (§2). Si dudas, usa `AuthGroup`: es más estricto que público.
 2. El usuario sale de `@CurrentUser()`. **Nunca** pidas `userId`, `ownerId`, `agencyId` ni `role` en el body, la URL o la query.
 3. Crea un **DTO** con validadores para cada campo y deja que el pipe rechace lo desconocido. Pon límites (`@MaxLength`, `@Max`) a todo: texto, números y listas.
-4. Valida **pertenencia**, no solo rol: ¿este recurso es de este usuario? (ver las `*-policy.service.ts`). Si no lo es, 404 o 403 según convenga.
+4. Valida **pertenencia**, no solo rol: ¿este recurso es de este usuario? Pide el recurso con `ownership.require(policy, user, id, 'accion', ctx)` (ver `modules/security/ownership/README.md`); si no es suyo responde 404 y queda auditado. Los listados filtran por dueño en el `where`.
+8. Si el endpoint recibe archivos, llama a `threats.inspectFiles(...)` (`ThreatModelService`) **antes** de guardarlos o procesarlos.
 5. Devuelve datos con un **mapper**, no la fila de la base. Revisa que no salgan hashes, tokens, correos de terceros ni ids internos.
 6. Si cambia datos importantes, registra en auditoría (`@Audit(...)` o `AuditService.log`). No metas secretos en `metadata`.
 7. Rutas costosas (subir archivos, importar, búsquedas pesadas) llevan su propio límite en `rate-limits.ts`.
@@ -155,9 +164,11 @@ Las claves de desarrollo están en el repositorio (`docker-compose.yml`, `.env.e
 | `X-App-Key` de la web es visible en el navegador | Sirve para filtrar tráfico ajeno, no para detener a un atacante decidido | Rate limit + CDN/WAF |
 | El límite de peticiones es por IP | Muchas personas tras un mismo NAT comparten límite; un atacante con muchas IPs lo esquiva | CDN/WAF; límites por usuario cuando hay sesión |
 | La caché pública se renueva por tiempo | Una propiedad nueva puede tardar hasta 15 s en el mapa público | Ver `docs/RENDIMIENTO.md` |
-| No hay CAPTCHA en registro/login | Bots pueden intentar registros masivos (limitados por IP y cuenta) | Añadir CAPTCHA (Turnstile/hCaptcha) en `GuestGroup` si hay abuso |
+| No hay CAPTCHA (decisión del proyecto: sin servicios de terceros) | Un atacante que rota de IP (proxies, IPv6) puede crear cuentas sin que ninguna IP llegue al umbral del escudo `mass-registration` (8 por hora); cada cuenta igual necesita un correo real que reciba el código | Bloqueos por correo y por dominio (admin); revisar `threat.detected` y las altas por hora; límites por dispositivo si hay abuso |
 | No se valida que el dominio del correo reciba correos | Se pueden registrar correos inexistentes (no podrán verificar) | Bloqueos por dominio ya disponibles |
-| Los originales de fotos privados no tienen antivirus | Se re-codifican, no se escanean | Escaneo (ClamAV) si se aceptan más formatos |
+| No hay antivirus (decisión del proyecto: sin servicios de terceros en la seguridad) | Los archivos pasan por revisiones propias (nombre, ejecutables, magic bytes, zip-bombs, macros) y las imágenes se re-codifican; un virus conocido dentro de una planilla válida no se detecta por firma | Los originales y planillas viven en un bucket privado y nunca se sirven ni se ejecutan |
+| Los contadores del modelo de amenazas viven en la memoria de cada servidor | Con varios servidores cada uno cuenta aparte, así que el umbral efectivo se multiplica | Reemplazar `threat-ledger.service.ts` por una versión con Redis (misma interfaz) |
+| Los escudos miran el código HTTP | En GraphQL los errores suelen responder 200 y no cuentan (sí cuentan los que cortan los guards o el rate limit) | Reportar con `ThreatModelService.report(...)` desde el resolver si hace falta |
 | Sin auditoría externa ni pentest | — | Hacerlo antes del lanzamiento público |
 
 ## 10. Dónde están las pruebas de seguridad
@@ -166,7 +177,9 @@ Corren con `pnpm test:e2e` (base de datos real de pruebas) y `pnpm test:api`.
 
 | Qué se prueba | Archivo |
 |---|---|
-| Origen de la app, registro sin enumerar cuentas, refresh rotativo y detección de reuso, datos sensibles fuera de la auditoría | `test/e2e/auth-registro.e2e-spec.ts` |
+| Origen de la app, registro sin enumerar cuentas, refresh rotativo (reuso inmediato tolerado, robo tardío cierra todo, 8 refresh simultáneos = 1 ganador), datos sensibles fuera de la auditoría | `test/e2e/auth-registro.e2e-spec.ts` |
+| Modelo de amenazas: archivos maliciosos, `access.denied`, bloqueo automático por 403 repetidos | `test/e2e/amenazas.e2e-spec.ts` |
+| Registro masivo: la IP que crea 8 cuentas queda bloqueada | `test/e2e/registro-masivo.e2e-spec.ts` |
 | Recuperar contraseña, bloqueo de cuenta | `test/e2e/auth-recuperacion.e2e-spec.ts` |
 | Perfil: no se pueden cambiar roles/correo; cambio de contraseña cierra otras sesiones; suspender corta el acceso al instante | `test/e2e/usuarios.e2e-spec.ts` |
 | 2FA: TOTP, anti-repetición, respaldos de un solo uso, desactivar | `test/e2e/auth-2fa.e2e-spec.ts` |

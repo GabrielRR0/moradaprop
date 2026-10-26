@@ -1,7 +1,8 @@
 import { AppConfig } from '../../src/config';
 import { GoogleAuthService } from '../../src/modules/auth/services/google-auth.service';
 import { describeCase } from '../support/describe-case';
-import { registerVerified } from '../support/auth-helpers';
+import { registerVerified, userByEmail } from '../support/auth-helpers';
+import { UserVault } from '../../src/modules/security';
 import { createTestApp, PASSWORD, type TestApp } from '../support/test-app';
 
 /** idToken falso -> lo que Google diria de el. */
@@ -60,10 +61,7 @@ describe('Auth: Google (e2e)', () => {
     espera: '200 con sesion; usuario verificado, sin passwordHash, roles [CLIENT] y SocialAccount google',
     ejecutar: async () => {
       const res = await google('tok-nuevo');
-      const user = await t.prisma.user.findUnique({
-        where: { email: 'nuevo.google@correo.com' },
-        include: { socialAccounts: true },
-      });
+      const user = await userByEmail(t, 'nuevo.google@correo.com', { include: { socialAccounts: true } });
       return { res, user };
     },
     verificar: ({ res, user }) => {
@@ -83,7 +81,7 @@ describe('Auth: Google (e2e)', () => {
     espera: '200 y sigue habiendo un solo usuario con ese correo',
     ejecutar: async () => {
       const res = await google('tok-nuevo');
-      const cantidad = await t.prisma.user.count({ where: { email: 'nuevo.google@correo.com' } });
+      const cantidad = await t.prisma.user.count({ where: { emailHash: t.app.get(UserVault).emailHash('nuevo.google@correo.com') } });
       return [res.status, cantidad];
     },
     verificar: (r) => expect(r).toEqual([200, 1]),

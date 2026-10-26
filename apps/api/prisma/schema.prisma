@@ -109,10 +109,17 @@ enum ImportStatus {
 
 model User {
   id                String     @id @default(uuid())
-  email             String     @unique
+  /// cifrado (security/encryption); se busca por emailHash
+  email             String
+  /// HMAC del correo normalizado: login y unicidad sin guardar el correo en claro
+  emailHash         String     @unique
+  /// HMAC de prefijos de nombre y correo: buscador del admin sin texto en claro
+  searchTokens      String[]   @default([])
   /// null cuando la cuenta se creo solo con Google
   passwordHash      String?
+  /// cifrado
   name              String
+  /// cifrado
   phone             String?
   avatarUrl         String?
   roles             Role[]     @default([CLIENT])
@@ -142,13 +149,16 @@ model User {
   imports            ImportJob[]
 
   @@index([status])
+  @@index([searchTokens], type: Gin)
 }
 
 model SocialAccount {
   id         String   @id @default(uuid())
   userId     String
   provider   String
+  /// HMAC del id del proveedor (no el id en claro)
   providerId String
+  /// cifrado
   email      String?
   createdAt  DateTime @default(now())
 
@@ -163,7 +173,9 @@ model Session {
   id                String    @id @default(uuid())
   userId            String
   refreshTokenHash  String    @unique
+  /// cifrado
   userAgent         String?
+  /// cifrado
   ip                String?
   expiresAt         DateTime
   revokedAt         DateTime?
@@ -184,7 +196,7 @@ model VerificationCode {
   userId    String
   type      VerificationType
   codeHash  String
-  /// datos extra, ej. el providerId de Google que se va a vincular
+  /// datos extra, ej. el HMAC del providerId de Google que se va a vincular
   payload   Json?
   attempts  Int              @default(0)
   expiresAt DateTime
@@ -216,12 +228,18 @@ model TwoFactorBackupCode {
 model AgencyProfile {
   id            String   @id @default(uuid())
   name          String
+  /// cifrado
   legalName     String?
-  rif           String?  @unique
+  /// cifrado; se busca y es unico por rifHash
+  rif           String?
+  /// HMAC del RIF normalizado
+  rifHash       String?  @unique
   description   String?
   logoUrl       String?
   bannerUrl     String?
+  /// cifrado
   phone         String?
+  /// cifrado
   whatsapp      String?
   website       String?
   maxProperties Int      @default(100)
@@ -239,7 +257,9 @@ model AgencyMember {
   agencyId            String
   /// null mientras la invitacion sigue pendiente
   userId              String?
+  /// cifrado; se busca por invitedEmailHash
   invitedEmail        String
+  invitedEmailHash    String
   role                AgencyMemberRole @default(AGENT)
   invitationStatus    InvitationStatus @default(PENDING)
   invitationTokenHash String?          @unique
@@ -249,7 +269,7 @@ model AgencyMember {
   agency AgencyProfile @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   user   User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([agencyId, invitedEmail])
+  @@unique([agencyId, invitedEmailHash])
   @@index([userId])
 }
 
@@ -355,10 +375,14 @@ model Appointment {
   status           AppointmentStatus @default(PENDIENTE)
   /// fecha propuesta para la visita (null en una reserva directa)
   scheduledAt      DateTime?
+  /// cifrado
   message          String?
+  /// cifrado
   contactName      String
+  /// cifrado
   contactPhone     String?
   preferredChannel ContactChannel    @default(WHATSAPP)
+  /// cifrado
   responseNote     String?
   respondedAt      DateTime?
   createdAt        DateTime          @default(now())
@@ -421,9 +445,11 @@ model AuditLog {
   action     String
   resource   String?
   resourceId String?
+  /// cifrado
   ip         String?
+  /// cifrado
   userAgent  String?
-  /// estado antes/despues y metadatos (NUNCA contrasenas, tokens ni codigos)
+  /// estado antes/despues y metadatos (NUNCA contrasenas, tokens ni codigos); cifrado como { enc: "v1..." }
   metadata   Json?
   createdAt  DateTime @default(now())
 

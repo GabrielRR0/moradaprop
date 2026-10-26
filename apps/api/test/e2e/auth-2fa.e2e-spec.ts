@@ -1,6 +1,6 @@
 import { authenticator } from 'otplib';
 import { describeCase } from '../support/describe-case';
-import { jwtPayload, registerVerified } from '../support/auth-helpers';
+import { jwtPayload, registerVerified, userByEmail } from '../support/auth-helpers';
 import { createTestApp, PASSWORD, totp, type TestApp } from '../support/test-app';
 
 const EMAIL = 'dosfa@correo.com';
@@ -24,7 +24,7 @@ describe('Auth: verificacion en dos pasos (e2e)', () => {
     espera: 'secreto + QR; usuario sin 2FA activo; el secreto guardado no es el secreto en claro',
     ejecutar: async () => {
       const res = await t.web('post')('/api/auth/2fa/setup').set('Authorization', `Bearer ${accessToken}`);
-      const user = await t.prisma.user.findUniqueOrThrow({ where: { email: EMAIL } });
+      const user = await userByEmail(t, EMAIL);
       return { res, user };
     },
     verificar: ({ res, user }) => {
@@ -43,7 +43,7 @@ describe('Auth: verificacion en dos pasos (e2e)', () => {
     espera: '401 y el usuario sigue sin 2FA',
     ejecutar: async () => {
       const res = await t.web('post')('/api/auth/2fa/confirm').set('Authorization', `Bearer ${accessToken}`).send({ code: '000000' });
-      const user = await t.prisma.user.findUniqueOrThrow({ where: { email: EMAIL } });
+      const user = await userByEmail(t, EMAIL);
       return [res.status, user.twoFactorEnabled];
     },
     verificar: (r) => expect(r).toEqual([401, false]),
@@ -172,7 +172,7 @@ describe('Auth: verificacion en dos pasos (e2e)', () => {
         .web('post')('/api/auth/2fa/disable')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ password: PASSWORD, code: backupCodes[2] });
-      const user = await t.prisma.user.findUniqueOrThrow({ where: { email: EMAIL } });
+      const user = await userByEmail(t, EMAIL);
       const respaldos = await t.prisma.twoFactorBackupCode.count();
       const login = await iniciarLogin();
       return { res, user, respaldos, login };

@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import type { BlockRule } from '@prisma/client';
-import { PrismaService } from '../../../common/prisma';
+import { PrismaService } from '../../../../common/prisma';
 import { ipInCidr, normalizeIp } from '../utils/cidr';
 
 export interface BlockContext {

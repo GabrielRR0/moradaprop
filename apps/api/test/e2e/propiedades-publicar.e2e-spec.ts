@@ -246,8 +246,8 @@ describe('Propiedades: publicar, permisos, estados, imagenes y favoritos (e2e)',
   });
 
   describeCase('imagenes (e2e)', {
-    que: 'rechaza un archivo falso disfrazado de .jpg (texto/codigo con Content-Type de imagen)',
-    espera: '400 "Formato no permitido" y no se guarda nada',
+    que: 'rechaza un archivo falso disfrazado de .jpg (codigo PHP con Content-Type de imagen)',
+    espera: '400 "rechazado por seguridad" (lo corta el modelo de amenazas antes de decodificarlo) y no se guarda nada',
     ejecutar: async () => {
       const antes = await t.prisma.propertyImage.count();
       const res = await d('post')(`/api/properties/${propiedadId}/images`).attach('files', Buffer.from('<?php system($_GET["c"]); ?>'), {
@@ -258,7 +258,7 @@ describe('Propiedades: publicar, permisos, estados, imagenes y favoritos (e2e)',
     },
     verificar: ({ res, antes, despues }) => {
       expect(res.status).toBe(400);
-      expect(res.body.message).toContain('Formato no permitido');
+      expect(res.body.message).toContain('rechazado por seguridad');
       expect(despues).toBe(antes);
     },
     describirObtenido: ({ res, antes, despues }) => `${res.status} "${res.body.message}"; imagenes antes ${antes}, despues ${despues}`,

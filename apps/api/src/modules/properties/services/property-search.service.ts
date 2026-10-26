@@ -3,6 +3,7 @@ import { Prisma, PropertyStatus } from '@prisma/client';
 import { CACHE_POLICIES, CacheService } from '../../../common/cache';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser } from '../../../common/security/types';
+import { UserVault } from '../../security';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import {
   PropertySort,
@@ -30,6 +31,7 @@ export class PropertySearchService {
     private readonly prisma: PrismaService,
     private readonly policy: PropertyPolicyService,
     private readonly cache: CacheService,
+    private readonly vault: UserVault,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -91,7 +93,7 @@ export class PropertySearchService {
     const favorite = user
       ? await this.prisma.favorite.findUnique({ where: { userId_propertyId: { userId: user.id, propertyId: id } } })
       : null;
-    return toDetail(row, this.storage, { isFavorite: Boolean(favorite), canManage });
+    return toDetail({ ...row, owner: this.vault.decode(row.owner) }, this.storage, { isFavorite: Boolean(favorite), canManage });
   }
 
   /** Propiedades que el usuario gestiona, en cualquier estado. */

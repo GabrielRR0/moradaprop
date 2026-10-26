@@ -10,6 +10,7 @@ import { PasswordResetService } from './services/password-reset.service';
 import { RegisterService } from './services/register.service';
 import { TokenService } from './services/token.service';
 import { TwoFactorService } from './services/two-factor.service';
+import { UserAccountService } from './services/user-account.service';
 import { VerificationCodeService } from './services/verification-code.service';
 import { VerifyEmailService } from './services/verify-email.service';
 
@@ -26,6 +27,7 @@ import { VerifyEmailService } from './services/verify-email.service';
     TwoFactorService,
     PasswordResetService,
     GoogleAuthService,
+    UserAccountService,
     VerificationCodeService,
     JwtAuthGuard,
   ],

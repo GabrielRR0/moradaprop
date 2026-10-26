@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { requestOf } from '../../../common/security/request-of';
+import { requestOf } from '../../../../common/security/request-of';
 import { BlockCheckService } from '../services/block-check.service';
 
 /** Cabeceras que suelen poner CDNs/proxies con el pais de la IP. */

@@ -8,6 +8,7 @@ import type { LoginDto } from '../dto/login.dto';
 import { normalizeEmail, type LoginResult, type RequestContext } from '../utils/auth-context';
 import { burnPasswordCheck, verifyPassword } from '../../../common/password';
 import { TokenService } from './token.service';
+import { UserAccountService } from './user-account.service';
 
 const INVALID_CREDENTIALS = 'Credenciales invalidas';
 
@@ -19,6 +20,7 @@ export class LoginService {
     private readonly security: SecurityService,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
+    private readonly accounts: UserAccountService,
   ) {}
 
   /** Correo + contrasena. Si el usuario tiene 2FA, devuelve el desafio en vez de la sesion. */
@@ -26,7 +28,7 @@ export class LoginService {
     const email = normalizeEmail(dto.email);
     await this.security.assertNotBlocked({ ip: context.ip, email });
 
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.accounts.findByEmail(email);
     if (!user?.passwordHash) {
       await burnPasswordCheck(dto.password);
       throw new UnauthorizedException(INVALID_CREDENTIALS);

@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '../../../../../test/support/describe-case';
 import { ipInCidr, isValidCidr, normalizeIp } from '../utils/cidr';
 
 describe('cidr', () => {

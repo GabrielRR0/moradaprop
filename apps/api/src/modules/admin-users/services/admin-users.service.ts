@@ -3,7 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
-import { SecurityService } from '../../security';
+import { SecurityService, UserVault } from '../../security';
 import type { ListUsersQueryDto, SetUserStatusDto } from '../dto/admin-users.dto';
 
 @Injectable()
@@ -12,6 +12,7 @@ export class AdminUsersService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly security: SecurityService,
+    private readonly vault: UserVault,
   ) {}
 
   async list(query: ListUsersQueryDto) {
@@ -19,9 +20,7 @@ export class AdminUsersService {
     const limit = query.limit ?? 20;
     const where: Prisma.UserWhereInput = {
       status: query.status,
-      OR: query.q
-        ? [{ email: { contains: query.q, mode: 'insensitive' } }, { name: { contains: query.q, mode: 'insensitive' } }]
-        : undefined,
+      ...this.vault.searchWhere(query.q),
     };
 
     const [items, total] = await this.prisma.$transaction([
@@ -44,7 +43,7 @@ export class AdminUsersService {
       }),
       this.prisma.user.count({ where }),
     ]);
-    return { items, total, page, limit };
+    return { items: items.map((item) => this.vault.decode(item)), total, page, limit };
   }
 
   /** Suspende o reactiva una cuenta. Al suspender se cierran todas sus sesiones. */

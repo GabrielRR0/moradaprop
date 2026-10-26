@@ -6,6 +6,7 @@ import { MailService } from '../../../common/mail';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
+import { AgencyVault, UserVault } from '../../security';
 import { AgencyAccessService } from './agency-access.service';
 
 const INVITATION_DAYS = 7;
@@ -20,6 +21,8 @@ export class AgencyMembersService {
     private readonly mail: MailService,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
+    private readonly vault: UserVault,
+    private readonly agencyVault: AgencyVault,
   ) {}
 
   /** El administrador invita a un agente por correo. El enlace lleva un token de un solo uso. */
@@ -35,7 +38,7 @@ export class AgencyMembersService {
     }
 
     const existing = await this.prisma.agencyMember.findUnique({
-      where: { agencyId_invitedEmail: { agencyId: admin.agencyId, invitedEmail: email } },
+      where: { agencyId_invitedEmailHash: { agencyId: admin.agencyId, invitedEmailHash: this.agencyVault.invitedEmailHash(email) } },
     });
     if (existing && existing.invitationStatus === 'ACCEPTED') {
       throw new ConflictException('Esa persona ya pertenece a la agencia');
@@ -50,7 +53,7 @@ export class AgencyMembersService {
     const member = existing
       ? await this.prisma.agencyMember.update({ where: { id: existing.id }, data })
       : await this.prisma.agencyMember.create({
-          data: { agencyId: admin.agencyId, invitedEmail: email, role: 'AGENT', ...data },
+          data: { agencyId: admin.agencyId, ...this.agencyVault.encodeMember({ invitedEmail: email }), role: 'AGENT', ...data },
         });
 
     await this.mail.send(email, {
@@ -82,8 +85,8 @@ export class AgencyMembersService {
       throw new BadRequestException(INVALID_INVITATION);
     }
 
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
-    if (!user.emailVerifiedAt || user.email !== member.invitedEmail) {
+    const user = this.vault.decode(await this.prisma.user.findUniqueOrThrow({ where: { id: userId } }));
+    if (!user.emailVerifiedAt || member.invitedEmailHash !== this.agencyVault.invitedEmailHash(user.email)) {
       throw new ForbiddenException('Esta invitacion es para otro correo');
     }
     const already = await this.prisma.agencyMember.findFirst({ where: { userId, invitationStatus: 'ACCEPTED' } });

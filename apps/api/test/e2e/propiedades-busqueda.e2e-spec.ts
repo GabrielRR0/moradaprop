@@ -1,5 +1,5 @@
 import { describeCase } from '../support/describe-case';
-import { registerVerified } from '../support/auth-helpers';
+import { registerVerified, userByEmail } from '../support/auth-helpers';
 import { seedProperty } from '../support/property-helpers';
 import { createTestApp, type TestApp } from '../support/test-app';
 
@@ -175,7 +175,7 @@ describe('Propiedades: busqueda, filtros y mapa (e2e)', () => {
     que: 'con zoom alejado y muchas propiedades agrupa los pines; al acercarse los muestra sueltos',
     espera: 'zoom 8 => menos marcadores que propiedades (con clusters); zoom 17 => un pin por propiedad',
     ejecutar: async () => {
-      const dueno = await t.prisma.user.findUniqueOrThrow({ where: { email: 'dueno@correo.com' } });
+      const dueno = await userByEmail(t, 'dueno@correo.com');
       await t.prisma.property.createMany({
         data: Array.from({ length: 40 }, (_, i) => ({
           title: `Masa ${i}`,

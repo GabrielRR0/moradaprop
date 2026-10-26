@@ -6,6 +6,8 @@ import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage'
 import { AuditService } from '../../audit';
 import type { CreatePropertyDto } from '../dto/create-property.dto';
 import type { UpdatePropertyDto } from '../dto/update-property.dto';
+import { OwnershipService } from '../../security';
+import { PropertyAccessPolicy } from './property-access.policy';
 import { PropertyPolicyService } from './property-policy.service';
 
 /** Transiciones permitidas. La reservada puede volver a publicarse si la reserva se cae. */
@@ -21,6 +23,8 @@ export class PropertyWriteService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly policy: PropertyPolicyService,
+    private readonly access: PropertyAccessPolicy,
+    private readonly ownership: OwnershipService,
     private readonly audit: AuditService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
@@ -53,14 +57,14 @@ export class PropertyWriteService {
   }
 
   async update(user: AuthUser, id: string, dto: UpdatePropertyDto, context: RequestContext): Promise<Property> {
-    const property = await this.findManaged(user, id);
+    const property = await this.findManaged(user, id, context);
     const updated = await this.prisma.property.update({ where: { id }, data: dto });
     await this.log('properties.updated', user, property.id, context, { fields: Object.keys(dto) });
     return updated;
   }
 
   async changeStatus(user: AuthUser, id: string, status: PropertyStatus, context: RequestContext): Promise<Property> {
-    const property = await this.findManaged(user, id);
+    const property = await this.findManaged(user, id, context);
     if (!TRANSITIONS[property.status].includes(status)) {
       throw new BadRequestException(`No se puede pasar de ${property.status} a ${status}`);
     }
@@ -87,7 +91,7 @@ export class PropertyWriteService {
 
   /** Borra la propiedad y todos sus archivos (originales privados y variantes publicas). */
   async remove(user: AuthUser, id: string, context: RequestContext): Promise<void> {
-    await this.findManaged(user, id);
+    await this.findManaged(user, id, context);
     const images = await this.prisma.propertyImage.findMany({ where: { propertyId: id } });
 
     await this.prisma.property.delete({ where: { id } });
@@ -97,10 +101,8 @@ export class PropertyWriteService {
   }
 
   /** Busca la propiedad y exige que el usuario pueda gestionarla. */
-  async findManaged(user: AuthUser, id: string): Promise<Property> {
-    const property = await this.findProperty(id);
-    await this.policy.assertCanManage(user, property);
-    return property;
+  findManaged(user: AuthUser, id: string, context?: RequestContext): Promise<Property> {
+    return this.ownership.require(this.access, user, id, 'manage', context);
   }
 
   private async findProperty(id: string): Promise<Property> {

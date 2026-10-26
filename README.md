@@ -234,7 +234,7 @@ Validación estricta en DTO/Zod, límite de tamaño de body, sanitización de st
 ### 9.7 Anti-hacks en archivos
 - MIME real por **magic bytes** (no extensión ni Content-Type), lista blanca de tipos, tope de tamaño y de cantidad.
 - Re-encodeo de imágenes con `sharp` (destruye payloads, polyglots y EXIF/GPS), nombres UUID, nunca servir desde el directorio de la app.
-- Excel/CSV: límite de filas y tamaño, bloqueo de macros (`.xlsm`), neutralización de fórmulas (`=`, `+`, `-`, `@` → CSV injection), parseo en job aislado. ClamAV opcional como contenedor.
+- Excel/CSV: límite de filas y tamaño, bloqueo de macros (`.xlsm`), neutralización de fórmulas (`=`, `+`, `-`, `@` → CSV injection), parseo en job aislado.
 
 ### 9.8 Auditoría
 Módulo `audit` con tabla `AuditLog` (quién, acción, recurso, IP, user-agent, antes/después, fecha), alimentada por un interceptor global y eventos explícitos (login, 2FA, cambios de rol, bloqueos, publicar/reservar propiedad, importaciones, borrados). Visor con filtros en el panel admin. **Nunca** registra contraseñas, tokens ni códigos. Retención configurable.

@@ -22,6 +22,10 @@ export const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(16),
   /** Cifra secretos en reposo (ej. TOTP del 2FA). Minimo 32 caracteres. */
   ENCRYPTION_KEY: z.string().min(32),
+  /** Claves de cifrado de campos en reposo, versionadas: "v1:clave,v2:clave" (cada una minimo 32 caracteres). Vacio = v1 es ENCRYPTION_KEY. */
+  ENCRYPTION_KEYS: z.string().default(''),
+  /** Version con la que se cifra lo nuevo. Vacio = la ultima de ENCRYPTION_KEYS. */
+  ENCRYPTION_ACTIVE_VERSION: z.string().default(''),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 
@@ -41,6 +45,8 @@ export const envSchema = z.object({
 
   /** 'true' cuando el API esta detras de un proxy/CDN (Nginx, Cloudflare): usa la IP real del cliente */
   TRUST_PROXY: z.enum(['true', 'false']).default('false'),
+  /** Modelo de amenazas: 'off' no vigila; 'monitor' solo registra; 'enforce' ademas bloquea (por tiempo) a quien ataca */
+  THREAT_MODE: z.enum(['off', 'monitor', 'enforce']).default('monitor'),
   CORS_ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
   APP_CLIENT_KEY_WEB: z.string().default('dev-web-client-key'),
   APP_CLIENT_KEY_MOBILE: z.string().default('dev-mobile-client-key'),

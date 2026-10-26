@@ -18,8 +18,14 @@ if (moduleIndex !== -1) {
   }
   // Los modulos de negocio viven en src/modules/<modulo>; las capas transversales
   // (config, database...) viven directo en src/<nombre>.
-  const { existsSync } = require('node:fs');
-  const carpeta = existsSync(`src/modules/${modulo}`) ? `src/modules/${modulo}/` : `src/${modulo}/`;
+  // Un mini modulo (ej. security/threat-model) se busca dentro de los modulos que lo contienen.
+  const { existsSync, readdirSync } = require('node:fs');
+  const mini = readdirSync('src/modules').find((padre) => existsSync(`src/modules/${padre}/${modulo}/${modulo}.module.ts`));
+  const carpeta = existsSync(`src/modules/${modulo}`)
+    ? `src/modules/${modulo}/`
+    : mini
+      ? `src/modules/${mini}/${modulo}/`
+      : `src/${modulo}/`;
   jestArgs.push('--testPathPatterns', carpeta);
 }
 if (args.includes('--watch')) jestArgs.push('--watch');

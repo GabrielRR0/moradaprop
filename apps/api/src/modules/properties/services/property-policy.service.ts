@@ -36,12 +36,6 @@ export class PropertyPolicyService {
     return member.role === 'AGENCY_ADMIN' || property.assignedAgentId === user.id;
   }
 
-  async assertCanManage(user: AuthUser, property: PropertyOwnership): Promise<void> {
-    if (!(await this.canManage(user, property))) {
-      throw new ForbiddenException('No puedes modificar esta propiedad');
-    }
-  }
-
   /** Filtro Prisma de "las propiedades que este usuario puede gestionar" (para listados de gestion). */
   async managedFilter(user: AuthUser): Promise<Prisma.PropertyWhereInput> {
     if (user.roles.includes(Role.ADMIN)) return {};

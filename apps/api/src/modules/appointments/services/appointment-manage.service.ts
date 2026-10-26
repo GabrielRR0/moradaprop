@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { MailService } from '../../../common/mail';
@@ -6,8 +6,10 @@ import { PrismaService } from '../../../common/prisma';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
+import { AppointmentVault, OwnershipService, UserVault } from '../../security';
 import { PropertyPolicyService } from '../../properties';
 import type { ListAppointmentsDto, RespondAppointmentDto } from '../dto/appointments.dto';
+import { AppointmentPolicy } from './appointment.policy';
 import { appointmentInclude, toClientView, toLeadView } from '../utils/appointment-mapper';
 
 @Injectable()
@@ -15,9 +17,13 @@ export class AppointmentManageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly policy: PropertyPolicyService,
+    private readonly access: AppointmentPolicy,
+    private readonly ownership: OwnershipService,
     private readonly mail: MailService,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
+    private readonly vault: UserVault,
+    private readonly appointmentVault: AppointmentVault,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -29,8 +35,7 @@ export class AppointmentManageService {
 
   /** El cliente cancela su solicitud. Si cancela un apartado confirmado, la propiedad vuelve a publicarse. */
   async cancel(user: AuthUser, id: string, context: RequestContext) {
-    const appointment = await this.prisma.appointment.findFirst({ where: { id, clientId: user.id } });
-    if (!appointment) throw new NotFoundException('Solicitud no encontrada');
+    const appointment = await this.ownership.require(this.access, user, id, 'cancel', context);
     if (!['PENDIENTE', 'CONFIRMADA'].includes(appointment.status)) {
       throw new BadRequestException('Esta solicitud ya no se puede cancelar');
     }
@@ -63,7 +68,7 @@ export class AppointmentManageService {
    * (sigue visible con la insignia "En Proceso de Reserva").
    */
   async respond(user: AuthUser, id: string, dto: RespondAppointmentDto, context: RequestContext) {
-    const appointment = await this.findManaged(user, id);
+    const appointment = await this.ownership.require(this.access, user, id, 'respond', context);
     if (appointment.status !== 'PENDIENTE') throw new BadRequestException('Esta solicitud ya fue respondida');
 
     const confirm = dto.action === 'CONFIRM';
@@ -78,7 +83,7 @@ export class AppointmentManageService {
       }
       await tx.appointment.update({
         where: { id },
-        data: { status: confirm ? 'CONFIRMADA' : 'RECHAZADA', responseNote: dto.note, respondedAt: new Date() },
+        data: { status: confirm ? 'CONFIRMADA' : 'RECHAZADA', ...this.appointmentVault.encode({ responseNote: dto.note }), respondedAt: new Date() },
       });
     });
 
@@ -91,7 +96,7 @@ export class AppointmentManageService {
 
   /** Marca la visita como realizada. */
   async complete(user: AuthUser, id: string, context: RequestContext) {
-    const appointment = await this.findManaged(user, id);
+    const appointment = await this.ownership.require(this.access, user, id, 'complete', context);
     if (appointment.status !== 'CONFIRMADA') throw new BadRequestException('Solo se completan solicitudes confirmadas');
 
     await this.prisma.appointment.update({ where: { id }, data: { status: 'COMPLETADA' } });
@@ -100,16 +105,6 @@ export class AppointmentManageService {
   }
 
   // ---------------- Internos ----------------
-
-  /** Busca la solicitud y exige que el usuario gestione la propiedad (un tercero recibe 404). */
-  private async findManaged(user: AuthUser, id: string) {
-    const appointment = await this.prisma.appointment.findUnique({ where: { id }, include: { property: true } });
-    if (!appointment) throw new NotFoundException('Solicitud no encontrada');
-    if (!(await this.policy.canManage(user, appointment.property))) {
-      throw new ForbiddenException('No gestionas esta propiedad');
-    }
-    return appointment;
-  }
 
   private async page<T>(
     where: Prisma.AppointmentWhereInput,
@@ -122,7 +117,7 @@ export class AppointmentManageService {
       this.prisma.appointment.findMany({ where, include: appointmentInclude, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       this.prisma.appointment.count({ where }),
     ]);
-    return { items: rows.map((row) => map(row, this.storage)), total, page, limit };
+    return { items: rows.map((row) => map({ ...this.appointmentVault.decode(row), client: this.vault.decode(row.client) }, this.storage)), total, page, limit };
   }
 
   private async reload<T>(
@@ -130,13 +125,13 @@ export class AppointmentManageService {
     map: (row: Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>, storage: StorageProvider) => T,
   ) {
     const row = await this.prisma.appointment.findUniqueOrThrow({ where: { id }, include: appointmentInclude });
-    return map(row, this.storage);
+    return map({ ...this.appointmentVault.decode(row), client: this.vault.decode(row.client) }, this.storage);
   }
 
   private async notifyClient(id: string, accepted: boolean, note?: string) {
     const row = await this.prisma.appointment.findUnique({ where: { id }, include: { client: true, property: true } });
     if (!row) return;
-    await this.mail.send(row.client.email, {
+    await this.mail.send(this.vault.decode(row.client).email, {
       name: 'appointment-response',
       propertyTitle: row.property.title,
       kind: row.type === 'VISITA' ? 'visita' : 'apartado',

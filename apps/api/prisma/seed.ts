@@ -20,10 +20,30 @@ import { PrismaClient, type Currency, type Prisma, type PropertyStatus, type Pro
 import sharp from 'sharp';
 import { hashPassword } from '../src/common/password';
 import { blockReason } from '../src/database/migration-guard';
+import type { AppConfig } from '../src/config';
+import { BlindIndexService } from '../src/modules/security/encryption/services/blind-index.service';
+import { FieldCipher } from '../src/modules/security/encryption/services/field-cipher.service';
+import { KeyRingService } from '../src/modules/security/encryption/services/key-ring.service';
+import { AgencyVault } from '../src/modules/security/encryption/vaults/agency.vault';
+import { UserVault } from '../src/modules/security/encryption/vaults/user.vault';
 
 // Sin variables, apunta a la base local de Docker (la misma que usa `pnpm db:*`).
 process.env.DATABASE_URL ??= 'postgresql://alquiler:alquiler@localhost:5433/alquiler';
 process.env.DIRECT_URL ??= process.env.DATABASE_URL;
+
+// Mismas claves que el API en desarrollo (docker-compose.yml): los datos personales se guardan cifrados.
+const keyRing = new KeyRingService({
+  security: {
+    encryption: {
+      keys: process.env.ENCRYPTION_KEYS || `v1:${process.env.ENCRYPTION_KEY ?? 'dev-encryption-key-change-me-0123456789abcdef'}`,
+      activeVersion: process.env.ENCRYPTION_ACTIVE_VERSION ?? '',
+    },
+  },
+} as AppConfig);
+const cipher = new FieldCipher(keyRing);
+const blindIndex = new BlindIndexService(keyRing);
+const vault = new UserVault(cipher, blindIndex);
+const agencyVault = new AgencyVault(cipher, blindIndex);
 
 const PASSWORD = 'Demo12345';
 const FRESH = process.argv.includes('--fresh');
@@ -240,9 +260,14 @@ async function crearFotos(propertyId: string, hue: number, titulo: string) {
 
 async function user(email: string, name: string, roles: Prisma.UserCreateInput['roles'], phone?: string) {
   return prisma.user.upsert({
-    where: { email },
+    where: { emailHash: vault.emailHash(email) },
     update: {},
-    create: { email, name, roles, phone, passwordHash: await hashPassword(PASSWORD), emailVerifiedAt: new Date() },
+    create: {
+      ...vault.encode({ email, name, phone }),
+      roles,
+      passwordHash: await hashPassword(PASSWORD),
+      emailVerifiedAt: new Date(),
+    },
   });
 }
 
@@ -261,11 +286,18 @@ async function main() {
   let agency = await prisma.agencyProfile.findFirst({ where: { members: { some: { userId: agenciaAdmin.id } } } });
   agency ??= await prisma.agencyProfile.create({
     data: {
+      ...agencyVault.encodeProfile({ whatsapp: '+584141234567' }),
       name: 'Inmuebles Demo',
       description: 'Agencia de ejemplo para desarrollo.',
-      whatsapp: '+584141234567',
       maxProperties: 500,
-      members: { create: { userId: agenciaAdmin.id, invitedEmail: agenciaAdmin.email, role: 'AGENCY_ADMIN', invitationStatus: 'ACCEPTED' } },
+      members: {
+        create: {
+          userId: agenciaAdmin.id,
+          ...agencyVault.encodeMember({ invitedEmail: 'agencia@demo.local' }),
+          role: 'AGENCY_ADMIN',
+          invitationStatus: 'ACCEPTED',
+        },
+      },
     },
   });
 

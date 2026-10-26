@@ -6,6 +6,7 @@ import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
 import { PropertyPolicyService } from '../../properties';
+import { ThreatModelService } from '../../security';
 import { ImportProcessorService } from './import-processor.service';
 
 export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
@@ -17,6 +18,7 @@ export class ImportUploadService {
     private readonly policy: PropertyPolicyService,
     private readonly processor: ImportProcessorService,
     private readonly audit: AuditService,
+    private readonly threats: ThreatModelService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -28,6 +30,11 @@ export class ImportUploadService {
     if (!file) throw new BadRequestException('Envia la planilla en el campo "file"');
     if (file.size > MAX_IMPORT_BYTES) throw new BadRequestException('La planilla supera el maximo de 5 MB');
 
+    await this.threats.inspectFiles([{ buffer: file.buffer, filename: file.originalname, mimetype: file.mimetype }], {
+      userId: user.id,
+      ip: context.ip,
+      roles: user.roles,
+    });
     const kind = detectSpreadsheet(file.buffer);
     if (!kind) throw new BadRequestException('Formato no permitido: usa .xlsx o .csv (sin macros)');
     if (kind === 'xlsx' && !isSafeZip(file.buffer)) {

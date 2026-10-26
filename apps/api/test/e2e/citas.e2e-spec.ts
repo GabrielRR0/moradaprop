@@ -1,3 +1,4 @@
+import { FieldCipher } from '../../src/modules/security';
 import { describeCase } from '../support/describe-case';
 import { registerVerified } from '../support/auth-helpers';
 import { seedProperty } from '../support/property-helpers';
@@ -31,7 +32,7 @@ describe('Citas y apartados (e2e)', () => {
     cliente2 = await registerVerified(t, 'cliente2@correo.com');
     intruso = await registerVerified(t, 'intruso@correo.com', 'OWNER');
     propiedadId = (await seedProperty(t, dueno.userId, { title: 'Apto para citas' })).id;
-    await t.prisma.user.update({ where: { id: cliente1.userId }, data: { phone: '+584141111111' } });
+    await t.prisma.user.update({ where: { id: cliente1.userId }, data: { phone: t.app.get(FieldCipher).encrypt('User.phone', '+584141111111') } });
   });
   afterAll(() => t.close());
 
@@ -124,13 +125,13 @@ describe('Citas y apartados (e2e)', () => {
 
   describeCase('leads (e2e)', {
     que: 'un tercero no ve los leads ajenos ni puede responderlos; un cliente sin rol de dueno no entra a "recibidas"',
-    espera: 'intruso ve 0 y recibe 403 al responder; cliente recibe 403 en /received',
+    espera: 'intruso ve 0 y recibe 404 al responder (no se confirma que la cita existe); cliente recibe 403 en /received',
     ejecutar: async () => ({
       vistos: (await x('get')('/api/appointments/received')).body.total,
       responder: (await x('patch')(`/api/appointments/${visitaId}/respond`).send({ action: 'CONFIRM' })).status,
       cliente: (await c1('get')('/api/appointments/received')).status,
     }),
-    verificar: (r) => expect(r).toEqual({ vistos: 0, responder: 403, cliente: 403 }),
+    verificar: (r) => expect(r).toEqual({ vistos: 0, responder: 404, cliente: 403 }),
   });
 
   // ---------- Responder ----------

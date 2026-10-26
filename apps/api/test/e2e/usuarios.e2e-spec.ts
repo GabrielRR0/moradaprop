@@ -1,5 +1,5 @@
 import { describeCase } from '../support/describe-case';
-import { createAdmin, loginAdmin, registerVerified } from '../support/auth-helpers';
+import { createAdmin, loginAdmin, registerVerified, userByEmail, createUserRow } from '../support/auth-helpers';
 import { createTestApp, PASSWORD, type TestApp } from '../support/test-app';
 
 const NUEVA = 'NuevaClave789';
@@ -57,7 +57,7 @@ describe('Usuarios: perfil, contrasena y administracion (e2e)', () => {
       roles: (await a('patch')('/api/users/me').send({ roles: ['ADMIN'] })).status,
       email: (await a('patch')('/api/users/me').send({ email: 'otro@correo.com' })).status,
       estado: (await a('patch')('/api/users/me').send({ status: 'ACTIVE' })).status,
-      enBase: await t.prisma.user.findUniqueOrThrow({ where: { email: 'ana@correo.com' } }),
+      enBase: await userByEmail(t, 'ana@correo.com'),
     }),
     verificar: ({ ok, roles, email, estado, enBase }) => {
       expect(ok.status).toBe(200);
@@ -81,7 +81,7 @@ describe('Usuarios: perfil, contrasena y administracion (e2e)', () => {
     ejecutar: async () => {
       const primera = await a('post')('/api/users/me/become-owner');
       const segunda = await a('post')('/api/users/me/become-owner');
-      const enBase = await t.prisma.user.findUniqueOrThrow({ where: { email: 'ana@correo.com' } });
+      const enBase = await userByEmail(t, 'ana@correo.com');
       return { primera: primera.status, segunda: segunda.status, roles: enBase.roles };
     },
     verificar: ({ primera, segunda, roles }) => {
@@ -128,7 +128,7 @@ describe('Usuarios: perfil, contrasena y administracion (e2e)', () => {
     que: 'una cuenta creada solo con Google puede definir su primera contrasena sin la actual',
     espera: '200 y despues puede entrar con correo y contrasena',
     ejecutar: async () => {
-      const soloGoogle = await t.prisma.user.create({ data: { email: 'google@correo.com', name: 'Solo Google', emailVerifiedAt: new Date() } });
+      const soloGoogle = await createUserRow(t, { email: 'google@correo.com', name: 'Solo Google', emailVerifiedAt: new Date() });
       const token = await t.app.get((await import('../../src/modules/auth')).TokenService).signAccess(soloGoogle, 'sesion-falsa', false);
       const res = await t.web('post')('/api/users/me/password').set('Authorization', `Bearer ${token}`).send({ newPassword: NUEVA });
       const login = await t.web('post')('/api/auth/login').send({ email: 'google@correo.com', password: NUEVA });

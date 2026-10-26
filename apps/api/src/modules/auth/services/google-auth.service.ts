@@ -10,10 +10,11 @@ import { AppConfig } from '../../../config';
 import { MailService } from '../../../common/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
-import { SecurityService } from '../../security';
+import { SecurityService, SocialAccountVault, UserVault } from '../../security';
 import type { LoginResult, RequestContext } from '../utils/auth-context';
 import { normalizeEmail } from '../utils/auth-context';
 import { LoginService } from './login.service';
+import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
 
 const PROVIDER = 'google';
@@ -40,6 +41,9 @@ export class GoogleAuthService {
     private readonly mail: MailService,
     private readonly security: SecurityService,
     private readonly audit: AuditService,
+    private readonly accounts: UserAccountService,
+    private readonly vault: UserVault,
+    private readonly social: SocialAccountVault,
   ) {
     this.client = new OAuth2Client(config.google.clientId);
   }
@@ -56,14 +60,14 @@ export class GoogleAuthService {
     await this.security.assertNotBlocked({ ip: context.ip, email: identity.email });
 
     const linked = await this.prisma.socialAccount.findUnique({
-      where: { provider_providerId: { provider: PROVIDER, providerId: identity.sub } },
+      where: { provider_providerId: { provider: PROVIDER, providerId: this.social.providerId(identity.sub) } },
       include: { user: true },
     });
-    if (linked) return this.login.finishLogin(linked.user, context);
+    if (linked) return this.login.finishLogin(this.vault.decode(linked.user), context);
 
-    const existing = await this.prisma.user.findUnique({ where: { email: identity.email } });
+    const existing = await this.accounts.findByEmail(identity.email);
     if (existing) {
-      const code = await this.codes.issue(existing.id, 'LINK_SOCIAL_ACCOUNT', { providerId: identity.sub });
+      const code = await this.codes.issue(existing.id, 'LINK_SOCIAL_ACCOUNT', { providerId: this.social.providerId(identity.sub) });
       await this.mail.send(existing.email, { name: 'link-google', code, minutes: this.codes.ttlMinutes });
       return {
         linkRequired: true,
@@ -74,11 +78,10 @@ export class GoogleAuthService {
 
     const user = await this.prisma.user.create({
       data: {
-        email: identity.email,
-        name: identity.name,
+        ...this.vault.encode({ email: identity.email, name: identity.name }),
         avatarUrl: identity.picture,
         emailVerifiedAt: new Date(),
-        socialAccounts: { create: { provider: PROVIDER, providerId: identity.sub, email: identity.email } },
+        socialAccounts: { create: { provider: PROVIDER, ...this.social.encode({ providerId: identity.sub, email: identity.email }) } },
       },
     });
     await this.audit.log({
@@ -87,20 +90,20 @@ export class GoogleAuthService {
       ip: context.ip,
       userAgent: context.userAgent,
     });
-    return this.login.finishLogin(user, context);
+    return this.login.finishLogin(this.vault.decode(user), context);
   }
 
   /** Confirma el codigo enviado al correo y vincula Google a esa cuenta. */
   async confirmLink(idToken: string, code: string, context: RequestContext): Promise<GoogleLoginResult> {
     const identity = await this.verifyIdToken(idToken);
-    const user = await this.prisma.user.findUnique({ where: { email: identity.email } });
+    const user = await this.accounts.findByEmail(identity.email);
     if (!user) throw new BadRequestException('Codigo invalido o vencido');
 
     const payload = (await this.codes.consume(user.id, 'LINK_SOCIAL_ACCOUNT', code)) as {
       providerId?: string;
     } | null;
     // El codigo solo vale para la cuenta de Google con la que se pidio.
-    if (payload?.providerId !== identity.sub) throw new BadRequestException('Codigo invalido o vencido');
+    if (payload?.providerId !== this.social.providerId(identity.sub)) throw new BadRequestException('Codigo invalido o vencido');
 
     await this.attach(user.id, identity);
     await this.audit.log({
@@ -133,14 +136,14 @@ export class GoogleAuthService {
 
   private async attach(userId: string, identity: GoogleIdentity) {
     const taken = await this.prisma.socialAccount.findUnique({
-      where: { provider_providerId: { provider: PROVIDER, providerId: identity.sub } },
+      where: { provider_providerId: { provider: PROVIDER, providerId: this.social.providerId(identity.sub) } },
     });
     if (taken && taken.userId !== userId) {
       throw new ConflictException('Esa cuenta de Google ya esta vinculada a otro usuario');
     }
     if (!taken) {
       await this.prisma.socialAccount.create({
-        data: { userId, provider: PROVIDER, providerId: identity.sub, email: identity.email },
+        data: { userId, provider: PROVIDER, ...this.social.encode({ providerId: identity.sub, email: identity.email }) },
       });
     }
   }

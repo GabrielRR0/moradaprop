@@ -1,4 +1,5 @@
-import { CryptoService } from '../../src/common/crypto';
+import type { Prisma } from '@prisma/client';
+import { FieldCipher, UserVault } from '../../src/modules/security';
 import { hashPassword } from '../../src/common/password';
 import { authenticator } from 'otplib';
 import { PASSWORD, totp, type TestApp } from './test-app';
@@ -10,7 +11,7 @@ export async function registerVerified(t: TestApp, email: string, accountType = 
     .send({ email, password: PASSWORD, name: 'Usuario Prueba', accountType, ...(agencyName ? { agencyName } : {}) });
   const code = t.mail.lastCode(email, 'verify-email');
   const res = await t.web('post')('/api/auth/verify-email').send({ email, code });
-  const user = await t.prisma.user.findUniqueOrThrow({ where: { email } });
+  const user = await userByEmail(t, email);
   return {
     userId: user.id,
     accessToken: res.body.accessToken as string,
@@ -21,16 +22,15 @@ export async function registerVerified(t: TestApp, email: string, accountType = 
 /** Crea un administrador directo en la base (los admin nunca se crean por la API publica). */
 export async function createAdmin(t: TestApp, email: string, withTwoFactor: boolean) {
   const secret = authenticator.generateSecret();
-  const crypto = t.app.get(CryptoService);
+  const vault = t.app.get(UserVault);
   const user = await t.prisma.user.create({
     data: {
-      email,
-      name: 'Admin Prueba',
+      ...vault.encode({ email, name: 'Admin Prueba' }),
       roles: ['CLIENT', 'ADMIN'],
       passwordHash: await hashPassword(PASSWORD),
       emailVerifiedAt: new Date(),
       twoFactorEnabled: withTwoFactor,
-      twoFactorSecret: withTwoFactor ? crypto.encrypt(secret) : null,
+      twoFactorSecret: withTwoFactor ? t.app.get(FieldCipher).encrypt('User.twoFactorSecret', secret) : null,
     },
   });
   return { userId: user.id, secret };
@@ -53,4 +53,21 @@ export const jwtPayload = (token: string) => JSON.parse(Buffer.from(token.split(
 export async function loginUser(t: TestApp, email: string) {
   const res = await t.web('post')('/api/auth/login').send({ email, password: PASSWORD });
   return res.body.accessToken as string;
+}
+
+/** Usuario por correo, ya descifrado (en la base el correo esta cifrado: se busca por emailHash). */
+export async function userByEmail<A extends Omit<Prisma.UserFindUniqueOrThrowArgs, 'where'> = object>(
+  t: TestApp,
+  email: string,
+  args?: A,
+) {
+  const vault = t.app.get(UserVault);
+  const row = await t.prisma.user.findUniqueOrThrow({ ...(args as A), where: { emailHash: vault.emailHash(email) } });
+  return vault.decode(row as Prisma.UserGetPayload<A>);
+}
+
+/** Crea un usuario directo en la base con sus datos personales cifrados. */
+export function createUserRow(t: TestApp, data: { email: string; name: string; phone?: string | null } & Omit<Prisma.UserCreateInput, 'email' | 'emailHash' | 'name' | 'phone' | 'searchTokens'>) {
+  const { email, name, phone, ...rest } = data;
+  return t.prisma.user.create({ data: { ...t.app.get(UserVault).encode({ email, name, phone }), ...rest } });
 }

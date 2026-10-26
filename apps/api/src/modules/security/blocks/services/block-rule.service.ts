@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { BlockType } from '@prisma/client';
 import { isIP } from 'node:net';
-import { PrismaService } from '../../../common/prisma';
+import { PrismaService } from '../../../../common/prisma';
 import type { CreateBlockRuleDto } from '../dto/create-block-rule.dto';
 import { isValidCidr, normalizeIp } from '../utils/cidr';
 import { BlockCheckService } from './block-check.service';
@@ -48,6 +48,19 @@ export class BlockRuleService {
       where: { type_value: { type: BlockType.USER, value: userId } },
       create: { type: BlockType.USER, value: userId, reason, createdBy },
       update: {},
+    });
+    this.check.invalidate();
+  }
+
+  /** Bloqueo con vencimiento (lo usa el modelo de amenazas). Renueva uno vencido y nunca acorta uno permanente. */
+  async blockTemporarily(type: BlockType, rawValue: string, reason: string, expiresAt: Date, createdBy: string) {
+    const value = this.normalize(type, rawValue);
+    const existing = await this.prisma.blockRule.findUnique({ where: { type_value: { type, value } } });
+    if (existing && !existing.expiresAt) return;
+    await this.prisma.blockRule.upsert({
+      where: { type_value: { type, value } },
+      create: { type, value, reason, expiresAt, createdBy },
+      update: { reason, expiresAt, createdBy },
     });
     this.check.invalidate();
   }

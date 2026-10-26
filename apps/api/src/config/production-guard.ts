@@ -29,6 +29,20 @@ export function productionProblems(env: RawEnv): string[] {
     if (looksLikeDevValue(value)) problems.push(`${name} es un valor de desarrollo; genera uno aleatorio`);
     if (value.length < MIN_SECRET_LENGTH) problems.push(`${name} debe tener al menos ${MIN_SECRET_LENGTH} caracteres`);
   }
+  const versioned = env.ENCRYPTION_KEYS.split(',').map((p) => p.trim()).filter(Boolean);
+  const seen = new Set<string>();
+  for (const entry of versioned) {
+    const [version, ...rest] = entry.split(':');
+    const value = rest.join(':');
+    if (!version || !value) {
+      problems.push(`ENCRYPTION_KEYS tiene una entrada invalida; usa "v1:clave,v2:clave"`);
+      continue;
+    }
+    if (looksLikeDevValue(value)) problems.push(`ENCRYPTION_KEYS (${version}) es un valor de desarrollo; genera uno aleatorio`);
+    if (value.length < MIN_SECRET_LENGTH) problems.push(`ENCRYPTION_KEYS (${version}) debe tener al menos ${MIN_SECRET_LENGTH} caracteres`);
+    if (seen.has(value)) problems.push('ENCRYPTION_KEYS no puede repetir la misma clave en dos versiones');
+    seen.add(value);
+  }
   if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
     problems.push('JWT_ACCESS_SECRET y JWT_REFRESH_SECRET deben ser distintos');
   }
