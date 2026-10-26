@@ -3,7 +3,7 @@ import type { User } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
-import { SecurityService } from '../../security';
+import { AccessRiskService, PasskeyService, SecurityService } from '../../security';
 import type { LoginDto } from '../dto/login.dto';
 import { normalizeEmail, type LoginResult, type RequestContext } from '../utils/auth-context';
 import { burnPasswordCheck, verifyPassword } from '../../../common/password';
@@ -21,6 +21,8 @@ export class LoginService {
     private readonly audit: AuditService,
     private readonly config: AppConfig,
     private readonly accounts: UserAccountService,
+    private readonly risk: AccessRiskService,
+    private readonly passkeys: PasskeyService,
   ) {}
 
   /** Correo + contrasena. Si el usuario tiene 2FA, devuelve el desafio en vez de la sesion. */
@@ -49,22 +51,35 @@ export class LoginService {
 
   /**
    * Paso comun a todos los metodos de entrada (clave, codigo de correo, Google):
-   * revisa estado y bloqueos, y decide si falta el segundo paso.
+   * revisa estado y bloqueos, mide el riesgo (pais, red y dispositivo; ver security/access-risk)
+   * y decide si falta el segundo paso. `skipTwoFactor` = true cuando YA se verifico un factor fuerte (TOTP, codigo de
+   * respaldo o passkey).
    */
   async finishLogin(user: User, context: RequestContext, skipTwoFactor = false): Promise<LoginResult> {
     if (user.status !== 'ACTIVE') throw new ForbiddenException('Cuenta suspendida');
     await this.security.assertNotBlocked({ ip: context.ip, userId: user.id, email: user.email });
 
-    if (user.twoFactorEnabled && !skipTwoFactor) {
-      return {
-        twoFactorRequired: true,
-        challengeToken: await this.tokens.signTwoFactorChallenge(user.id),
-        methods: ['totp', 'backup', 'email'],
-      };
+    const verdict = await this.risk.assess(user, context);
+
+    if (!skipTwoFactor) {
+      const hasPasskey = await this.passkeys.hasAny(user.id);
+      // Con 2FA (TOTP) el segundo paso se pide siempre; con solo passkey, cuando el inicio es muy raro.
+      if (user.twoFactorEnabled || (hasPasskey && this.risk.requiresStrongFactor(verdict))) {
+        return {
+          twoFactorRequired: true,
+          challengeToken: await this.tokens.signTwoFactorChallenge(user.id, verdict.assessment.level),
+          methods: this.risk.challengeMethods(verdict, { totp: user.twoFactorEnabled, passkey: hasPasskey }),
+          unusual: verdict.assessment.level === 'HIGH',
+        };
+      }
+      // Sin ningun segundo factor y con un inicio de sesion muy raro: no se entra (en modo enforce).
+      await this.risk.assertCanProceed(user, verdict, user.twoFactorEnabled || hasPasskey, context);
     }
 
     await this.clearFailures(user.id);
-    const tokens = await this.tokens.startSession(user, context, user.twoFactorEnabled && skipTwoFactor);
+    // Solo se llega aqui con skipTwoFactor=true despues de verificar un factor, asi que la sesion nace verificada.
+    const trust = await this.risk.onLoginSuccess(user, context, verdict, skipTwoFactor);
+    const tokens = await this.tokens.startSession(user, context, skipTwoFactor, trust);
     await this.audit.log({
       action: 'auth.login',
       userId: user.id,

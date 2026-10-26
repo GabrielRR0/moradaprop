@@ -1,4 +1,5 @@
 import type { ThreatShield } from '../types';
+import { accountTakeoverAttempt } from './account-takeover-attempt';
 import { auditTrail } from './audit-trail';
 import { credentialGuessing } from './credential-guessing';
 import { idEnumeration } from './id-enumeration';
@@ -15,6 +16,7 @@ import { requestFlood } from './request-flood';
 export const SHIELDS: readonly ThreatShield[] = [
   credentialGuessing, // S
   massRegistration, // S (cuentas falsas)
+  accountTakeoverAttempt, // S (toma de cuenta)
   payloadTampering, // T
   maliciousUpload, // T (archivos)
   auditTrail, // R

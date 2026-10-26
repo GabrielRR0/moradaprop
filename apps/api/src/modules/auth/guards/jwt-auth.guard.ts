@@ -47,6 +47,7 @@ export class JwtAuthGuard implements CanActivate {
       roles: payload.roles,
       sessionId: payload.sid,
       twoFactor: payload.twoFactor,
+      enroll: payload.enroll,
     };
   }
 }

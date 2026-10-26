@@ -70,8 +70,8 @@ export class AuthService {
   twoFactorEmailCode(challengeToken: string) {
     return this.twoFactor.sendEmailCode(challengeToken);
   }
-  twoFactorSetup(userId: string) {
-    return this.twoFactor.setup(userId);
+  twoFactorSetup(userId: string, context: RequestContext) {
+    return this.twoFactor.setup(userId, context);
   }
   twoFactorConfirm(userId: string, sessionId: string, code: string, context: RequestContext) {
     return this.twoFactor.confirm(userId, sessionId, code, context);

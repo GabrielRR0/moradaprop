@@ -47,6 +47,14 @@ export const envSchema = z.object({
   TRUST_PROXY: z.enum(['true', 'false']).default('false'),
   /** Modelo de amenazas: 'off' no vigila; 'monitor' solo registra; 'enforce' ademas bloquea (por tiempo) a quien ataca */
   THREAT_MODE: z.enum(['off', 'monitor', 'enforce']).default('monitor'),
+  /** Riesgo de inicio de sesion (ubicacion y dispositivo): 'off' no mide; 'monitor' mide, audita y avisa; 'enforce' ademas exige verificacion y niega */
+  RISK_MODE: z.enum(['off', 'monitor', 'enforce']).default('monitor'),
+  /** Segundo factor obligatorio para admin, duenos y agencias: 'off' no mide; 'monitor' mide y avisa; 'enforce' ademas bloquea hasta que activen passkey o 2FA */
+  SECOND_FACTOR_MODE: z.enum(['off', 'monitor', 'enforce']).default('monitor'),
+  /** Passkeys (WebAuthn): dominio del sitio (sin https://) al que quedan atadas las passkeys. En produccion, el dominio real */
+  WEBAUTHN_RP_ID: z.string().min(1).default('localhost'),
+  /** Passkeys: origenes exactos desde los que se aceptan (la web), separados por coma. En produccion, https://tu-dominio */
+  WEBAUTHN_ORIGINS: z.string().default('http://localhost:3000'),
   CORS_ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
   APP_CLIENT_KEY_WEB: z.string().default('dev-web-client-key'),
   APP_CLIENT_KEY_MOBILE: z.string().default('dev-mobile-client-key'),

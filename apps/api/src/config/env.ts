@@ -50,6 +50,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
 
     trustProxy: raw.TRUST_PROXY === 'true',
     threatMode: raw.THREAT_MODE,
+    riskMode: raw.RISK_MODE,
+    secondFactorMode: raw.SECOND_FACTOR_MODE,
+    webauthnRpId: raw.WEBAUTHN_RP_ID,
+    webauthnOrigins: raw.WEBAUTHN_ORIGINS,
     corsAllowedOrigins: raw.CORS_ALLOWED_ORIGINS,
     appClientKeyWeb: raw.APP_CLIENT_KEY_WEB,
     appClientKeyMobile: raw.APP_CLIENT_KEY_MOBILE,

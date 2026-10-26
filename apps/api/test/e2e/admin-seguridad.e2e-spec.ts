@@ -1,5 +1,5 @@
 import { describeCase } from '../support/describe-case';
-import { createAdmin, jwtPayload, loginAdmin, registerVerified } from '../support/auth-helpers';
+import { createAdmin, jwtPayload, loginAdmin, registerVerified, auditLogs } from '../support/auth-helpers';
 import { createTestApp, PASSWORD, type TestApp } from '../support/test-app';
 
 describe('Admin: bloqueos y auditoria (e2e)', () => {
@@ -162,7 +162,7 @@ describe('Admin: bloqueos y auditoria (e2e)', () => {
     espera: 'ni la clave ni los tokens aparecen en ningun registro; los campos sensibles salen como [REDACTADO]',
     ejecutar: async () => {
       await t.web('post')('/api/auth/login').send({ email: 'admin@correo.com', password: 'Incorrecta999' });
-      return JSON.stringify(await t.prisma.auditLog.findMany());
+      return JSON.stringify(await auditLogs(t));
     },
     verificar: (volcado) => {
       expect(volcado).not.toContain(PASSWORD);

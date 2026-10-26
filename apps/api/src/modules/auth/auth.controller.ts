@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Re
 import { ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AppConfig } from '../../config';
-import { Client, CurrentUser, RequestInfo } from '../../common/security/decorators';
+import { AllowWithoutSecondFactor, Client, CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup, GuestGroup } from '../../common/security/groups';
 import type { AppClient, AuthUser } from '../../common/security/types';
 import { EmailCodeDto, EmailDto } from './dto/email-code.dto';
@@ -118,6 +118,7 @@ export class AuthController {
   // ---------------- Sesiones ----------------
 
   @AuthGroup()
+  @AllowWithoutSecondFactor()
   @HttpCode(204)
   @Post('logout')
   async logout(
@@ -132,6 +133,7 @@ export class AuthController {
   }
 
   @AuthGroup()
+  @AllowWithoutSecondFactor()
   @HttpCode(204)
   @Post('logout-all')
   async logoutAll(@CurrentUser() user: AuthUser, @Res({ passthrough: true }) res: Response) {
@@ -140,12 +142,14 @@ export class AuthController {
   }
 
   @AuthGroup()
+  @AllowWithoutSecondFactor()
   @Get('sessions')
   sessions(@CurrentUser() user: AuthUser) {
     return this.authService.sessions(user.id, user.sessionId);
   }
 
   @AuthGroup()
+  @AllowWithoutSecondFactor()
   @HttpCode(204)
   @Delete('sessions/:id')
   async revokeSession(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
@@ -171,13 +175,15 @@ export class AuthController {
   // ---------------- 2FA ----------------
 
   @AuthGroup()
+  @AllowWithoutSecondFactor()
   @HttpCode(200)
   @Post('2fa/setup')
-  twoFactorSetup(@CurrentUser() user: AuthUser) {
-    return this.authService.twoFactorSetup(user.id);
+  twoFactorSetup(@CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+    return this.authService.twoFactorSetup(user.id, ctx);
   }
 
   @AuthGroup()
+  @AllowWithoutSecondFactor()
   @HttpCode(200)
   @Post('2fa/confirm')
   twoFactorConfirm(@Body() dto: TwoFactorConfirmDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {

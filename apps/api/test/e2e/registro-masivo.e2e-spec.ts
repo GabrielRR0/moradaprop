@@ -1,3 +1,4 @@
+import { auditLogFirst } from '../support/auth-helpers';
 import { describeCase } from '../support/describe-case';
 import { overrideEnv } from '../support/env-helpers';
 import { createTestApp, PASSWORD, type TestApp } from '../support/test-app';
@@ -21,6 +22,8 @@ describe('Registro masivo de cuentas (e2e)', () => {
     t = await createTestApp();
   });
   afterAll(async () => {
+    // El bloqueo de IP que crea esta suite no debe quedar en la base: otras suites (health) no vacian las tablas.
+    await t.prisma.blockRule.deleteMany();
     restaurarEnv?.();
     await t.close();
   });
@@ -36,7 +39,7 @@ describe('Registro masivo de cuentas (e2e)', () => {
       for (let i = 1; i <= 8; i++) estados.push((await registrar(i)).status);
       const regla = await esperar(() => t.prisma.blockRule.findFirst({ where: { type: 'IP' } }));
       const noveno = await registrar(9);
-      const deteccion = await esperar(() => t.prisma.auditLog.findFirst({ where: { action: 'threat.detected', resourceId: 'mass-registration' } }));
+      const deteccion = await esperar(() => auditLogFirst(t, { where: { action: 'threat.detected', resourceId: 'mass-registration' } }));
       return { estados, regla, noveno, deteccion, cuentas: await t.prisma.user.count() };
     },
     verificar: ({ estados, regla, noveno, deteccion, cuentas }) => {

@@ -16,6 +16,7 @@ describe('Cifrado de datos personales (e2e)', () => {
   beforeAll(async () => {
     t = await createTestApp();
     await registerVerified(t, EMAIL);
+    await registerVerified(t, 'agencia@inmobiliaria.com', 'AGENCY', 'Inmuebles Caracas');
     const admin = await createAdmin(t, 'admin@correo.com', true);
     adminToken = await loginAdmin(t, 'admin@correo.com', admin.secret);
   });
@@ -42,7 +43,7 @@ describe('Cifrado de datos personales (e2e)', () => {
 
   describeCase('cifrado (e2e)', {
     que: 'el buscador del admin sigue encontrando usuarios por texto parcial de nombre o correo',
-    espera: 'prefijos del correo y del nombre encuentran a Ana; un texto ajeno no encuentra a nadie',
+    espera: 'prefijos del correo encuentran a Ana, el del nombre a los dos usuarios de prueba; un texto ajeno no encuentra a nadie',
     ejecutar: async () => ({
       porCorreoParcial: await buscar('ana.gonz'),
       porCorreoCompleto: await buscar(EMAIL),
@@ -51,10 +52,12 @@ describe('Cifrado de datos personales (e2e)', () => {
       ajeno: await buscar('zzzxx'),
     }),
     verificar: (r) => {
-      for (const clave of ['porCorreoParcial', 'porCorreoCompleto', 'porNombre', 'porVarias'] as const) {
+      for (const clave of ['porCorreoParcial', 'porCorreoCompleto', 'porVarias'] as const) {
         expect(r[clave].status).toBe(200);
         expect(r[clave].correos).toEqual([EMAIL]);
       }
+      // "usuar" esta en el nombre de los dos usuarios de prueba
+      expect(r.porNombre.correos.sort()).toEqual(['agencia@inmobiliaria.com', EMAIL].sort());
       expect(r.ajeno.correos).toEqual([]);
     },
     describirObtenido: (r) => `parcial ${r.porCorreoParcial.correos.length}, nombre ${r.porNombre.correos.length}, ajeno ${r.ajeno.correos.length}`,
@@ -72,5 +75,25 @@ describe('Cifrado de datos personales (e2e)', () => {
       expect(correos).toContain(EMAIL);
       expect(suspendidos).toBe(0);
     },
+  });
+
+  describeCase('cifrado (e2e)', {
+    que: 'sesiones, auditoria y miembros de agencia tampoco guardan nada legible',
+    espera: 'ip, userAgent, metadata y correo invitado salen como v1.*; ninguna fila contiene el correo ni la IP',
+    ejecutar: async () => ({
+      sesiones: await t.prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(`SELECT ip, "userAgent" FROM "Session"`),
+      auditoria: await t.prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(`SELECT ip, "userAgent", metadata FROM "AuditLog"`),
+      miembros: await t.prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(`SELECT "invitedEmail", "invitedEmailHash" FROM "AgencyMember"`),
+    }),
+    verificar: ({ sesiones, auditoria, miembros }) => {
+      expect(sesiones.length).toBeGreaterThan(0);
+      expect(miembros.length).toBe(1);
+      for (const fila of sesiones) expect(String(fila.ip)).toMatch(/^v1\./);
+      for (const fila of auditoria) if (fila.ip) expect(String(fila.ip)).toMatch(/^v1\./);
+      expect(String(miembros[0].invitedEmail)).toMatch(/^v1\./);
+      const todo = JSON.stringify({ sesiones, auditoria, miembros }).toLowerCase();
+      for (const claro of ['inmobiliaria.com', '127.0.0.1', 'correo.com', 'supertest']) expect(todo).not.toContain(claro);
+    },
+    describirObtenido: ({ sesiones, auditoria }) => `${sesiones.length} sesiones y ${auditoria.length} eventos de auditoria cifrados`,
   });
 });

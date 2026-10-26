@@ -130,6 +130,8 @@ model User {
   twoFactorSecret   String?
   /// ultimo paso TOTP aceptado: impide reutilizar el mismo codigo (anti-replay)
   twoFactorLastStep Int?
+  /// desde cuando debe tener passkey o 2FA (admin, duenos y agencias); null = aun no empezo el plazo (security/second-factor)
+  secondFactorRequiredFrom DateTime?
   failedLogins      Int        @default(0)
   lockedUntil       DateTime?
   lastLoginAt       DateTime?
@@ -147,6 +149,9 @@ model User {
   appointments       Appointment[]         @relation("AppointmentClient")
   auditLogs          AuditLog[]
   imports            ImportJob[]
+  trustedDevices     TrustedDevice[]
+  loginFootprints    LoginFootprint[]
+  passkeys           PasskeyCredential[]
 
   @@index([status])
   @@index([searchTokens], type: Gin)
@@ -183,10 +188,111 @@ model Session {
   lastUsedAt        DateTime  @default(now())
   /// true si en esta sesion se completo el 2FA (el refresh lo conserva)
   twoFactorVerified Boolean   @default(false)
+  /// dispositivo desde el que se abrio la sesion (security/access-risk); null en sesiones anteriores
+  deviceId          String?
+  /// pais de confianza (2 letras) al abrir o renovar la sesion; null si no se sabia
+  country           String?
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device TrustedDevice? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([deviceId])
+}
+
+/// Dispositivo desde el que el usuario inicia sesion (security/access-risk). El cliente guarda un secreto
+/// aleatorio (cookie device_token / app movil); aqui solo se guarda su hash.
+model TrustedDevice {
+  id          String    @id @default(uuid())
+  userId      String
+  /// SHA-256 del secreto del dispositivo
+  secretHash  String    @unique
+  /// "Chrome en Windows": solo familia de navegador y sistema, sin datos personales
+  label       String
+  /// null = visto solo con la clave; fecha = verificado con segundo factor (o primer inicio de sesion de la cuenta)
+  confirmedAt DateTime?
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  /// pais (2 letras) del ultimo inicio de sesion desde aqui
+  lastCountry String?
+  /// vence a los 30 dias sin uso (se renueva en cada inicio de sesion)
+  expiresAt   DateTime
+  revokedAt   DateTime?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum FootprintKind {
+  COUNTRY
+  NETWORK
+}
+
+/// Donde suele entrar un usuario (security/access-risk). Solo se anota tras un inicio de sesion completo.
+model LoginFootprint {
+  id          String        @id @default(uuid())
+  userId      String
+  kind        FootprintKind
+  /// COUNTRY: codigo de 2 letras. NETWORK: HMAC de la red /24 (IPv4) o /48 (IPv6); nunca la IP
+  value       String
+  firstSeenAt DateTime      @default(now())
+  lastSeenAt  DateTime      @default(now())
+  seenCount   Int           @default(1)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, value])
+  @@index([userId, kind, lastSeenAt])
+}
+
+/// Passkey (huella, Face ID, Windows Hello...) de un usuario (security/passkeys). Solo se guarda la clave PUBLICA:
+/// la privada nunca sale del dispositivo, y la huella o la cara nunca llegan al servidor.
+model PasskeyCredential {
+  id           String    @id @default(uuid())
+  userId       String
+  /// id que entrega el autenticador (base64url)
+  credentialId String    @unique
+  /// clave publica en formato COSE (base64url); no es secreta
+  publicKey    String
+  /// algoritmo COSE: -7 ES256, -257 RS256, -8 EdDSA
+  algorithm    Int
+  /// contador del autenticador (uint32, por eso BigInt); si baja, la passkey se clono
+  signCount    BigInt    @default(0)
+  transports   String[]  @default([])
+  /// nombre que le pone el usuario ("Mi iPhone")
+  label        String
+  /// true si se sincroniza entre dispositivos (iCloud, Google); bandera BE del autenticador
+  backedUp     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+  revokedAt    DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+enum PasskeyChallengeKind {
+  REGISTER
+  LOGIN
+  STEP_UP
+}
+
+/// Desafio de un solo uso para registrar o usar una passkey. Se guarda su hash, nunca el valor.
+model PasskeyChallenge {
+  id            String               @id @default(uuid())
+  challengeHash String               @unique
+  kind          PasskeyChallengeKind
+  /// REGISTER y STEP_UP van atados a un usuario; LOGIN no (la passkey dice quien es)
+  userId        String?
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime             @default(now())
+
   @@index([expiresAt])
 }
 

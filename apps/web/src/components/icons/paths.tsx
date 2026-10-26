@@ -284,6 +284,64 @@ export const ICON_PATHS = {
       <circle cx="12" cy="19.5" r="1" />
     </>
   ),
+  alert: (
+    <>
+      <path d="M12 3l10 18H2z" />
+      <path d="M12 10v5M12 18.2v.01" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15V5a2 2 0 012-2h10" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  'eye-off': (
+    <>
+      <path d="M3 3l18 18M10.6 5.1A9.7 9.7 0 0112 5c6.4 0 10 7 10 7a17 17 0 01-3.2 4M6.6 6.6A17 17 0 002 12s3.6 7 10 7a9.700 9.700 0 004.400-1.100" />
+      <path d="M9.9 9.9a3 3 0 004.200 4.200" />
+    </>
+  ),
+  fingerprint: (
+    <>
+      <path d="M12 11a2 2 0 00-2 2c0 3 .5 5 1.500 7M12 7a6 6 0 00-6 6c0 2 .2 3.500.7 5M12 3a10 10 0 00-9 5.500M17 20c.5-1.500 1-3.500 1-7a6 6 0 00-9.500-4.800M14.500 13c0 3 .3 4.800 1 6.500M21 13.500c0-.8 0-1.700-.2-2.500A10 10 0 0018 6" />
+    </>
+  ),
+  key: (
+    <>
+      <circle cx="8" cy="15" r="4" />
+      <path d="M10.800 12.200L21 2M17 6l3 3M14 9l2 2" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 018 0v4" />
+    </>
+  ),
+  logout: (
+    <>
+      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+    </>
+  ),
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
+    </>
+  ),
+  smartphone: (
+    <>
+      <rect x="7" y="2" width="10" height="20" rx="2.500" />
+      <path d="M11 18h2" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof ICON_PATHS;

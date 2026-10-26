@@ -1,4 +1,4 @@
-import { userByEmail } from '../support/auth-helpers';
+import { userByEmail, auditLogs } from '../support/auth-helpers';
 import request from 'supertest';
 import { CryptoService } from '../../src/common/crypto';
 import { describeCase } from '../support/describe-case';
@@ -179,6 +179,7 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
       expect(res.body.accessToken).toEqual(expect.any(String));
       expect(res.body.refreshToken).toBeUndefined();
       expect(res.body.user).not.toHaveProperty('passwordHash');
+      expect(res.body.user.email).toBe(EMAIL); // la respuesta lleva el correo en claro, no el cifrado de la base
       const cookie = cookieOf(res, 'refresh_token');
       expect(cookie).toContain('HttpOnly');
       expect(cookie).toContain('Path=/api/auth');
@@ -219,6 +220,7 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
     verificar: (res) => {
       expect(res.status).toBe(200);
       expect(res.body.accessToken).toEqual(expect.any(String));
+      expect(res.body.user.email).toBe(EMAIL);
     },
     describirObtenido: (res) => `${res.status}, twoFactorRequired=${res.body.twoFactorRequired}`,
   });
@@ -323,7 +325,7 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
   describeCase('sesiones (e2e)', {
     que: 'los datos sensibles no aparecen en la auditoria',
     espera: 'ningun registro de AuditLog contiene contrasenas ni codigos',
-    ejecutar: async () => JSON.stringify(await t.prisma.auditLog.findMany()),
+    ejecutar: async () => JSON.stringify(await auditLogs(t)),
     verificar: (volcado) => {
       expect(volcado).not.toContain(PASSWORD);
       expect(volcado).not.toContain('passwordHash');

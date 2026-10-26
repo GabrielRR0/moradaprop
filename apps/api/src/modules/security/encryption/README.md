@@ -15,7 +15,20 @@ Mini módulo de `security`: guarda los datos personales **cifrados** en la DB pa
 
 **Qué NO se puede hacer con datos cifrados:** `contains`/`startsWith`/ordenar por `email`, `name` o `phone` en SQL. Se busca con los tokens; el orden va por fecha u otro campo no sensible.
 
-**Estado:** `User` (email, name, phone, twoFactorSecret) listo. Pendiente: SocialAccount, Session, Agency, Appointment, AuditLog, BlockRule y VerificationCode (un vault por entidad).
+**Qué está cifrado (un vault por entidad en `vaults/`)**
+| Entidad | Cifrado | Se busca por |
+|---|---|---|
+| User (`user.vault.ts`) | email, name, phone, twoFactorSecret | `emailHash`, `searchTokens` |
+| SocialAccount (`social-account.vault.ts`) | email; `providerId` solo como HMAC | `providerId` (hash) |
+| Session (`session.vault.ts`) | ip, userAgent | — |
+| Appointment (`appointment.vault.ts`) | contactName, contactPhone, message, responseNote | — |
+| AgencyProfile / AgencyMember (`agency.vault.ts`) | legalName, rif, phone, whatsapp, invitedEmail | `rifHash`, `invitedEmailHash` |
+| AuditLog (directo con `FieldCipher`) | ip, userAgent, metadata (`{ enc }`) | — |
+| VerificationCode | payload guarda el HMAC del providerId, no el valor | — |
+
+Siguen en claro a propósito: `Agency.name`/logo (se muestran en la ficha pública), las propiedades (públicas) y `BlockRule` (bloquear por IP/CIDR exige comparar el valor; pendiente de decidir).
+
+**Regla al leer:** el resultado crudo de `prisma.user.update(...)` también viene cifrado; no lo devuelvas al cliente sin pasarlo por `decode` (o usa `select`).
 
 **Auditoría:** `audit` no importa `security` (habría un ciclo): define el token `AUDIT_USER_DECODER` y este módulo lo provee con `UserVault`.
 

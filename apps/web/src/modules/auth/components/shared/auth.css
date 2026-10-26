@@ -1,0 +1,355 @@
+/* Pantallas de acceso (ingresar, registro, recuperar, verificar). Una sola version adaptable. */
+
+.au {
+  min-height: 100dvh;
+  display: flex;
+  background: var(--bg);
+}
+.au-aside {
+  position: relative;
+  flex: 0 0 min(42vw, 560px);
+  display: none;
+  flex-direction: column;
+  padding: 48px;
+  overflow: hidden;
+  background: var(--ac);
+  color: #fff;
+}
+.au-aside .orb {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.09);
+}
+.au-aside .orb.a {
+  right: -120px;
+  top: -120px;
+  width: 420px;
+  height: 420px;
+  animation: au-bob 7s ease-in-out infinite;
+}
+.au-aside .orb.b {
+  left: -140px;
+  bottom: -160px;
+  width: 480px;
+  height: 480px;
+  animation: au-bob 9s 1s ease-in-out infinite;
+}
+@keyframes au-bob {
+  50% {
+    transform: translateY(-14px) scale(1.03);
+  }
+}
+.au-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 20px;
+  color: inherit;
+  text-decoration: none;
+}
+.au-brand .mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+.au-aside .copy {
+  position: relative;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 420px;
+}
+.au-aside h2 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+.au-aside p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+.au-aside ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-weight: 700;
+}
+.au-aside li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.au-aside li .tick {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.au-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 28px;
+}
+.au-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.au-top .au-brand {
+  color: var(--text);
+  font-size: 17px;
+}
+.au-top .au-brand .mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--ac);
+  color: #fff;
+}
+.au-top a.go {
+  font-weight: 800;
+  color: var(--ac-ink);
+  text-decoration: none;
+}
+.au-stage {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 28px 0;
+}
+.au-stage.wide {
+  max-width: 520px;
+}
+.au-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.au-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.au-sub {
+  margin: 6px 0 0;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.au-sub b {
+  color: var(--text);
+}
+.au-row {
+  display: flex;
+  gap: 12px;
+}
+.au-row > * {
+  flex: 1;
+  min-width: 0;
+}
+.au-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.au-legal {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
+.au-progress {
+  display: flex;
+  gap: 8px;
+}
+.au-progress i {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+  position: relative;
+}
+.au-progress i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ac);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.au-progress i.on::after {
+  transform: scaleX(1);
+}
+
+/* Tarjetas de eleccion (tipo de cuenta, metodo de verificacion) */
+.au-choice {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 2px solid var(--line);
+  background: var(--surf);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+.au-choice:hover {
+  border-color: var(--ac);
+}
+.au-choice.on {
+  border-color: var(--ac);
+  background: var(--ac-soft);
+}
+.au-choice .ico {
+  flex: 0 0 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--surf2);
+  color: var(--muted);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+.au-choice.on .ico {
+  background: var(--ac);
+  color: #fff;
+}
+.au-choice .txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.au-choice .txt b {
+  font-size: 16.5px;
+}
+.au-choice .txt span {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.au-choice .radio {
+  margin-left: auto;
+  flex: 0 0 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: transparent;
+  transition: all 0.2s;
+}
+.au-choice.on .radio {
+  background: var(--ac);
+  border-color: var(--ac);
+  color: #fff;
+}
+
+/* Pastillas para cambiar de metodo; el fondo se desliza de una a otra (layoutId) */
+.au-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--surf);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.au-chip.on {
+  color: var(--ac-ink);
+  border-color: var(--ac);
+}
+.au-chip > :not(.au-chip-bg) {
+  position: relative;
+  z-index: 1;
+}
+.au-chip-bg {
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 999px;
+  background: var(--ac-soft);
+  border: 1.5px solid var(--ac);
+}
+
+.au-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+}
+
+@media (min-width: 900px) {
+  .au-aside {
+    display: flex;
+  }
+  .au-main {
+    padding: 36px 64px 36px;
+  }
+  .au-top .au-brand {
+    display: none;
+  }
+  .au-top {
+    justify-content: flex-end;
+  }
+  .au-title {
+    font-size: 36px;
+  }
+}
+@media (max-width: 899px) {
+  .au-stage {
+    justify-content: flex-start;
+    padding-top: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .au-aside .orb {
+    animation: none;
+  }
+}

@@ -6,6 +6,8 @@ import { RevealObserver } from '@/components/RevealObserver';
 import { ThemePicker } from '@/components/ThemePicker';
 import { Toaster } from '@/components/Toaster';
 import { ThemeProvider, themeInitScript } from '@/lib/theme';
+import { SessionBoot } from '@/modules/auth';
+import { EnrollmentBanner, SecurityWatcher } from '@/modules/security';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -29,7 +31,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <ThemeProvider>
-          <Providers>{children}</Providers>
+          <Providers>
+            <SessionBoot />
+            {children}
+            <EnrollmentBanner />
+            <SecurityWatcher />
+          </Providers>
           <Toaster />
           <RevealObserver />
           {publicEnv.showThemePicker && <ThemePicker />}

@@ -3,6 +3,16 @@ import type { Env } from '../env';
 export const securityConfig = (env: Env) => ({
   trustProxy: env.trustProxy,
   threatMode: env.threatMode,
+  riskMode: env.riskMode,
+  secondFactorMode: env.secondFactorMode,
+  /** Passkeys (WebAuthn): el sitio al que quedan atadas y los origenes que se aceptan. */
+  webauthn: {
+    rpId: env.webauthnRpId,
+    origins: env.webauthnOrigins
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  },
   corsAllowedOrigins: env.corsAllowedOrigins
     .split(',')
     .map((origin) => origin.trim())

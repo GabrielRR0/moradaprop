@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { LocalStorageProvider, STORAGE_PROVIDER } from '../common/storage';
 import { AppConfig } from '../config';
-import { ThreatModelService, threatObserver } from '../modules/security';
+import { GeoService, geoLocate, ThreatModelService, threatObserver } from '../modules/security';
 
 /** Configuracion comun de la app (la usan main.ts y los tests e2e). */
 export function configureApp(app: INestApplication) {
@@ -15,6 +15,7 @@ export function configureApp(app: INestApplication) {
   // Con proxy delante, Express toma la IP real de X-Forwarded-For (bloqueos y rate limit).
   app.getHttpAdapter().getInstance().set('trust proxy', config.security.trustProxy);
   app.use(helmet());
+  app.use(geoLocate(app.get(GeoService))); // pais de confianza en req.country (modules/security/geo)
   app.use(threatObserver(app.get(ThreatModelService))); // modelo de amenazas: mira cada respuesta (ver modules/threat-model)
   app.use(compression()); // gzip: el JSON del mapa y las busquedas baja a ~20% del tamano
   app.use(cookieParser());

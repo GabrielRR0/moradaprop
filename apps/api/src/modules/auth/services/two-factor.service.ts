@@ -13,7 +13,7 @@ import { CryptoService } from '../../../common/crypto';
 import { MailService } from '../../../common/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
-import { FieldCipher } from '../../security';
+import { AccessRiskService, FieldCipher } from '../../security';
 import type { LoginResult, RequestContext } from '../utils/auth-context';
 import { verifyPassword } from '../../../common/password';
 import { LoginService } from './login.service';
@@ -41,6 +41,7 @@ export class TwoFactorService {
     private readonly cipher: FieldCipher,
     private readonly accounts: UserAccountService,
     private readonly config: AppConfig,
+    private readonly risk: AccessRiskService,
   ) {}
 
   // ---------------------------------------------------------------
@@ -48,7 +49,9 @@ export class TwoFactorService {
   // ---------------------------------------------------------------
 
   /** Genera el secreto y el QR. Aun no queda activo hasta confirmar con un codigo. */
-  async setup(userId: string) {
+  async setup(userId: string, context: RequestContext) {
+    // Activar un 2FA solo desde un dispositivo confirmado: si no, un atacante con la clave dejaria fuera al dueño.
+    await this.risk.assertTrustedContext({ id: userId }, context);
     const user = await this.getUser(userId);
     if (user.twoFactorEnabled) throw new ConflictException('El 2FA ya esta activo');
 
@@ -64,6 +67,7 @@ export class TwoFactorService {
 
   /** Confirma el primer codigo, activa el 2FA y entrega los codigos de respaldo (una sola vez). */
   async confirm(userId: string, sessionId: string, code: string, context: RequestContext) {
+    await this.risk.assertTrustedContext({ id: userId }, context);
     const user = await this.getUser(userId);
     if (user.twoFactorEnabled) throw new ConflictException('El 2FA ya esta activo');
     if (!user.twoFactorSecret) throw new BadRequestException('Primero inicia la configuracion del 2FA');
@@ -116,7 +120,11 @@ export class TwoFactorService {
 
   /** Envia un codigo al correo como alternativa a la app autenticadora. */
   async sendEmailCode(challengeToken: string) {
-    const { sub } = await this.tokens.verifyTwoFactorChallenge(challengeToken);
+    const { sub, risk } = await this.tokens.verifyTwoFactorChallenge(challengeToken);
+    // En un inicio de sesion muy raro el correo no prueba nada fuerte: solo app autenticadora o codigo de respaldo.
+    if (risk === 'HIGH' && this.risk.mode === 'enforce') {
+      throw new ForbiddenException('Por seguridad, en este inicio de sesion usa tu app autenticadora o un codigo de respaldo');
+    }
     const user = await this.getUser(sub);
     const code = await this.codes.issue(user.id, 'TWO_FACTOR_EMAIL');
     await this.mail.send(user.email, { name: 'two-factor-code', code, minutes: this.codes.ttlMinutes });
@@ -125,14 +133,17 @@ export class TwoFactorService {
 
   /** Completa el login con TOTP, codigo de respaldo o codigo por correo. */
   async completeLogin(challengeToken: string, code: string, context: RequestContext): Promise<LoginResult> {
-    const { sub } = await this.tokens.verifyTwoFactorChallenge(challengeToken);
+    const { sub, risk } = await this.tokens.verifyTwoFactorChallenge(challengeToken);
+    const strong = risk === 'HIGH' && this.risk.mode === 'enforce';
     const user = await this.getUser(sub);
     this.login.assertNotLocked(user);
 
     try {
-      await this.verifyAnyCode(user, code, true);
+      await this.verifyAnyCode(user, code, !strong);
     } catch (error) {
       await this.login.registerFailure(user, context);
+      // Fallar el segundo factor en un inicio muy raro es la huella de un atacante: a los 3 fallos se bloquea.
+      if (strong) await this.risk.stepUpFailed(user, context);
       throw error;
     }
     return this.login.finishLogin(user, context, true);

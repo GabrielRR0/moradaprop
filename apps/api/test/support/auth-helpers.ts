@@ -15,7 +15,7 @@ export async function registerVerified(t: TestApp, email: string, accountType = 
   return {
     userId: user.id,
     accessToken: res.body.accessToken as string,
-    refreshCookie: ((res.headers['set-cookie'] as unknown as string[])[0] ?? '').split(';')[0],
+    refreshCookie: ((res.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('refresh_token=')) ?? '').split(';')[0],
   };
 }
 
@@ -70,4 +70,23 @@ export async function userByEmail<A extends Omit<Prisma.UserFindUniqueOrThrowArg
 export function createUserRow(t: TestApp, data: { email: string; name: string; phone?: string | null } & Omit<Prisma.UserCreateInput, 'email' | 'emailHash' | 'name' | 'phone' | 'searchTokens'>) {
   const { email, name, phone, ...rest } = data;
   return t.prisma.user.create({ data: { ...t.app.get(UserVault).encode({ email, name, phone }), ...rest } });
+}
+
+/** Eventos de auditoria ya descifrados (ip, userAgent y metadata se guardan cifrados). */
+export async function auditLogs(t: TestApp, args?: Prisma.AuditLogFindManyArgs) {
+  const cipher = t.app.get(FieldCipher);
+  const rows = await t.prisma.auditLog.findMany(args);
+  return rows.map((row) => {
+    const enc = (row.metadata as { enc?: unknown } | null)?.enc;
+    return {
+      ...row,
+      ip: row.ip && cipher.decrypt('AuditLog.ip', row.ip),
+      userAgent: row.userAgent && cipher.decrypt('AuditLog.userAgent', row.userAgent),
+      metadata: typeof enc === 'string' ? (JSON.parse(cipher.decrypt('AuditLog.metadata', enc)) as Prisma.JsonValue) : row.metadata,
+    };
+  });
+}
+
+export async function auditLogFirst(t: TestApp, args?: Prisma.AuditLogFindManyArgs) {
+  return (await auditLogs(t, { ...args, take: 1 }))[0] ?? null;
 }

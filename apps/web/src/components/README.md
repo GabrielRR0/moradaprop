@@ -13,3 +13,7 @@ Componentes de interfaz compartidos por todos los módulos de la web.
 Animaciones globales de la app: transición de página (`app/template.tsx`), aviso al guardar/cambiar, aparición al
 hacer scroll, cambio suave claro/oscuro y las animaciones propias de cada pantalla (en su `.css`).
 Todas respetan `prefers-reduced-motion`.
+
+## `ui/` — piezas de formulario (auth y seguridad)
+
+`Button` (con carga y respuesta al toque), `Field` (error animado, ver contraseña), `CodeInput` (casillas de 6 dígitos con pegar y autoavance), `Notice` (aviso en línea), `PasswordStrength`, `StepSwitcher` (deslizamiento entre pasos), `SuccessBurst` y `Sheet` (panel inferior en móvil, modal en escritorio). Estilos en `ui/ui.css` (clases `ui-*`, solo tokens de `globals.css`). El movimiento se reduce solo si el usuario lo pide (`MotionConfig` en `Providers`).

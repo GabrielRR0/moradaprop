@@ -1,38 +1,38 @@
 # Módulo `auth`
 
-Registro de cuenta en 3 pasos (perfil: cliente / dueño / inmobiliaria, datos, código de 6 dígitos) y pantalla de éxito. El mensaje lateral cambia según el perfil.
+Acceso a la cuenta, conectado al API real: ingresar (con segundo paso y passkeys), registro, verificar correo, recuperar contraseña y la **sesión** del navegador. Guía de comportamiento: [docs/FRONTEND-SEGURIDAD.md](../../../../../docs/FRONTEND-SEGURIDAD.md).
 
 ## Qué contiene
 
-| Ruta        | Página (la que importa `app/`) | Pantallas                                         | Diseño de origen                         |
-| ----------- | ------------------------------ | ------------------------------------------------- | ---------------------------------------- |
-| `/registro` | `RegisterPage`                 | `RegisterScreen` + `RegisterMobileScreen` (móvil) | `docs/diseno/pantallas/Registro.dc.html` |
+| Ruta         | Página            | Qué hace                                                                                          |
+| ------------ | ----------------- | ------------------------------------------------------------------------------------------------- |
+| `/ingresar`  | `LoginPage`       | Correo + clave → sesión, segundo paso (passkey / app / respaldo / correo) o rechazo con `code`. También "Entrar con huella / Face ID". `?next=` vuelve a donde estaba. |
+| `/registro`  | `RegisterPage`    | 4 pasos: perfil → datos → código del correo → listo. Dueño y agencia pasan por "Protege tu cuenta". |
+| `/verificar` | `VerifyEmailPage` | Llega aquí quien entró con el correo sin verificar (`?email=`): se le envía un código nuevo.       |
+| `/recuperar` | `ForgotPage`      | Correo → código + clave nueva → listo (se cierran todas las sesiones).                            |
+
+También exporta `SessionBoot` (se monta en el layout: conecta el cliente HTTP y recupera la sesión al abrir), `AuthGate` (protege `/panel`, `/publicar`, `/admin`, `/seguridad`) y utilidades para el módulo `security`.
 
 ```
 auth/
-  index.ts                 # PADRE: único punto de entrada (exporta las páginas)
-  components/
-    <Pagina>.tsx           # elige escritorio o móvil con <Responsive>
-    <Pantalla>/            # una carpeta por pantalla: <Pantalla>.tsx, sus partes con nombre y su .css
-  hooks/                   # lógica de cada pantalla (estado, datos de ejemplo, handlers)
+  index.ts                 # PADRE (con 'use client')
+  components/              # <Pagina>.tsx + una carpeta por pantalla (LoginScreen, RegisterScreen, ForgotScreen) + shared/ (AuthLayout, VerifyEmailStep, auth.css)
+  hooks/                   # useLoginFlow, useRegisterFlow, useForgotFlow, useVerifyEmail, useCooldown, register-data
+  services/                # auth.service (rutas), auth-errors (texto por error), auth-routing (a dónde ir), webauthn (passkeys)
+  session/                 # session.store: quién es el usuario y su estado de 2º factor
+  tests/
 ```
-
-- `hooks/useRegisterScreen.ts` — estado y datos de ejemplo de `RegisterScreen`.
-- `hooks/useRegisterMobileScreen.ts` — estado y datos de ejemplo de `RegisterMobileScreen`.
 
 ## Cómo funciona
 
-- Cada pantalla es el diseño convertido a React: el JSX conserva los estilos del diseño y el CSS
-  de la pantalla va **acotado** bajo su clase raíz (`.ds-<pantalla>`), así no se pisa con otras.
-- La lógica vive en el hook de la pantalla y devuelve un objeto `v` que el JSX consume (equivale al
-  `renderVals()` del diseño). Los **datos son de ejemplo** y están dentro del hook: al conectar el API
-  se reemplazan por llamadas a `services/` (TanStack Query) sin tocar el JSX.
-- El tema (color de marca `--ac` y modo noche) sale de `src/app/globals.css` + `ThemeProvider`.
-- Escritorio y móvil se alternan por CSS (`<Responsive>`, corte en 900 px).
-- Los avisos (`toast`) y la navegación entre pantallas están en los hooks (`hooks/use<Pantalla>.ts`).
+- **Un solo cliente HTTP** (`src/lib/api.ts`): cabeceras `x-app-*`, `credentials: 'include'`, access token **solo en memoria**, un único refresh a la vez y un reintento. Nada va a `localStorage`.
+- La pantalla de login es una **máquina de estados** (`useLoginFlow`): credenciales → segundo paso. El desafío vence a los 5 min y se vuelve al inicio; tras 2 fallos en un inicio inusual se avisa del bloqueo.
+- Los errores se traducen por `code` y `status` (`services/auth-errors.ts`); ningún texto revela si un correo existe. Cancelar el diálogo de una passkey **no** es un error.
+- Pantallas adaptables (una sola versión para escritorio y móvil): panel de color solo en escritorio; formularios con deslizamiento entre pasos, vibración en errores, casillas de código con pegar y autoavance.
+- Passkeys: solo con las funciones JSON de WebAuthn (Chrome 129+, Safari 18+, Firefox 119+); en otros navegadores se ocultan los botones.
 
 ## Reglas
 
 - Fuera de este módulo solo se importa `index.ts` (regla ESLint `local/no-internal-imports`).
-- Máximo 600 líneas por archivo: las pantallas grandes se parten en partes con nombre (ej. `HomeIntro`, `HomeListings`).
-- Estas pantallas ya se mantienen **a mano**: el conversor del diseño quedó retirado (ver `scripts/diseno-a-react/README.md`).
+- Máximo 600 líneas por archivo.
+- Pendiente: botón de Google (falta el id de cliente de Google) y la app móvil.

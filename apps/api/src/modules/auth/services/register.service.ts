@@ -50,6 +50,8 @@ export class RegisterService {
             ...this.vault.encode({ email, name: dto.name, phone: dto.phone ?? null }),
             passwordHash: await hashPassword(dto.password),
             roles: this.rolesFor(dto.accountType),
+            // Cuenta nueva de dueño o agencia: passkey o 2FA obligatorio desde el primer ingreso (sin plazo de gracia).
+            secondFactorRequiredFrom: dto.accountType === AccountType.CLIENT ? undefined : new Date(),
           },
         });
         if (dto.accountType === AccountType.AGENCY) {

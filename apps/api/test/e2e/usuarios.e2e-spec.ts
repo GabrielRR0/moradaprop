@@ -1,5 +1,5 @@
 import { describeCase } from '../support/describe-case';
-import { createAdmin, loginAdmin, registerVerified, userByEmail, createUserRow } from '../support/auth-helpers';
+import { createAdmin, loginAdmin, registerVerified, userByEmail, createUserRow, auditLogs } from '../support/auth-helpers';
 import { createTestApp, PASSWORD, type TestApp } from '../support/test-app';
 
 const NUEVA = 'NuevaClave789';
@@ -173,7 +173,7 @@ describe('Usuarios: perfil, contrasena y administracion (e2e)', () => {
       };
       await admin('patch')(`/api/admin/users/${beto.userId}/status`).send({ status: 'ACTIVE' });
       const reactivado = (await t.web('post')('/api/auth/login').send({ email: 'beto@correo.com', password: PASSWORD })).status;
-      const auditoria = await t.prisma.auditLog.findMany({ where: { action: { startsWith: 'admin.user.' } }, orderBy: { createdAt: 'asc' } });
+      const auditoria = await auditLogs(t, { where: { action: { startsWith: 'admin.user.' } }, orderBy: { createdAt: 'asc' } });
       return { suspender: suspender.status, suspendido, reactivado, acciones: auditoria.map((e) => e.action), quien: auditoria[0]?.userId };
     },
     verificar: ({ suspender, suspendido, reactivado, acciones, quien }) => {

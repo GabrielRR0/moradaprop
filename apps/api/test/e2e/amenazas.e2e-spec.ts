@@ -1,5 +1,5 @@
 import { describeCase } from '../support/describe-case';
-import { createAdmin, loginAdmin, registerVerified } from '../support/auth-helpers';
+import { createAdmin, loginAdmin, registerVerified, auditLogs, auditLogFirst } from '../support/auth-helpers';
 import { overrideEnv } from '../support/env-helpers';
 import { seedProperty } from '../support/property-helpers';
 import { createTestApp, type TestApp } from '../support/test-app';
@@ -39,6 +39,7 @@ describe('Modelo de amenazas (e2e)', () => {
   });
 
   afterAll(async () => {
+    await t.prisma.blockRule.deleteMany(); // lo que crea el modelo de amenazas no debe quedar para otras suites
     restaurarEnv?.();
     await t.close();
   });
@@ -72,7 +73,7 @@ describe('Modelo de amenazas (e2e)', () => {
       const a = await subir(Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]), 'foto.php.jpg');
       const b = await subir(Buffer.from([0x7f, 0x45, 0x4c, 0x46, 2, 1, 1, 0]), 'foto.jpg');
       const rechazos = await esperar(
-        () => t.prisma.auditLog.findMany({ where: { action: 'threat.file.rejected', userId: duenoId } }),
+        () => auditLogs(t, { where: { action: 'threat.file.rejected', userId: duenoId } }),
         (filas) => filas.length >= 2,
       );
       return { estados: [a.status, b.status], mensajes: [a.body.message, b.body.message], rechazos, imagenes: await t.prisma.propertyImage.count() };
@@ -92,7 +93,7 @@ describe('Modelo de amenazas (e2e)', () => {
     ejecutar: async () => {
       const res = await como(intrusoToken)('patch')(`/api/properties/${propiedadId}`).send({ title: 'Titulo cambiado por el intruso' });
       const eventos = await esperar(
-        () => t.prisma.auditLog.findMany({ where: { action: 'access.denied', userId: intrusoId } }),
+        () => auditLogs(t, { where: { action: 'access.denied', userId: intrusoId } }),
         (filas) => filas.length > 0,
       );
       return { res, eventos };
@@ -117,7 +118,7 @@ describe('Modelo de amenazas (e2e)', () => {
       const siguiente = await intruso('get')('/api/properties/mine');
       // El registro se escribe justo despues del bloqueo (lleva su resultado): se espera un instante.
       const deteccion = await esperar(
-        () => t.prisma.auditLog.findFirst({ where: { action: 'threat.detected', userId: intrusoId } }),
+        () => auditLogFirst(t, { where: { action: 'threat.detected', userId: intrusoId } }),
         Boolean,
       );
       return {

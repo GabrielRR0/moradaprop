@@ -92,6 +92,3 @@ export const STEP_ROLE = 1;
 export const STEP_DATA = 2;
 export const STEP_CODE = 3;
 export const STEP_DONE = 4;
-
-/** Nombre de la fuerza de la contraseña: la posición es cuántos requisitos cumple (0 a 4). */
-export const STRENGTH_LABELS = ['', 'Débil', 'Regular', 'Buena', 'Fuerte'];

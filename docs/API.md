@@ -14,7 +14,7 @@ Toda petición (salvo `GET /api/health`) debe llevar:
 
 Sin ellas responde `403 Cliente no autorizado`. Más sobre el porqué en [SEGURIDAD.md](SEGURIDAD.md).
 
-**Sesión:** el login devuelve `accessToken` (15 min). En la **web** el refresh token va en una cookie `httpOnly` (envía las peticiones con `credentials: 'include'`); en **móvil** viene en el body como `refreshToken`. Cuando el access token vence, llama a `POST /api/auth/refresh`. Si varias pestañas o peticiones refrescan a la vez con el mismo token, solo una gana: las demás reciben `401`. **El cliente debe reintentar el refresh una vez** (ya con el cookie nuevo que dejó la ganadora) antes de cerrar la sesión del usuario.
+**Sesión:** el login devuelve `accessToken` (15 min). En la **web** el refresh token va en una cookie `httpOnly` (envía las peticiones con `credentials: 'include'`); en **móvil** viene en el body como `refreshToken`. Cuando el access token vence, llama a `POST /api/auth/refresh`. Si varias pestañas o peticiones refrescan a la vez con el mismo token, solo una gana: las demás reciben `401`. **Dispositivo:** al iniciar sesión desde un dispositivo nuevo el API entrega un secreto de dispositivo: en la **web** una cookie `httpOnly` `device_token` (ruta `/api/auth`, 30 días; no hay que hacer nada más que enviar `credentials: 'include'`) y en **móvil** el campo `deviceToken` del body, que la app debe guardar de forma segura y enviar en la cabecera `x-device-token` en `login` y `refresh`. **Una sesión solo se renueva con el dispositivo con el que se abrió** (si no, `401` y hay que iniciar sesión de nuevo). **El cliente debe reintentar el refresh una vez** (ya con el cookie nuevo que dejó la ganadora) antes de cerrar la sesión del usuario. Las respuestas de login, refresh y verificación de correo traen `enrollment` (si la cuenta debe activar passkey o 2FA y hasta cuándo); con `SECOND_FACTOR_MODE=enforce`, quien debe activarlo y no lo hizo recibe `403 SECOND_FACTOR_ENROLLMENT_REQUIRED` en todo salvo las rutas de enrolamiento. **Guía completa para el frontend: [FRONTEND-SEGURIDAD.md](FRONTEND-SEGURIDAD.md).**
 
 **Errores comunes:** `400` datos inválidos · `401` sin sesión/token vencido · `403` sin permiso (o `code: TWO_FACTOR_REQUIRED`, `EMAIL_NOT_VERIFIED`) · `404` no existe o no te corresponde · `409` conflicto (duplicado, límite de plan) · `429` demasiadas peticiones.
 
@@ -27,7 +27,7 @@ Sin ellas responde `403 Cliente no autorizado`. Más sobre el porqué en [SEGURI
 | `POST /register` | 🔓 | Crea la cuenta (CLIENT, OWNER o AGENCY) y envía un código al correo |
 | `POST /verify-email` | 🔓 | Verifica el correo con el código e inicia sesión |
 | `POST /resend-code` | 🔓 | Reenvía el código (1 por minuto) |
-| `POST /login` | 🔓 | Correo + contraseña. Si hay 2FA devuelve `twoFactorRequired` y `challengeToken` |
+| `POST /login` | 🔓 | Correo + contraseña. Si hay 2FA devuelve `twoFactorRequired`, `challengeToken`, `methods` y `unusual` (true = inicio de sesión raro: solo `totp`/`backup`, sin correo). Si el inicio es muy raro, `methods` puede incluir `"passkey"` (usar `/passkeys/step-up/*`). Si el inicio es muy raro y la cuenta **no tiene 2FA ni passkey**: `403` con `code: "SECOND_FACTOR_REQUIRED"` (activar 2FA desde su dispositivo habitual) |
 | `POST /login/2fa` | 🔓 | Segundo paso: TOTP, código de respaldo o código por correo |
 | `POST /login/2fa/email-code` | 🔓 | Envía el código del segundo paso por correo |
 | `POST /refresh` | 🔓 | Renueva el access token (rota el refresh token) |
@@ -36,6 +36,13 @@ Sin ellas responde `403 Cliente no autorizado`. Más sobre el porqué en [SEGURI
 | `POST /google/link/confirm` | 🔓 | Confirma con código la vinculación de Google a una cuenta existente |
 | `POST /logout` · `/logout-all` | 🔑 | Cierra esta sesión o todas |
 | `GET /sessions` · `DELETE /sessions/:id` | 🔑 | Ver y cerrar sesiones propias |
+| `GET /devices` · `DELETE /devices/:id` | 🔑 | Dispositivos de confianza propios (`current`, `confirmed`, `lastCountry`); quitar uno cierra sus sesiones |
+| `POST /passkeys/register/options` · `POST /passkeys/register/verify` | 🔑 | Agregar una passkey (huella, Face ID, Windows Hello). Pide la contraseña y, con `RISK_MODE=enforce`, un dispositivo confirmado (`403 TRUSTED_DEVICE_REQUIRED`) |
+| `GET /passkeys` · `PATCH /passkeys/:id` · `DELETE /passkeys/:id` | 🔑 | Mis passkeys (nombre, si se sincroniza, último uso). Una ajena responde `404` |
+| `POST /passkeys/login/options` · `POST /passkeys/login/verify` | 🔓 | **Entrar con passkey**, sin correo ni contraseña. Entrega la sesión igual que `/login` (cookie en web, body en móvil) |
+| `POST /passkeys/step-up/options` · `POST /passkeys/step-up/verify` | 🔓 | Segundo paso con passkey cuando `/login` devolvió `methods` con `"passkey"` (se envía el `challengeToken`) |
+| `GET /second-factor` | 🔑 | ¿Debo activar passkey o 2FA? `{ mode, required, hasFactor, mustEnrollNow, graceEndsAt, recommended, blocked }`. Se puede consultar aunque la cuenta esté limitada |
+| `GET /security-events` | 🔑 | Historial de seguridad propio: inicios de sesión raros, bloqueos, dispositivos (país y dispositivo, sin IPs) |
 | `POST /2fa/setup` · `/2fa/confirm` · `/2fa/disable` · `/2fa/backup-codes` | 🔑 | Activar, desactivar y regenerar respaldos del 2FA |
 | `POST /google/link` · `DELETE /google` | 🔑 | Vincular o desvincular Google |
 

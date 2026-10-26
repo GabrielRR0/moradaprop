@@ -1,1 +1,0 @@
-export { RegisterMobileScreen } from './RegisterMobileScreen';

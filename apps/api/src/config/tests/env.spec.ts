@@ -68,7 +68,7 @@ describe('config', () => {
     },
     verificar: (mensaje) => {
       expect(mensaje).toContain('Configuracion insegura para produccion');
-      for (const nombre of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY', 'APP_CLIENT_KEY_WEB', 'CORS_ALLOWED_ORIGINS']) {
+      for (const nombre of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY', 'APP_CLIENT_KEY_WEB', 'CORS_ALLOWED_ORIGINS', 'WEBAUTHN_RP_ID']) {
         expect(mensaje).toContain(nombre);
       }
     },
@@ -88,6 +88,8 @@ describe('config', () => {
         APP_CLIENT_KEY_WEB: 'web-Kd82nXq91LmPz07Tb',
         APP_CLIENT_KEY_MOBILE: 'mob-Rt55wYc20HsVn38Qa',
         CORS_ALLOWED_ORIGINS: 'https://alquileres-ve.net',
+        WEBAUTHN_RP_ID: 'alquileres-ve.net',
+        WEBAUTHN_ORIGINS: 'https://alquileres-ve.net',
       }),
     verificar: (env) => expect(env.nodeEnv).toBe('production'),
   });

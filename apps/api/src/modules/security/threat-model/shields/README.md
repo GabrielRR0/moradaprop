@@ -16,6 +16,7 @@ Un escudo es **una descripción**, no código con efectos (`ThreatShield` en `..
 |---|---|---|---|
 | `credential-guessing` | S | respuestas 401 | 20 en 5 min → 15 min |
 | `mass-registration` | S | cuentas nuevas (`report` desde el registro) | 8 en 1 h → 2 h |
+| `account-takeover-attempt` | S | cuentas bloqueadas por fallar el 2º factor (`report` desde `access-risk`) | 3 en 1 h → 2 h (bloquea la IP, nunca a la víctima) |
 | `payload-tampering` | T | respuestas 400 | 40 en 5 min → 10 min |
 | `malicious-upload` | T | archivos rechazados (`report`) | 3 en 10 min → 60 min |
 | `audit-trail` | R | nada (solo documenta) | — |

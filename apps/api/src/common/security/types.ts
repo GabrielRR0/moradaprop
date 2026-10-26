@@ -9,12 +9,16 @@ export interface AuthUser {
   sessionId: string;
   /** true si el usuario tiene 2FA activo y lo paso en esta sesion */
   twoFactor: boolean;
+  /** true si debe activar passkey o 2FA y todavia no lo hizo: solo puede usar las rutas de enrolamiento (security/second-factor) */
+  enroll?: boolean;
 }
 
 export type AppClient = 'web' | 'mobile';
 
 export interface AppRequest extends Request {
   user?: AuthUser;
+  /** Pais de confianza de la peticion (modules/security/geo); null si no se sabe. */
+  country?: string | null;
   appClient?: AppClient;
 }
 
@@ -24,6 +28,8 @@ export interface AccessTokenPayload {
   roles: Role[];
   sid: string;
   twoFactor: boolean;
+  /** Ver AuthUser.enroll. Solo viaja cuando es true. */
+  enroll?: boolean;
   type: 'access';
 }
 
@@ -31,10 +37,16 @@ export interface AccessTokenPayload {
 export interface TwoFactorChallengePayload {
   sub: string;
   type: '2fa-challenge';
+  /** Riesgo del inicio de sesion que origino el desafio (modules/security/access-risk). */
+  risk?: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
 /** Datos de la peticion que los services necesitan (sesiones, auditoria, bloqueos). */
 export interface RequestContext {
   ip: string;
   userAgent?: string;
+  /** Pais de confianza (CDN con TRUST_PROXY=true), o null/undefined si no se sabe. */
+  country?: string | null;
+  /** Secreto del dispositivo que mando el cliente (cookie device_token o cabecera x-device-token), sin verificar. */
+  deviceToken?: string;
 }

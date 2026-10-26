@@ -108,6 +108,23 @@ describe('ThreatModelService.observe', () => {
   });
 
   describeCase('threat-model', {
+    que: 'una IP deja 3 cuentas bloqueadas por fallar el segundo factor (escudo S, account-takeover-attempt)',
+    espera: 'con 2 bloqueos solo se cuenta; el 3ro bloquea su IP por 2 horas (nunca a la victima)',
+    ejecutar: async () => {
+      const { service, security } = setup('enforce');
+      await repetir(2, () => service.report('account-takeover-attempt', { ip: '82.60.60.60' }));
+      const con2 = security.blockTemporarily.mock.calls.length;
+      await service.report('account-takeover-attempt', { ip: '82.60.60.60' });
+      return { con2, bloqueo: security.blockTemporarily.mock.calls[0] };
+    },
+    verificar: ({ con2, bloqueo }) => {
+      expect(con2).toBe(0);
+      expect(bloqueo.slice(0, 2)).toEqual([BlockType.IP, '82.60.60.60']);
+      expect((bloqueo[3].getTime() - Date.now()) / 60_000).toBeGreaterThan(119);
+    },
+  });
+
+  describeCase('threat-model', {
     que: 'respuestas que no son ataque: 404 de /uploads, 200 y pocas 403',
     espera: 'ninguna cuenta: no hay detecciones',
     ejecutar: async () => {

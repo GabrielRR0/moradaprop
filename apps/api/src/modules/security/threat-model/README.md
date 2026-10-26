@@ -3,7 +3,7 @@ Mini módulo de `security`: modelo de amenazas basado en **STRIDE** (el marco de
 
 | Letra | Amenaza | Cómo la cubre este módulo |
 |---|---|---|
-| **S** | Spoofing (suplantación) | Escudos `credential-guessing` (muchos 401) y `mass-registration` (muchas cuentas nuevas desde una IP) |
+| **S** | Spoofing (suplantación) | Escudos `credential-guessing` (muchos 401), `mass-registration` (muchas cuentas nuevas desde una IP) y `account-takeover-attempt` (cuentas bloqueadas por fallar el segundo factor desde un lugar raro; lo alimenta `access-risk`) |
 | **T** | Tampering (manipulación) | Escudos `payload-tampering` (muchos 400) y `malicious-upload`; revisiones de archivos |
 | **R** | Repudiation (repudio) | Escudo `audit-trail` (documenta que todo queda auditado); cada detección y rechazo se registra con usuario e IP |
 | **I** | Information disclosure (filtración) | Escudo `id-enumeration`: muchos 404 (recorrido de ids; ver `ownership`) |

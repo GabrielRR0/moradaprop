@@ -69,6 +69,22 @@ export class AuditService {
     return { items: items.map((item) => this.reveal(item)), total, page, limit };
   }
 
+  /**
+   * Ultimos eventos de UN usuario cuya accion empieza con `prefix` (ej. "risk."), con la metadata ya descifrada.
+   * Es para que el usuario vea su propio historial de seguridad: no devuelve ip ni userAgent.
+   */
+  async recentForUser(userId: string, prefix: string, limit = 30) {
+    const rows = await this.prisma.auditLog.findMany({
+      where: { userId, action: { startsWith: prefix } },
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(limit, 100),
+    });
+    return rows.map((row) => {
+      const { metadata } = this.reveal({ ...row, user: null });
+      return { id: row.id, action: row.action, createdAt: row.createdAt, metadata: metadata as Record<string, unknown> | null };
+    });
+  }
+
   /** Descifra ip, userAgent, metadata y el usuario de un evento para mostrarlo en el panel admin. */
   private reveal<T extends { ip: string | null; userAgent: string | null; metadata: Prisma.JsonValue; user: { email?: string | null; name?: string | null } | null }>(item: T): T {
     const enc = (item.metadata as { enc?: unknown } | null)?.enc;

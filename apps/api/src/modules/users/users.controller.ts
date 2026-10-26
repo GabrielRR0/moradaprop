@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser, RequestInfo } from '../../common/security/decorators';
+import { AllowWithoutSecondFactor, CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup } from '../../common/security/groups';
 import type { AuthUser, RequestContext } from '../../common/security/types';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -15,6 +15,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
+  @AllowWithoutSecondFactor()
   me(@CurrentUser() user: AuthUser) {
     return this.usersService.me(user.id);
   }

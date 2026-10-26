@@ -5,7 +5,17 @@ import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { PrismaService } from '../../../common/prisma';
 import type { AccessTokenPayload, TwoFactorChallengePayload } from '../../../common/security/types';
-import { SecurityService, SessionVault, UserVault } from '../../security';
+import {
+  AccessRiskService,
+  PasskeyService,
+  SecondFactorService,
+  SecurityService,
+  SessionVault,
+  UserVault,
+  type LoginTrust,
+  type RiskLevel,
+  type SecondFactorStatus,
+} from '../../security';
 import { toPublicUser, type AuthTokens, type RequestContext } from '../utils/auth-context';
 
 const INVALID_SESSION = 'Sesion invalida o vencida';
@@ -27,10 +37,16 @@ export class TokenService {
     private readonly security: SecurityService,
     private readonly vault: UserVault,
     private readonly sessionVault: SessionVault,
+    private readonly risk: AccessRiskService,
+    private readonly passkeys: PasskeyService,
+    private readonly secondFactor: SecondFactorService,
   ) {}
 
-  /** Crea una sesion nueva (refresh token) y su primer access token. */
-  async startSession(user: User, context: RequestContext, twoFactorVerified: boolean): Promise<AuthTokens> {
+  /**
+   * Crea una sesion nueva (refresh token) y su primer access token. `trust` trae el dispositivo y pais que
+   * definio el analisis de riesgo (access-risk): la sesion queda atada a ese dispositivo.
+   */
+  async startSession(user: User, context: RequestContext, twoFactorVerified: boolean, trust?: LoginTrust): Promise<AuthTokens> {
     const refreshToken = this.crypto.randomToken();
     const session = await this.prisma.session.create({
       data: this.sessionVault.encode({
@@ -39,16 +55,15 @@ export class TokenService {
         ip: context.ip,
         userAgent: context.userAgent?.slice(0, 300),
         twoFactorVerified,
+        deviceId: trust?.deviceId ?? null,
+        country: trust?.country ?? context.country ?? null,
         expiresAt: this.refreshExpiry(),
       }),
     });
 
     await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
-    return {
-      user: toPublicUser(user),
-      accessToken: await this.signAccess(user, session.id, twoFactorVerified),
-      refreshToken,
-    };
+    const { accessToken, enrollment } = await this.issueAccess(user, session.id, twoFactorVerified);
+    return { user: toPublicUser(user), accessToken, refreshToken, deviceToken: trust?.deviceSecret, enrollment };
   }
 
   /**
@@ -74,6 +89,16 @@ export class TokenService {
     }
     await this.security.assertNotBlocked({ ip: context.ip, userId: session.userId, email: session.user.email });
 
+    // Defensa del robo de refresh token: la sesion solo se renueva desde su dispositivo (ver access-risk).
+    const verdict = await this.risk.checkRefresh(
+      { id: session.id, userId: session.userId, deviceId: session.deviceId, country: session.country },
+      context,
+    );
+    if (verdict === 'revoke') {
+      await this.prisma.session.updateMany({ where: { id: session.id, revokedAt: null }, data: { revokedAt: new Date() } });
+      throw new UnauthorizedException(INVALID_SESSION);
+    }
+
     const nextToken = this.crypto.randomToken();
     const next = await this.prisma.$transaction(async (tx) => {
       // Solo gana quien logra revocar la sesion todavia activa; el que llega segundo (count 0) pierde.
@@ -89,6 +114,8 @@ export class TokenService {
           ip: context.ip,
           userAgent: context.userAgent?.slice(0, 300),
           twoFactorVerified: session.twoFactorVerified,
+          deviceId: session.deviceId,
+          country: context.country ?? session.country,
           expiresAt: this.refreshExpiry(),
         }),
       });
@@ -96,11 +123,8 @@ export class TokenService {
 
     if (!next) throw new UnauthorizedException(INVALID_SESSION);
 
-    return {
-      user: toPublicUser(session.user),
-      accessToken: await this.signAccess(session.user, next.id, session.twoFactorVerified),
-      refreshToken: nextToken,
-    };
+    const { accessToken, enrollment } = await this.issueAccess(session.user, next.id, session.twoFactorVerified);
+    return { user: toPublicUser(session.user), accessToken, refreshToken: nextToken, enrollment };
   }
 
   /** Marca la sesion como verificada con 2FA y devuelve un access token actualizado. */
@@ -109,18 +133,38 @@ export class TokenService {
     return this.signAccess(user, sessionId, true);
   }
 
-  signAccess(user: User, sessionId: string, twoFactorVerified: boolean): Promise<string> {
+  /**
+   * El claim `twoFactor` significa: esta sesion verifico un factor fuerte Y la cuenta todavia lo tiene (2FA activo o
+   * al menos una passkey). Si despues quita el factor, el claim se cae en el siguiente token.
+   */
+  async signAccess(user: User, sessionId: string, twoFactorVerified: boolean): Promise<string> {
+    return (await this.issueAccess(user, sessionId, twoFactorVerified)).accessToken;
+  }
+
+  /**
+   * Emite el access token y el estado del segundo factor de la cuenta. Si debe activar passkey o 2FA y no lo hizo (y el
+   * modo es enforce), el token lleva `enroll: true` y solo abre las rutas de enrolamiento (SecondFactorGuard).
+   */
+  private async issueAccess(
+    user: User,
+    sessionId: string,
+    twoFactorVerified: boolean,
+  ): Promise<{ accessToken: string; enrollment: SecondFactorStatus }> {
+    const hasPasskey = user.twoFactorEnabled ? false : await this.passkeys.hasAny(user.id);
+    const enrollment = await this.secondFactor.status(user, { hasPasskey });
     const payload: AccessTokenPayload = {
       sub: user.id,
       roles: user.roles,
       sid: sessionId,
-      twoFactor: user.twoFactorEnabled && twoFactorVerified,
+      twoFactor: twoFactorVerified && (user.twoFactorEnabled || hasPasskey),
+      ...(enrollment.blocked ? { enroll: true } : {}),
       type: 'access',
     };
-    return this.jwt.signAsync(payload, {
+    const accessToken = await this.jwt.signAsync(payload, {
       secret: this.config.auth.jwtAccessSecret,
       expiresIn: this.config.auth.jwtAccessExpiresIn as never,
     });
+    return { accessToken, enrollment };
   }
 
   verifyAccess(token: string): Promise<AccessTokenPayload> {
@@ -135,8 +179,8 @@ export class TokenService {
       });
   }
 
-  signTwoFactorChallenge(userId: string): Promise<string> {
-    const payload: TwoFactorChallengePayload = { sub: userId, type: '2fa-challenge' };
+  signTwoFactorChallenge(userId: string, risk?: RiskLevel): Promise<string> {
+    const payload: TwoFactorChallengePayload = { sub: userId, type: '2fa-challenge', risk };
     return this.jwt.signAsync(payload, {
       secret: this.config.auth.jwtAccessSecret,
       expiresIn: this.config.auth.twoFactorChallengeTtl as never,

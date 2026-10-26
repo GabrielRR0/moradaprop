@@ -1,12 +1,13 @@
 import { createParamDecorator, SetMetadata, type ExecutionContext } from '@nestjs/common';
 import type { Role } from '@prisma/client';
 import { requestOf } from '../request-of';
-import type { AppRequest, AuthUser } from '../types';
+import type { AppRequest, AuthUser, RequestContext } from '../types';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const ROLES_KEY = 'roles';
 export const REQUIRE_TWO_FACTOR_KEY = 'requireTwoFactor';
 export const SKIP_APP_CHECK_KEY = 'skipAppCheck';
+export const ALLOW_WITHOUT_SECOND_FACTOR_KEY = 'allowWithoutSecondFactor';
 
 /** La ruta no exige token. */
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
@@ -14,6 +15,11 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
 /** La ruta exige 2FA activo y verificado en la sesion. */
 export const RequireTwoFactor = () => SetMetadata(REQUIRE_TWO_FACTOR_KEY, true);
+/**
+ * La ruta se puede usar aunque la cuenta deba activar passkey o 2FA y aun no lo haya hecho (las de enrolamiento: ver el
+ * perfil, activar un factor, cerrar sesion). Todas las demas se bloquean con SECOND_FACTOR_ENROLLMENT_REQUIRED.
+ */
+export const AllowWithoutSecondFactor = () => SetMetadata(ALLOW_WITHOUT_SECOND_FACTOR_KEY, true);
 /** La ruta no exige cabeceras de cliente (solo health). */
 export const SkipAppCheck = () => SetMetadata(SKIP_APP_CHECK_KEY, true);
 
@@ -32,13 +38,21 @@ export const UserAgent = createParamDecorator((_data: unknown, ctx: ExecutionCon
   return (requestOf(ctx) as AppRequest).headers['user-agent'];
 });
 
-/** IP y User-Agent juntos, listos para pasar a los services (sesiones, auditoria, bloqueos). */
-export const RequestInfo = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): { ip: string; userAgent?: string } => {
-    const request = requestOf(ctx) as AppRequest;
-    return { ip: request.ip ?? 'unknown', userAgent: request.headers['user-agent'] };
-  },
-);
+export const DEVICE_COOKIE = 'device_token';
+export const DEVICE_HEADER = 'x-device-token';
+
+/** IP, User-Agent, pais y dispositivo juntos, listos para pasar a los services (sesiones, auditoria, bloqueos, riesgo). */
+export const RequestInfo = createParamDecorator((_data: unknown, ctx: ExecutionContext): RequestContext => {
+  const request = requestOf(ctx) as AppRequest;
+  const header = request.headers[DEVICE_HEADER];
+  const deviceToken = request.cookies?.[DEVICE_COOKIE] ?? (typeof header === 'string' ? header : undefined);
+  return {
+    ip: request.ip ?? 'unknown',
+    userAgent: request.headers['user-agent'],
+    country: request.country,
+    deviceToken: typeof deviceToken === 'string' && deviceToken ? deviceToken.slice(0, 200) : undefined,
+  };
+});
 
 /** App que hace la peticion (web o mobile), validada por AppOriginGuard. */
 export const Client = createParamDecorator((_data: unknown, ctx: ExecutionContext) => {

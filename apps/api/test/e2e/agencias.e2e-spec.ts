@@ -1,3 +1,4 @@
+import { AgencyVault } from '../../src/modules/security';
 import { describeCase } from '../support/describe-case';
 import { jwtPayload, loginUser, registerVerified } from '../support/auth-helpers';
 import { propiedadValida } from '../support/property-helpers';
@@ -65,7 +66,7 @@ describe('Agencias con subcuentas (e2e)', () => {
     ejecutar: async () => {
       const res = await a('post')('/api/agencies/me/members/invite').send({ email: 'Agente@Inmobiliaria.com' });
       const token = t.mail.lastInvitationToken('agente@inmobiliaria.com');
-      const fila = await t.prisma.agencyMember.findFirstOrThrow({ where: { invitedEmail: 'agente@inmobiliaria.com' } });
+      const fila = await t.prisma.agencyMember.findFirstOrThrow({ where: { invitedEmailHash: t.app.get(AgencyVault).invitedEmailHash('agente@inmobiliaria.com') } });
       memberId = fila.id;
       return { res, token, fila };
     },

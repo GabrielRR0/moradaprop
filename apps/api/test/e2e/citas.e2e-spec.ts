@@ -1,4 +1,4 @@
-import { FieldCipher } from '../../src/modules/security';
+import { AppointmentVault, FieldCipher } from '../../src/modules/security';
 import { describeCase } from '../support/describe-case';
 import { registerVerified } from '../support/auth-helpers';
 import { seedProperty } from '../support/property-helpers';
@@ -87,7 +87,7 @@ describe('Citas y apartados (e2e)', () => {
     ejecutar: async () => {
       const res = await c1('post')('/api/appointments').send({ propertyId: propiedadId, type: 'VISITA', scheduledAt: enDias(3), message: 'Me interesa verlo el fin de semana' });
       visitaId = res.body.id;
-      const fila = await t.prisma.appointment.findUniqueOrThrow({ where: { id: visitaId } });
+      const fila = t.app.get(AppointmentVault).decode(await t.prisma.appointment.findUniqueOrThrow({ where: { id: visitaId } }));
       return { res, fila, correo: t.mail.sent.some((m) => m.to === 'dueno@correo.com' && m.template.name === 'appointment-new') };
     },
     verificar: ({ res, fila, correo }) => {

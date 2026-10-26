@@ -27,7 +27,7 @@ export class VerifyEmailService {
 
     const verified = user.emailVerifiedAt
       ? user
-      : await this.prisma.user.update({ where: { id: user.id }, data: { emailVerifiedAt: new Date() } });
+      : { ...user, ...(await this.prisma.user.update({ where: { id: user.id }, data: { emailVerifiedAt: new Date() }, select: { emailVerifiedAt: true } })) };
 
     await this.audit.log({
       action: 'auth.email.verified',

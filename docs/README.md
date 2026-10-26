@@ -4,6 +4,7 @@
 |---|---|---|
 | [GUIA-COLABORADORES.md](GUIA-COLABORADORES.md) | Cualquiera que vaya a trabajar en el proyecto | Cómo levantarlo, comandos, estructura, cómo escribir código legible, migraciones, pruebas y la lista previa a cada cambio |
 | [SEGURIDAD.md](SEGURIDAD.md) | **Todo el que toque el backend** | Capas de defensa, autenticación y 2FA, protección de datos y archivos, lista de despliegue, reglas y prohibiciones, límites conocidos |
+| [FRONTEND-SEGURIDAD.md](FRONTEND-SEGURIDAD.md) | **Quien construye la web o la app** | Cómo debe ser el login, el registro y el manejo de seguridad en el frontend: cabeceras y cookies, máquina de estados del login, passkeys, segundo factor obligatorio, avisos, errores por `code` y checklist de pantallas |
 | [API.md](API.md) | Frontend, móvil y revisores | Todas las rutas, quién puede usarlas y cabeceras obligatorias |
 | [RENDIMIENTO.md](RENDIMIENTO.md) | Quien optimiza o escala | Caché, límites de peticiones, qué se cambia dónde, límites honestos |
 | [CONVENCIONES.md](CONVENCIONES.md) | Todos | Reglas de arquitectura (las impone el lint), estilo, migraciones |

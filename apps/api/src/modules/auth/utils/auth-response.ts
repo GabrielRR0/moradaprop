@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { DEVICE_COOKIE } from '../../../common/security/decorators';
 import type { AppClient } from '../../../common/security/types';
 import type { GoogleLoginResult } from '../services/google-auth.service';
 import type { AuthTokens, LoginResult } from './auth-context';
@@ -21,8 +22,19 @@ export function respondWithTokens(
   tokens: AuthTokens,
   cookie: CookieSettings,
 ) {
-  const { refreshToken, ...body } = tokens;
-  if (client === 'mobile') return { ...body, refreshToken };
+  const { refreshToken, deviceToken, ...body } = tokens;
+  if (client === 'mobile') return { ...body, refreshToken, ...(deviceToken ? { deviceToken } : {}) };
+
+  // Dispositivo nuevo (security/access-risk): el navegador guarda el secreto, el servidor solo su hash.
+  if (deviceToken) {
+    res.cookie(DEVICE_COOKIE, deviceToken, {
+      httpOnly: true,
+      secure: cookie.secure,
+      sameSite: 'lax',
+      path: '/api/auth',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+  }
 
   res.cookie(REFRESH_COOKIE, refreshToken, {
     httpOnly: true,

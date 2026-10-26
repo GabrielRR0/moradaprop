@@ -2,7 +2,7 @@ import { AppConfig } from '../../src/config';
 import { GoogleAuthService } from '../../src/modules/auth/services/google-auth.service';
 import { describeCase } from '../support/describe-case';
 import { registerVerified, userByEmail } from '../support/auth-helpers';
-import { UserVault } from '../../src/modules/security';
+import { SocialAccountVault, UserVault } from '../../src/modules/security';
 import { createTestApp, PASSWORD, type TestApp } from '../support/test-app';
 
 /** idToken falso -> lo que Google diria de el. */
@@ -92,7 +92,7 @@ describe('Auth: Google (e2e)', () => {
     espera: 'linkRequired=true, sin sesion, y un correo link-google a la cuenta',
     ejecutar: async () => {
       const res = await google('tok-existente');
-      const vinculos = await t.prisma.socialAccount.count({ where: { providerId: 'g-222' } });
+      const vinculos = await t.prisma.socialAccount.count({ where: { providerId: t.app.get(SocialAccountVault).providerId('g-222') } });
       return { res, vinculos };
     },
     verificar: ({ res, vinculos }) => {
@@ -126,7 +126,7 @@ describe('Auth: Google (e2e)', () => {
       const code = t.mail.lastCode('existente@correo.com', 'link-google');
       const confirm = await t.web('post')('/api/auth/google/link/confirm').send({ idToken: 'tok-existente', code });
       const directo = await google('tok-existente');
-      const vinculos = await t.prisma.socialAccount.count({ where: { providerId: 'g-222' } });
+      const vinculos = await t.prisma.socialAccount.count({ where: { providerId: t.app.get(SocialAccountVault).providerId('g-222') } });
       return { confirm, directo, vinculos };
     },
     verificar: ({ confirm, directo, vinculos }) => {

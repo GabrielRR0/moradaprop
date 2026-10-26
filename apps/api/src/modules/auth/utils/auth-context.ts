@@ -1,5 +1,6 @@
 import type { User } from '@prisma/client';
 import type { RequestContext } from '../../../common/security/types';
+import type { SecondFactorStatus } from '../../security';
 
 export type { RequestContext };
 
@@ -26,11 +27,21 @@ export interface AuthTokens {
   accessToken: string;
   /** Token crudo: el controller lo pone en cookie (web) o en el body (mobile). */
   refreshToken: string;
+  /** Secreto de un dispositivo NUEVO (access-risk): cookie device_token en web, body en mobile. */
+  deviceToken?: string;
+  /** Si debe activar passkey o 2FA, hasta cuando, y si esta limitado (security/second-factor). */
+  enrollment?: SecondFactorStatus;
 }
 
 /** Resultado de login: sesion lista, o falta el segundo paso. */
 export type LoginResult =
   | { twoFactorRequired: false; tokens: AuthTokens }
-  | { twoFactorRequired: true; challengeToken: string; methods: Array<'totp' | 'backup' | 'email'> };
+  | {
+      twoFactorRequired: true;
+      challengeToken: string;
+      methods: Array<'passkey' | 'totp' | 'backup' | 'email'>;
+      /** true si el segundo paso se pide porque el inicio de sesion es inusual (pais, red o dispositivo nuevos). */
+      unusual?: boolean;
+    };
 
 export const normalizeEmail = (email: string) => email.trim().toLowerCase();

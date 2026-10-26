@@ -55,6 +55,9 @@ export function productionProblems(env: RawEnv): string[] {
     if (looksLikeDevValue(value)) problems.push(`${name} es un valor de desarrollo; define uno propio`);
   }
 
+  if (/^(localhost|127\.0\.0\.1)$/.test(env.WEBAUTHN_RP_ID) || /localhost|127\.0\.0\.1/.test(env.WEBAUTHN_ORIGINS)) {
+    problems.push('WEBAUTHN_RP_ID / WEBAUTHN_ORIGINS apuntan a localhost; define el dominio real (las passkeys quedan atadas a el)');
+  }
   if (/localhost|127\.0\.0\.1/.test(env.CORS_ALLOWED_ORIGINS)) {
     problems.push('CORS_ALLOWED_ORIGINS apunta a localhost; define el dominio real de la web');
   }
