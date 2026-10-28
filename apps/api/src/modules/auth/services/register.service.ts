@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
-import { MailService } from '../../../common/mail';
+import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { AgencyVault, SecurityService, ThreatModelService, UserVault } from '../../security';
 import { AccountType, type RegisterDto } from '../dto/register.dto';
 import { normalizeEmail, type RequestContext } from '../utils/auth-context';
-import { hashPassword } from '../../../common/password';
+import { PasswordSupport } from '../../../support/password';
 import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
 
@@ -48,7 +48,7 @@ export class RegisterService {
         const created = await tx.user.create({
           data: {
             ...this.vault.encode({ email, name: dto.name, phone: dto.phone ?? null }),
-            passwordHash: await hashPassword(dto.password),
+            passwordHash: await PasswordSupport.hash(dto.password),
             roles: this.rolesFor(dto.accountType),
             // Cuenta nueva de dueño o agencia: passkey o 2FA obligatorio desde el primer ingreso (sin plazo de gracia).
             secondFactorRequiredFrom: dto.accountType === AccountType.CLIENT ? undefined : new Date(),

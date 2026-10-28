@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { hashPassword, verifyPassword } from '../../../common/password';
+import { PasswordSupport } from '../../../support/password';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
@@ -20,7 +20,7 @@ export class ChangePasswordService {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
     if (user.passwordHash) {
-      if (!dto.currentPassword || !(await verifyPassword(user.passwordHash, dto.currentPassword))) {
+      if (!dto.currentPassword || !(await PasswordSupport.verify(user.passwordHash, dto.currentPassword))) {
         throw new ForbiddenException('La contrasena actual es incorrecta');
       }
       if (dto.currentPassword === dto.newPassword) {
@@ -28,7 +28,7 @@ export class ChangePasswordService {
       }
     }
 
-    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash: await hashPassword(dto.newPassword) } });
+    await this.prisma.user.update({ where: { id: userId }, data: { passwordHash: await PasswordSupport.hash(dto.newPassword) } });
     await this.prisma.session.updateMany({
       where: { userId, revokedAt: null, id: { not: sessionId } },
       data: { revokedAt: new Date() },

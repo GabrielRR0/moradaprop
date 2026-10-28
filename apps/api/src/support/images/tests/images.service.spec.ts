@@ -17,7 +17,7 @@ const rechazo = async (buffer: Buffer) => {
 };
 
 describe('ImagesService', () => {
-  describeCase('common/images', {
+  describeCase('support/images', {
     que: 'genera original y las 3 variantes a los tamanos del plan',
     espera: 'thumb 300x200 webp, medium <=800x600 webp, hd <=1920x1440 webp y original jpeg',
     ejecutar: async () => {
@@ -35,7 +35,7 @@ describe('ImagesService', () => {
       `thumb ${thumb.width}x${thumb.height}, medium ${medium.width}x${medium.height}, hd ${hd.width}x${hd.height}, original ${original.format}`,
   });
 
-  describeCase('common/images', {
+  describeCase('support/images', {
     que: 'no agranda imagenes pequenas (hd y medium conservan su tamano)',
     espera: 'una foto de 500x400 queda en 500x400 en medium y hd',
     ejecutar: async () => {
@@ -45,7 +45,7 @@ describe('ImagesService', () => {
     verificar: (anchos) => expect(anchos).toEqual([500, 500]),
   });
 
-  describeCase('common/images', {
+  describeCase('support/images', {
     que: 'elimina los metadatos EXIF (por ejemplo la ubicacion GPS) de la foto',
     espera: 'la entrada tiene EXIF y ninguna variante de salida lo tiene',
     ejecutar: async () => {
@@ -63,21 +63,21 @@ describe('ImagesService', () => {
     describirObtenido: ({ entrada, salidas }) => `entrada con EXIF: ${entrada}; salidas con EXIF: ${salidas.join(',')}`,
   });
 
-  describeCase('common/images', {
+  describeCase('support/images', {
     que: 'rechaza un archivo que no es imagen aunque se llame .jpg',
     espera: 'mensaje "Formato no permitido"',
     ejecutar: () => rechazo(Buffer.from('<?php system($_GET["c"]); ?>')),
     verificar: (mensaje) => expect(mensaje).toContain('Formato no permitido'),
   });
 
-  describeCase('common/images', {
+  describeCase('support/images', {
     que: 'rechaza un poliglota: cabecera JPEG valida con codigo malicioso en el cuerpo',
     espera: 'mensaje "danada o no es valida"',
     ejecutar: () => rechazo(Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.from('<script>alert(1)</script>')])),
     verificar: (mensaje) => expect(mensaje).toContain('danada'),
   });
 
-  describeCase('common/images', {
+  describeCase('support/images', {
     que: 'rechaza imagenes demasiado pequenas y archivos de mas de 10 MB',
     espera: 'mensajes de "muy pequena" y "supera el maximo"',
     ejecutar: async () => [await rechazo(await foto(100, 100).png().toBuffer()), await rechazo(Buffer.alloc(10 * 1024 * 1024 + 1))],

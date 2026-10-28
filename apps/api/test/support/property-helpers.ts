@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import { ImagesSupport } from '../../src/support/images';
 import type { Prisma } from '@prisma/client';
 import type { TestApp } from './test-app';
 
@@ -48,6 +48,4 @@ export async function seedProperty(t: TestApp, ownerUserId: string, overrides: P
 
 /** Foto JPEG real (con colores) lista para subir. */
 export const fotoJpeg = (width = 1200, height = 900) =>
-  sharp({ create: { width, height, channels: 3, background: { r: 30, g: 120, b: 200 } } })
-    .jpeg()
-    .toBuffer();
+  ImagesSupport.solidJpeg(width, height, { r: 30, g: 120, b: 200 });

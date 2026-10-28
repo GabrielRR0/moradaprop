@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { PrismaService } from '../../../common/prisma';
 import type { AccessTokenPayload, TwoFactorChallengePayload } from '../../../common/security/types';
+import { JwtSigner } from '../../../support/jwt';
 import {
   AccessRiskService,
   PasskeyService,
@@ -31,7 +31,7 @@ const REUSE_GRACE_MS = 10_000;
 export class TokenService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtService,
+    private readonly jwt: JwtSigner,
     private readonly crypto: CryptoService,
     private readonly config: AppConfig,
     private readonly security: SecurityService,
@@ -160,16 +160,16 @@ export class TokenService {
       ...(enrollment.blocked ? { enroll: true } : {}),
       type: 'access',
     };
-    const accessToken = await this.jwt.signAsync(payload, {
+    const accessToken = await this.jwt.sign(payload, {
       secret: this.config.auth.jwtAccessSecret,
-      expiresIn: this.config.auth.jwtAccessExpiresIn as never,
+      expiresIn: this.config.auth.jwtAccessExpiresIn,
     });
     return { accessToken, enrollment };
   }
 
   verifyAccess(token: string): Promise<AccessTokenPayload> {
     return this.jwt
-      .verifyAsync<AccessTokenPayload>(token, { secret: this.config.auth.jwtAccessSecret })
+      .verify<AccessTokenPayload>(token, this.config.auth.jwtAccessSecret)
       .then((payload) => {
         if (payload.type !== 'access') throw new Error('tipo de token incorrecto');
         return payload;
@@ -181,15 +181,15 @@ export class TokenService {
 
   signTwoFactorChallenge(userId: string, risk?: RiskLevel): Promise<string> {
     const payload: TwoFactorChallengePayload = { sub: userId, type: '2fa-challenge', risk };
-    return this.jwt.signAsync(payload, {
+    return this.jwt.sign(payload, {
       secret: this.config.auth.jwtAccessSecret,
-      expiresIn: this.config.auth.twoFactorChallengeTtl as never,
+      expiresIn: this.config.auth.twoFactorChallengeTtl,
     });
   }
 
   verifyTwoFactorChallenge(token: string): Promise<TwoFactorChallengePayload> {
     return this.jwt
-      .verifyAsync<TwoFactorChallengePayload>(token, { secret: this.config.auth.jwtAccessSecret })
+      .verify<TwoFactorChallengePayload>(token, this.config.auth.jwtAccessSecret)
       .then((payload) => {
         if (payload.type !== '2fa-challenge') throw new Error('tipo de token incorrecto');
         return payload;

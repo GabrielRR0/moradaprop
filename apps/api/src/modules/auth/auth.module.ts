@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { GoogleIdentity } from '../../support/google-identity';
+import { JwtSignerModule } from '../../support/jwt';
 import { SecurityModule } from '../security';
 import { AuthController } from './auth.controller';
 import { PasskeyLoginController } from './passkey-login.controller';
@@ -17,8 +18,7 @@ import { VerificationCodeService } from './services/verification-code.service';
 import { VerifyEmailService } from './services/verify-email.service';
 
 @Module({
-  // JwtModule sin secreto global: cada firma/verificacion pasa su secreto (access o challenge).
-  imports: [JwtModule.register({}), SecurityModule],
+  imports: [JwtSignerModule, SecurityModule],
   controllers: [AuthController, PasskeyLoginController],
   providers: [
     AuthService,
@@ -30,6 +30,7 @@ import { VerifyEmailService } from './services/verify-email.service';
     TwoFactorService,
     PasswordResetService,
     GoogleAuthService,
+    GoogleIdentity,
     UserAccountService,
     VerificationCodeService,
     JwtAuthGuard,

@@ -38,6 +38,10 @@
   color-scheme: dark;
 }
 
+html {
+  -webkit-text-size-adjust: 100%; /* iOS no agranda el texto al girar el telefono */
+  text-size-adjust: 100%;
+}
 html,
 body {
   margin: 0;
@@ -220,4 +224,25 @@ a[class]:active {
     transform: none;
     transition: none;
   }
+}
+
+/* ---------- Telefonos (iPhone y Android) ----------
+   iOS acerca la pantalla al tocar un campo con letra menor a 16px: en pantallas tactiles todos
+   los campos usan 16px. NO se bloquea el zoom del usuario (accesibilidad): solo se evita el salto. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+/* Evita el zoom de doble toque y el retraso de 300 ms en botones y enlaces */
+a,
+button,
+input,
+select,
+textarea,
+label,
+summary {
+  touch-action: manipulation;
 }

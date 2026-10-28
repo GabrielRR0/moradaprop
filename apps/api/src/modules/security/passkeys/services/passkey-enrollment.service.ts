@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../common/prisma';
-import { verifyPassword } from '../../../../common/password';
+import { PasswordSupport } from '../../../../support/password';
 import type { RequestContext } from '../../../../common/security/types';
 import { AccessRiskService } from '../../access-risk';
 import { UserVault } from '../../encryption';
@@ -25,7 +25,7 @@ export class PasskeyEnrollmentService {
     await this.risk.assertTrustedContext({ id: userId }, context);
     const user = this.vault.decode(await this.prisma.user.findUniqueOrThrow({ where: { id: userId } }));
     // Cuenta creada solo con Google: no tiene contrasena que pedir (el dispositivo confirmado es la barrera).
-    if (user.passwordHash && (!password || !(await verifyPassword(user.passwordHash, password)))) {
+    if (user.passwordHash && (!password || !(await PasswordSupport.verify(user.passwordHash, password)))) {
       throw new ForbiddenException('Contrasena incorrecta');
     }
     return this.passkeys.registrationOptions({ id: user.id, email: user.email, name: user.name });

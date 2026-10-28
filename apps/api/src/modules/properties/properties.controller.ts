@@ -17,8 +17,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Role } from '@prisma/client';
-import { HttpCache } from '../../common/cache';
-import { MAX_IMAGE_BYTES } from '../../common/images';
+import { HttpCache } from '../../support/cache';
+import { ImagesSupport } from '../../support/images';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup, PublicGroup, RoleGroup } from '../../common/security/groups';
 import { limitPerMinute, RATE_LIMITS } from '../../common/security/rate-limits';
@@ -137,7 +137,7 @@ export class PropertiesController {
   @UseInterceptors(
     FilesInterceptor('files', 10, {
       // Sin "storage": multer usa memoria, nada se escribe en disco antes de validar.
-      limits: { fileSize: MAX_IMAGE_BYTES, files: 10, fields: 0, parts: 12 },
+      limits: { fileSize: ImagesSupport.MAX_BYTES, files: 10, fields: 0, parts: 12 },
       fileFilter: (_req, file, cb) =>
         IMAGE_MIME.includes(file.mimetype)
           ? cb(null, true)

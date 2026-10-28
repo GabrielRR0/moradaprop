@@ -13,12 +13,13 @@
  *   agencia@demo.local   AGENCY  (administrador de "Inmuebles Demo")
  *   cliente@demo.local   CLIENT
  */
+import { existsSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { PrismaClient, type Currency, type Prisma, type PropertyStatus, type PropertyType } from '@prisma/client';
-import sharp from 'sharp';
-import { hashPassword } from '../src/common/password';
+import { ImagesSupport } from '../src/support/images';
+import { PasswordSupport } from '../src/support/password';
 import { blockReason } from '../src/database/migration-guard';
 import type { AppConfig } from '../src/config';
 import { BlindIndexService } from '../src/modules/security/encryption/services/blind-index.service';
@@ -27,7 +28,8 @@ import { KeyRingService } from '../src/modules/security/encryption/services/key-
 import { AgencyVault } from '../src/modules/security/encryption/vaults/agency.vault';
 import { UserVault } from '../src/modules/security/encryption/vaults/user.vault';
 
-// Sin variables, apunta a la base local de Docker (la misma que usa `pnpm db:*`).
+// Toma apps/api/.env si existe; sin variables, apunta a la base local de Docker (la misma que usa `pnpm db:*`).
+if (existsSync('.env')) process.loadEnvFile('.env');
 process.env.DATABASE_URL ??= 'postgresql://alquiler:alquiler@localhost:5433/alquiler';
 process.env.DIRECT_URL ??= process.env.DATABASE_URL;
 
@@ -248,11 +250,11 @@ async function crearFotos(propertyId: string, hue: number, titulo: string) {
       mediumKey: `${base}/medium/${id}.webp`,
       hdKey: `${base}/hd/${id}.webp`,
     };
-    const img = sharp(fotoSvg((hue + i * 18) % 360, pick(SALAS), titulo));
-    await guardar('private', keys.originalKey, await img.clone().jpeg({ quality: 85 }).toBuffer());
-    await guardar('public', keys.thumbKey, await img.clone().resize(300, 200, { fit: 'cover' }).webp({ quality: 70 }).toBuffer());
-    await guardar('public', keys.mediumKey, await img.clone().resize(800, 600).webp({ quality: 75 }).toBuffer());
-    await guardar('public', keys.hdKey, await img.clone().resize(1600, 1200).webp({ quality: 80 }).toBuffer());
+    const svg = fotoSvg((hue + i * 18) % 360, pick(SALAS), titulo);
+    await guardar('private', keys.originalKey, await ImagesSupport.render(svg, { format: 'jpeg', quality: 85 }));
+    await guardar('public', keys.thumbKey, await ImagesSupport.render(svg, { format: 'webp', quality: 70, size: { width: 300, height: 200, fit: 'cover' } }));
+    await guardar('public', keys.mediumKey, await ImagesSupport.render(svg, { format: 'webp', quality: 75, size: { width: 800, height: 600 } }));
+    await guardar('public', keys.hdKey, await ImagesSupport.render(svg, { format: 'webp', quality: 80, size: { width: 1600, height: 1200 } }));
     rows.push({ propertyId, ...keys, position: i, isCover: i === 0 });
   }
   return rows;
@@ -265,7 +267,7 @@ async function user(email: string, name: string, roles: Prisma.UserCreateInput['
     create: {
       ...vault.encode({ email, name, phone }),
       roles,
-      passwordHash: await hashPassword(PASSWORD),
+      passwordHash: await PasswordSupport.hash(PASSWORD),
       emailVerifiedAt: new Date(),
     },
   });

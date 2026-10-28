@@ -22,7 +22,7 @@ function counter() {
 }
 
 describe('CacheService', () => {
-  describeCase('common/cache', {
+  describeCase('support/cache', {
     que: 'guarda el resultado: la segunda peticion no vuelve a consultar',
     espera: '2 peticiones seguidas = 1 consulta, mismo resultado',
     ejecutar: async () => {
@@ -39,7 +39,7 @@ describe('CacheService', () => {
     describirObtenido: ({ consultas }) => `${consultas} consulta a la base para 2 peticiones`,
   });
 
-  describeCase('common/cache', {
+  describeCase('support/cache', {
     que: 'un solo vuelo: 1.000 peticiones simultaneas identicas hacen UNA sola consulta',
     espera: '1.000 peticiones a la vez = 1 consulta y todas reciben lo mismo',
     ejecutar: async () => {
@@ -55,7 +55,7 @@ describe('CacheService', () => {
     describirObtenido: ({ consultas, distintas }) => `1.000 peticiones simultaneas -> ${consultas} consulta, ${distintas} resultado distinto`,
   });
 
-  describeCase('common/cache', {
+  describeCase('support/cache', {
     que: 'claves distintas no se mezclan',
     espera: '2 claves = 2 consultas',
     ejecutar: async () => {
@@ -67,7 +67,7 @@ describe('CacheService', () => {
     verificar: (consultas) => expect(consultas).toBe(2),
   });
 
-  describeCase('common/cache', {
+  describeCase('support/cache', {
     que: 'con TTL 0 la cache esta apagada: cada peticion consulta',
     espera: '3 peticiones = 3 consultas',
     ejecutar: async () => {
@@ -81,7 +81,7 @@ describe('CacheService', () => {
     verificar: (consultas) => expect(consultas).toBe(3),
   });
 
-  describeCase('common/cache', {
+  describeCase('support/cache', {
     que: 'forget(prefijo) borra lo guardado y obliga a consultar de nuevo',
     espera: 'tras borrar, la siguiente peticion consulta; las claves con otro prefijo se conservan',
     ejecutar: async () => {
@@ -97,7 +97,7 @@ describe('CacheService', () => {
     verificar: (consultas) => expect(consultas).toBe(3), // 2 iniciales + 1 repetida (la otra clave sigue guardada)
   });
 
-  describeCase('common/cache', {
+  describeCase('support/cache', {
     que: 'si la consulta falla, el error llega a todos y no se guarda (el siguiente intento reintenta)',
     espera: 'primer intento falla; segundo funciona',
     ejecutar: async () => {

@@ -1,4 +1,4 @@
-import { hashPassword } from '../../src/common/password';
+import { PasswordSupport } from '../../src/support/password';
 import { createAdmin, createUserRow, jwtPayload, userByEmail } from '../support/auth-helpers';
 import { describeCase } from '../support/describe-case';
 import { overrideEnv } from '../support/env-helpers';
@@ -35,7 +35,7 @@ async function cuentaExistente(email: string, roles: Array<'CLIENT' | 'OWNER' | 
     email,
     name: 'Cuenta Existente',
     roles,
-    passwordHash: await hashPassword(PASSWORD),
+    passwordHash: await PasswordSupport.hash(PASSWORD),
     emailVerifiedAt: new Date(),
     ...(secondFactorRequiredFrom ? { secondFactorRequiredFrom } : {}),
   });

@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, PropertyStatus } from '@prisma/client';
-import { CACHE_POLICIES, CacheService } from '../../../common/cache';
+import { CACHE_POLICIES, CacheService } from '../../../support/cache';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser } from '../../../common/security/types';
 import { UserVault } from '../../security';

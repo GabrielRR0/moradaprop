@@ -1,4 +1,4 @@
-import ExcelJS from 'exceljs';
+import { SpreadsheetSupport } from '../../src/support/spreadsheet';
 
 /** Fila valida de la planilla (encabezados en español, como la plantilla oficial). */
 export const HEADERS = [
@@ -18,13 +18,8 @@ export const fila = (overrides: Record<string, unknown> = {}) => {
 };
 
 /** Construye un .xlsx real en memoria. Una celda puede ser { formula } para probar el rechazo de formulas. */
-export async function xlsxBuffer(rows: unknown[][], headers: string[] = HEADERS): Promise<Buffer> {
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet('Propiedades');
-  sheet.addRow(headers);
-  for (const row of rows) sheet.addRow(row as ExcelJS.CellValue[]);
-  return Buffer.from(await workbook.xlsx.writeBuffer());
-}
+export const xlsxBuffer = (rows: unknown[][], headers: string[] = HEADERS): Promise<Buffer> =>
+  SpreadsheetSupport.buildXlsx([{ name: 'Propiedades', rows: [headers, ...(rows as SpreadsheetSupport.SheetValue[][])] }]);
 
 export const csvBuffer = (rows: unknown[][], headers: string[] = HEADERS, delimiter = ',') =>
   Buffer.from([headers, ...rows].map((r) => r.map((c) => String(c ?? '')).join(delimiter)).join('\r\n'), 'utf8');

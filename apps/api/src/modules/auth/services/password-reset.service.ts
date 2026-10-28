@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { MailService } from '../../../common/mail';
+import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { SecurityService } from '../../security';
 import type { ResetPasswordDto } from '../dto/reset-password.dto';
 import { normalizeEmail, type RequestContext } from '../utils/auth-context';
-import { hashPassword } from '../../../common/password';
+import { PasswordSupport } from '../../../support/password';
 import { TokenService } from './token.service';
 import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
@@ -51,7 +51,7 @@ export class PasswordResetService {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordHash: await hashPassword(dto.newPassword),
+        passwordHash: await PasswordSupport.hash(dto.newPassword),
         // Quien recibio el codigo en su correo demostro que es el dueno de la cuenta.
         emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
         failedLogins: 0,

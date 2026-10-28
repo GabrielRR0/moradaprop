@@ -44,6 +44,7 @@ services:
     image: axllent/mailpit
     ports:
       - "${MAILPIT_UI_PORT:-8026}:8025" # bandeja de correos: http://localhost:8026
+      - "${MAILPIT_SMTP_PORT:-1025}:1025" # SMTP, para correr el API fuera de Docker (apps/api/.env)
 
   # Instala dependencias y compila @app/shared una sola vez antes de arrancar api/web.
   install:
@@ -67,6 +68,7 @@ services:
       NODE_ENV: development
       PORT: 3001
       DATABASE_URL: ${DATABASE_URL:-postgresql://alquiler:alquiler@db:5432/alquiler}
+      DIRECT_URL: ${DIRECT_URL:-postgresql://alquiler:alquiler@db:5432/alquiler}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       # Cache y rate limit compartidos entre servidores
       CACHE_DRIVER: ${CACHE_DRIVER:-redis}

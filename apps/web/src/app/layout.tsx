@@ -15,7 +15,15 @@ export const metadata: Metadata = {
   description: brand.tagline,
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  // Color de la barra del navegador en Android/Safari.
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0e1117' },
+  ],
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

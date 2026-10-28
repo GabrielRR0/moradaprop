@@ -44,6 +44,32 @@ export default tseslint.config(
     rules: { 'local/no-internal-imports': 'error' },
   },
   {
+    // Paquetes de terceros envueltos: solo se usan a traves de apps/api/src/support/<modulo> (ver support/README.md).
+    files: ['apps/api/**/*.ts'],
+    ignores: ['apps/api/src/support/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            ['argon2', 'support/password'],
+            ['ioredis', 'support/cache'],
+            ['nodemailer', 'support/mail'],
+            ['sharp', 'support/images'],
+            ['@nestjs/jwt', 'support/jwt'],
+            ['google-auth-library', 'support/google-identity'],
+            ['otplib', 'support/totp'],
+            ['qrcode', 'support/totp'],
+            ['exceljs', 'support/spreadsheet'],
+          ].map(([name, wrapper]) => ({
+            name,
+            message: `No importes "${name}" directo: usa el wrapper ${wrapper} (docs/CONVENCIONES.md, "Paquetes de terceros").`,
+          })),
+        },
+      ],
+    },
+  },
+  {
     // Unicos lugares donde se permite process.env.
     files: [
       'apps/api/src/config/env.ts',

@@ -10,7 +10,7 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
-import { PASSWORD_MESSAGE, PASSWORD_PATTERN } from '../../../common/password';
+import { PasswordSupport } from '../../../support/password';
 
 /** Tipos de cuenta que se pueden elegir al registrarse. ADMIN nunca se crea desde aqui. */
 export enum AccountType {
@@ -29,7 +29,7 @@ export class RegisterDto {
   email: string;
 
   @ApiProperty({ example: 'Clave1234' })
-  @Matches(PASSWORD_PATTERN, { message: PASSWORD_MESSAGE })
+  @Matches(PasswordSupport.PATTERN, { message: PasswordSupport.MESSAGE })
   password: string;
 
   @ApiProperty({ example: 'Maria Perez' })

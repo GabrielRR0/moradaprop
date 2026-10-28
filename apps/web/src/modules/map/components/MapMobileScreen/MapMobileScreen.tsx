@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { css } from '@/lib/dc';
+import { useSession } from '@/modules/auth';
 import { useTheme } from '@/lib/theme';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
 import type { PropertyCard } from '../../services';
@@ -103,6 +104,7 @@ function Card({
 export function MapMobileScreen() {
   const ex = useMapExplorer({ selectionOffset: SHEET_OFFSET });
   const { dark } = useTheme();
+  const session = useSession();
   const { search, filters } = ex;
   const [listOpen, setListOpen] = useState(false);
   const currentSearch = useSearchParams().toString();
@@ -464,7 +466,7 @@ export function MapMobileScreen() {
           <Icon name="bell" />
           Alertas
         </button>
-        <Link href="/registro" className="tab">
+        <Link href={session.status === 'authed' ? '/seguridad' : '/ingresar'} className="tab">
           <Icon name="user" />
           Perfil
         </Link>

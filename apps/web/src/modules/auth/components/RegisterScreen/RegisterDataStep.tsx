@@ -33,7 +33,7 @@ export function RegisterDataStep({ flow }: { flow: RegisterFlow }) {
           error={errors.agencyName}
         />
       )}
-      <div className="au-row">
+      <div className="au-row fields">
         <Field
           label="Nombre"
           value={form.firstName}

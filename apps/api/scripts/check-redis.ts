@@ -5,7 +5,7 @@
  */
 import { AppConfig } from '../src/config';
 import { loadEnv } from '../src/config/env';
-import { CacheService } from '../src/common/cache';
+import { CacheService } from '../src/support/cache';
 
 function server(redisUrl: string) {
   const config = new AppConfig(loadEnv());

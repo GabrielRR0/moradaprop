@@ -445,3 +445,121 @@
     padding-top: 22px;
   }
 }
+
+/* ---------- Inputs: sin borde interior, iOS/Android ---------- */
+/* La caja (.ui-box) ya muestra el anillo de enfoque: el contorno del propio input sobraba y se veia doble. */
+.ui-font .ui-box input:focus,
+.ui-font .ui-box input:focus-visible,
+.ui-font .ui-code input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.ui-box input,
+.ui-code input {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.ui-code input {
+  border-radius: 16px;
+}
+/* Autocompletado del navegador: mismo fondo y texto que el resto, sin el azul/amarillo por defecto */
+.ui-box input:-webkit-autofill,
+.ui-box input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 100px var(--surf) inset;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  transition: background-color 9999s ease-out;
+}
+
+/* ---------- Pagina de error / 404 ---------- */
+.ep {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  overflow: hidden;
+}
+.ep-card {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.ep-code {
+  font-size: clamp(88px, 28vw, 150px);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  color: var(--ac);
+  display: flex;
+  align-items: center;
+  gap: 0.02em;
+}
+.ep-house {
+  display: inline-grid;
+  place-items: center;
+  width: 0.62em;
+  height: 0.62em;
+  border-radius: 28%;
+  background: var(--ac-soft);
+  color: var(--ac-ink);
+  animation: ep-bob 4s ease-in-out infinite;
+}
+.ep-card h1 {
+  margin: 0;
+  font-size: clamp(24px, 6vw, 32px);
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+.ep-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.ep-actions {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.ep-actions > * {
+  flex: 1 1 180px;
+}
+@keyframes ep-bob {
+  50% {
+    transform: translateY(-8px) rotate(-4deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ep-house {
+    animation: none;
+  }
+}
+.sc-page {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+.sc-bar {
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+@media (max-width: 480px) {
+  .sc-bar .who {
+    font-size: 12px;
+    min-width: 0;
+  }
+  .sc-bar .who > :first-child {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

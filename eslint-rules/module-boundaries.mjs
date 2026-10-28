@@ -17,6 +17,19 @@ import path from 'node:path';
  */
 const MODULE_PATH = /[\\/]src[\\/]modules[\\/]([^\\/]+)(?:[\\/](.*))?$/;
 
+/**
+ * support/<nombre>/ envuelve un paquete de terceros: desde fuera solo se importa su index.
+ *   OK  : '../support/jwt'   '@/support/jwt/index'
+ *   MAL : '../support/jwt/jwt-signer'
+ */
+const SUPPORT_PATH = /[\\/]src[\\/]support[\\/]([^\\/]+)(?:[\\/](.*))?$/;
+
+function supportOf(absolutePath) {
+  const match = SUPPORT_PATH.exec(absolutePath);
+  if (!match) return null;
+  return { name: match[1], rest: strip((match[2] ?? '').split(/[\\/]/).filter(Boolean).join('/')) };
+}
+
 const miniCache = new Map();
 function isMiniModule(absolutePath, matchIndex, top, sub) {
   const marker = path.join(absolutePath.slice(0, matchIndex), 'src', 'modules', top, sub, `${sub}.module.ts`);
@@ -45,6 +58,8 @@ const rule = {
     messages: {
       internal:
         'No importes archivos internos del modulo "{{module}}" ({{rest}}). Usa su archivo padre ({{module}}.module o index).',
+      support:
+        'No importes archivos internos de support/{{module}} ({{rest}}). Importa solo support/{{module}} (su index).',
       mini: 'El mini modulo "{{module}}" es privado de "{{parent}}". Importalo desde el index de "{{parent}}".',
     },
   },
@@ -60,6 +75,16 @@ const rule = {
       if (specifier.startsWith('.')) resolved = path.resolve(path.dirname(filename), specifier);
       else if (specifier.startsWith('@/') && srcRoot) resolved = path.join(srcRoot, specifier.slice(2));
       else return;
+
+      const toSupport = supportOf(resolved);
+      if (toSupport) {
+        const fromSupport = supportOf(filename);
+        const esIndice = toSupport.rest === '' || toSupport.rest === 'index';
+        if (!esIndice && fromSupport?.name !== toSupport.name) {
+          context.report({ node, messageId: 'support', data: { module: toSupport.name, rest: toSupport.rest } });
+        }
+        return;
+      }
 
       const to = moduleOf(resolved);
       if (!to || (from && from.name === to.name)) return;

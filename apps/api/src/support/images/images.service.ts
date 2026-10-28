@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import sharp from 'sharp';
-import { detectImage } from '../files';
+import { detectImage } from '../../common/files';
 
 export interface ProcessedImage {
   /** JPEG re-codificado y sin metadatos: se guarda en el bucket PRIVADO. */

@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { Role } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
-import { MailService } from '../../../common/mail';
+import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';

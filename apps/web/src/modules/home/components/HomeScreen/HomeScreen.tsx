@@ -7,9 +7,11 @@ import { useHomeScreen } from '../../hooks/useHomeScreen';
 import { HomeIntro } from './HomeIntro';
 import { HomeListings } from './HomeListings';
 import { Icon } from '@/components/icons';
+import { useSession } from '@/modules/auth';
 
 export function HomeScreen() {
   const v = useHomeScreen();
+  const { status } = useSession();
   const { toggleDark } = useTheme();
   return (
     <div
@@ -110,10 +112,10 @@ export function HomeScreen() {
           >
             <Icon name="moon" size={20} strokeWidth={2} />
           </button>
-          <Link href="/" className="btn2">
-            Ingresar
+          <Link href={status === 'authed' ? '/seguridad' : '/ingresar'} className="btn2">
+            {status === 'authed' ? 'Mi cuenta' : 'Ingresar'}
           </Link>
-          <Link href="/" className="btn">
+          <Link href="/publicar" className="btn">
             Publicar gratis
           </Link>
         </div>

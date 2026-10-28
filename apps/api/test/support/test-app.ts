@@ -1,10 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { authenticator } from 'otplib';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/bootstrap/configure-app';
-import { MailService } from '../../src/common/mail';
+import { MailService } from '../../src/support/mail';
+import { TotpSupport } from '../../src/support/totp';
 import { PrismaService } from '../../src/common/prisma';
 
 export const WEB_HEADERS = { 'x-app-client': 'web', 'x-app-key': 'test-web-key' } as const;
@@ -75,7 +75,6 @@ export async function resetDatabase(prisma: PrismaService) {
 }
 
 /** Codigo TOTP valido. `offsetSeconds` permite generar el del paso siguiente (anti-replay). */
-export const totp = (secret: string, offsetSeconds = 0) =>
-  authenticator.clone({ epoch: Date.now() + offsetSeconds * 1000 }).generate(secret);
+export const totp = TotpSupport.generate;
 
 export const PASSWORD = 'Clave12345';

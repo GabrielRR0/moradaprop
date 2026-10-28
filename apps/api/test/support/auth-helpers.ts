@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import { FieldCipher, UserVault } from '../../src/modules/security';
-import { hashPassword } from '../../src/common/password';
-import { authenticator } from 'otplib';
+import { PasswordSupport } from '../../src/support/password';
+import { TotpSupport } from '../../src/support/totp';
 import { PASSWORD, totp, type TestApp } from './test-app';
 
 /** Registra un usuario y lo verifica por la API (como lo haria la web). Devuelve su token y su id. */
@@ -21,13 +21,13 @@ export async function registerVerified(t: TestApp, email: string, accountType = 
 
 /** Crea un administrador directo en la base (los admin nunca se crean por la API publica). */
 export async function createAdmin(t: TestApp, email: string, withTwoFactor: boolean) {
-  const secret = authenticator.generateSecret();
+  const secret = TotpSupport.generateSecret();
   const vault = t.app.get(UserVault);
   const user = await t.prisma.user.create({
     data: {
       ...vault.encode({ email, name: 'Admin Prueba' }),
       roles: ['CLIENT', 'ADMIN'],
-      passwordHash: await hashPassword(PASSWORD),
+      passwordHash: await PasswordSupport.hash(PASSWORD),
       emailVerifiedAt: new Date(),
       twoFactorEnabled: withTwoFactor,
       twoFactorSecret: withTwoFactor ? t.app.get(FieldCipher).encrypt('User.twoFactorSecret', secret) : null,

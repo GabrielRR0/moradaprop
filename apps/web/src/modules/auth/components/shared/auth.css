@@ -353,3 +353,32 @@
     animation: none;
   }
 }
+
+/* ---------- Telefonos: notch, barras del sistema y pantallas angostas ---------- */
+.au {
+  min-height: 100vh; /* respaldo para navegadores sin dvh */
+  min-height: 100dvh;
+}
+.au-main {
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+}
+@media (min-width: 900px) {
+  .au-main {
+    padding: 36px 64px;
+  }
+}
+@media (max-width: 380px) {
+  .au-row.fields {
+    flex-direction: column;
+  }
+  .au-title {
+    font-size: 26px;
+  }
+  .au-choice {
+    padding: 14px;
+    gap: 12px;
+  }
+}

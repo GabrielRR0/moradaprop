@@ -6,26 +6,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { User } from '@prisma/client';
-import { authenticator } from 'otplib';
-import { toDataURL } from 'qrcode';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
-import { MailService } from '../../../common/mail';
+import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { AccessRiskService, FieldCipher } from '../../security';
 import type { LoginResult, RequestContext } from '../utils/auth-context';
-import { verifyPassword } from '../../../common/password';
+import { PasswordSupport } from '../../../support/password';
+import { TotpSupport } from '../../../support/totp';
 import { LoginService } from './login.service';
 import { TokenService } from './token.service';
 import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
 
 const INVALID_CODE = 'Codigo invalido';
-const TOTP_PERIOD_SECONDS = 30;
-
-// Acepta el codigo del paso anterior/siguiente (+-30s) por desfase de reloj del telefono.
-authenticator.options = { window: 1 };
 const BACKUP_CODE = /^[a-z0-9]{5}-[a-z0-9]{5}$/;
 
 @Injectable()
@@ -55,14 +50,14 @@ export class TwoFactorService {
     const user = await this.getUser(userId);
     if (user.twoFactorEnabled) throw new ConflictException('El 2FA ya esta activo');
 
-    const secret = authenticator.generateSecret();
+    const secret = TotpSupport.generateSecret();
     await this.prisma.user.update({
       where: { id: userId },
       data: { twoFactorSecret: this.cipher.encrypt('User.twoFactorSecret', secret), twoFactorLastStep: null },
     });
 
-    const otpauthUrl = authenticator.keyuri(user.email, this.config.app.name, secret);
-    return { secret, otpauthUrl, qrCode: await toDataURL(otpauthUrl) };
+    const otpauthUrl = TotpSupport.keyUri(user.email, this.config.app.name, secret);
+    return { secret, otpauthUrl, qrCode: await TotpSupport.qrDataUrl(otpauthUrl) };
   }
 
   /** Confirma el primer codigo, activa el 2FA y entrega los codigos de respaldo (una sola vez). */
@@ -179,11 +174,11 @@ export class TwoFactorService {
     if (!user.twoFactorSecret) throw new UnauthorizedException(INVALID_CODE);
 
     // delta: 0 = paso actual, -1 = anterior, 1 = siguiente; null = codigo incorrecto.
-    const delta = authenticator.checkDelta(code, this.cipher.decrypt('User.twoFactorSecret', user.twoFactorSecret));
+    const delta = TotpSupport.check(code,this.cipher.decrypt('User.twoFactorSecret', user.twoFactorSecret));
     if (delta === null) throw new UnauthorizedException(INVALID_CODE);
 
     // Anti-replay: un paso de tiempo ya aceptado no se puede volver a usar.
-    const step = Math.floor(Date.now() / 1000 / TOTP_PERIOD_SECONDS) + delta;
+    const step = Math.floor(Date.now() / 1000 / TotpSupport.PERIOD_SECONDS) + delta;
     if (user.twoFactorLastStep !== null && step <= user.twoFactorLastStep) {
       throw new UnauthorizedException(INVALID_CODE);
     }
@@ -215,7 +210,7 @@ export class TwoFactorService {
 
   private async assertPassword(user: User, password: string | undefined) {
     if (!user.passwordHash) return; // cuenta creada solo con Google
-    if (!password || !(await verifyPassword(user.passwordHash, password))) {
+    if (!password || !(await PasswordSupport.verify(user.passwordHash, password))) {
       throw new ForbiddenException('Contrasena incorrecta');
     }
   }

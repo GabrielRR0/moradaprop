@@ -5,9 +5,9 @@ import {
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { OAuth2Client } from 'google-auth-library';
 import { AppConfig } from '../../../config';
-import { MailService } from '../../../common/mail';
+import { GoogleIdentity } from '../../../support/google-identity';
+import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { SecurityService, SocialAccountVault, UserVault } from '../../security';
@@ -19,7 +19,7 @@ import { VerificationCodeService } from './verification-code.service';
 
 const PROVIDER = 'google';
 
-interface GoogleIdentity {
+interface VerifiedGoogleUser {
   sub: string;
   email: string;
   name: string;
@@ -31,8 +31,6 @@ export type GoogleLoginResult = LoginResult | { linkRequired: true; email: strin
 /** Iniciar sesion con Google y asociar/desasociar Google a una cuenta existente. */
 @Injectable()
 export class GoogleAuthService {
-  private readonly client: OAuth2Client;
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: AppConfig,
@@ -44,9 +42,8 @@ export class GoogleAuthService {
     private readonly accounts: UserAccountService,
     private readonly vault: UserVault,
     private readonly social: SocialAccountVault,
-  ) {
-    this.client = new OAuth2Client(config.google.clientId);
-  }
+    private readonly google: GoogleIdentity,
+  ) {}
 
   /**
    * Entrar con Google:
@@ -134,7 +131,7 @@ export class GoogleAuthService {
     return { message: 'Cuenta de Google desvinculada' };
   }
 
-  private async attach(userId: string, identity: GoogleIdentity) {
+  private async attach(userId: string, identity: VerifiedGoogleUser) {
     const taken = await this.prisma.socialAccount.findUnique({
       where: { provider_providerId: { provider: PROVIDER, providerId: this.social.providerId(identity.sub) } },
     });
@@ -148,14 +145,13 @@ export class GoogleAuthService {
     }
   }
 
-  private async verifyIdToken(idToken: string): Promise<GoogleIdentity> {
+  private async verifyIdToken(idToken: string): Promise<VerifiedGoogleUser> {
     const { clientId, enabled } = this.config.google;
     if (!enabled || !clientId) throw new ServiceUnavailableException('Google no esta configurado');
 
     try {
-      const ticket = await this.client.verifyIdToken({ idToken, audience: clientId });
-      const data = ticket.getPayload();
-      if (!data?.sub || !data.email || !data.email_verified) throw new Error('correo no verificado');
+      const data = await this.google.verify(idToken, clientId);
+      if (!data.email || !data.emailVerified) throw new Error('correo no verificado');
       return {
         sub: data.sub,
         email: normalizeEmail(data.email),

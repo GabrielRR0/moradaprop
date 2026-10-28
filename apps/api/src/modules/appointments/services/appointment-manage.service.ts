@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { AppConfig } from '../../../config';
-import { MailService } from '../../../common/mail';
+import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';

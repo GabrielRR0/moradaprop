@@ -1,4 +1,4 @@
-import { authenticator } from 'otplib';
+import { TotpSupport } from '../../src/support/totp';
 import { describeCase } from '../support/describe-case';
 import { jwtPayload, registerVerified, userByEmail } from '../support/auth-helpers';
 import { createTestApp, PASSWORD, totp, type TestApp } from '../support/test-app';
@@ -53,7 +53,7 @@ describe('Auth: verificacion en dos pasos (e2e)', () => {
     que: 'confirmar con el codigo de la app activa el 2FA y entrega 8 codigos de respaldo (hasheados en base)',
     espera: '200, 8 codigos formato xxxxx-xxxxx, un token nuevo con twoFactor=true y hashes (no codigos) en la base',
     ejecutar: async () => {
-      const res = await t.web('post')('/api/auth/2fa/confirm').set('Authorization', `Bearer ${accessToken}`).send({ code: authenticator.generate(secret) });
+      const res = await t.web('post')('/api/auth/2fa/confirm').set('Authorization', `Bearer ${accessToken}`).send({ code: TotpSupport.generate(secret) });
       const guardados = await t.prisma.twoFactorBackupCode.findMany();
       return { res, guardados };
     },

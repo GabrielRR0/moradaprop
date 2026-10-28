@@ -12,6 +12,7 @@
  * por checksum y se niega a continuar.
  */
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { blockReason, type DbCommand } from '../src/database/migration-guard';
 
 const LOCAL_URL = 'postgresql://alquiler:alquiler@localhost:5433/alquiler';
@@ -24,6 +25,7 @@ if (!COMMANDS.includes(command)) {
   process.exit(1);
 }
 
+if (existsSync('.env')) process.loadEnvFile('.env'); // apps/api/.env, si existe
 const databaseUrl = process.env.DATABASE_URL ?? LOCAL_URL;
 const env = { ...process.env, DATABASE_URL: databaseUrl, DIRECT_URL: process.env.DIRECT_URL ?? databaseUrl };
 

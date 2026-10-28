@@ -86,20 +86,29 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  */
 export function refreshSession(): Promise<AuthSession | null> {
   refreshing ??= (async () => {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    // Esperas entre reintentos: un 401 se repite enseguida (pudo ganar otra pestana con la misma cookie);
+    // un 429, un corte de red o un 5xx se reintentan con mas calma y NO cierran la sesion.
+    let rejected = false;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
       try {
         const session = await raw<AuthSession>('/auth/refresh', { method: 'POST', json: {} });
         accessToken = session.accessToken;
         hooks.onSession?.(session);
         return session;
       } catch (error) {
-        const retry = error instanceof ApiError && error.status === 401 && attempt === 0;
-        if (!retry) break;
-        await wait(350);
+        const status = error instanceof ApiError ? error.status : 0;
+        rejected = status === 401;
+        const transient = status === 0 || status === 429 || status >= 500;
+        if (rejected && attempt === 0) await wait(350);
+        else if (transient) await wait(1500 * 2 ** attempt);
+        else break;
       }
     }
-    accessToken = null;
-    hooks.onSession?.(null);
+    // Solo un 401 confirmado significa "sesion terminada". Si fallo por limite o red, la cookie sigue valida.
+    if (rejected) {
+      accessToken = null;
+      hooks.onSession?.(null);
+    }
     return null;
   })().finally(() => {
     refreshing = null;

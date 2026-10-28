@@ -6,7 +6,7 @@ import { AuditService } from '../../audit';
 import { AccessRiskService, PasskeyService, SecurityService } from '../../security';
 import type { LoginDto } from '../dto/login.dto';
 import { normalizeEmail, type LoginResult, type RequestContext } from '../utils/auth-context';
-import { burnPasswordCheck, verifyPassword } from '../../../common/password';
+import { PasswordSupport } from '../../../support/password';
 import { TokenService } from './token.service';
 import { UserAccountService } from './user-account.service';
 
@@ -32,13 +32,13 @@ export class LoginService {
 
     const user = await this.accounts.findByEmail(email);
     if (!user?.passwordHash) {
-      await burnPasswordCheck(dto.password);
+      await PasswordSupport.burnCheck(dto.password);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
     this.assertNotLocked(user);
 
-    if (!(await verifyPassword(user.passwordHash, dto.password))) {
+    if (!(await PasswordSupport.verify(user.passwordHash, dto.password))) {
       await this.registerFailure(user, context);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
