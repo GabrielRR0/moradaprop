@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { securityService } from '../services/security.service';
+import { QuerySupport } from '@/support/query';
 
 /** Claves de cache de la pantalla de seguridad (una por lista, para refrescarlas por separado). */
 export const securityKeys = {
@@ -13,21 +13,21 @@ export const securityKeys = {
 const fresh = { staleTime: 0, retry: 0 } as const;
 
 export const usePasskeys = () =>
-  useQuery({ queryKey: securityKeys.passkeys, queryFn: securityService.passkeys, ...fresh });
+  QuerySupport.useQuery({ queryKey: securityKeys.passkeys, queryFn: securityService.passkeys, ...fresh });
 export const useDevices = () =>
-  useQuery({ queryKey: securityKeys.devices, queryFn: securityService.devices, ...fresh });
+  QuerySupport.useQuery({ queryKey: securityKeys.devices, queryFn: securityService.devices, ...fresh });
 export const useSessions = () =>
-  useQuery({ queryKey: securityKeys.sessions, queryFn: securityService.sessions, ...fresh });
+  QuerySupport.useQuery({ queryKey: securityKeys.sessions, queryFn: securityService.sessions, ...fresh });
 export const useEvents = () =>
-  useQuery({ queryKey: securityKeys.events, queryFn: securityService.events, ...fresh });
+  QuerySupport.useQuery({ queryKey: securityKeys.events, queryFn: securityService.events, ...fresh });
 
 /** Mutacion que, al terminar bien, vuelve a pedir la lista indicada. */
 export function useRefreshing<TArg, TResult>(
   action: (arg: TArg) => Promise<TResult>,
   key: readonly string[],
 ) {
-  const client = useQueryClient();
-  return useMutation({
+  const client = QuerySupport.useQueryClient();
+  return QuerySupport.useMutation({
     mutationFn: action,
     onSuccess: () => client.invalidateQueries({ queryKey: key }),
   });

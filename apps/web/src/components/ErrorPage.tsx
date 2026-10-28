@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'motion/react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Icon } from '@/components/icons';
 import './ui/ui.css';
+import { MotionSupport } from '@/support/motion';
 
 /** Pagina de error a pantalla completa (404 y fallos inesperados). Entra con un resorte suave. */
 export function ErrorPage({
@@ -22,7 +22,7 @@ export function ErrorPage({
   const digits = code.split('');
   return (
     <main className="ep ui-font">
-      <motion.div
+      <MotionSupport.motion.div
         className="ep-card"
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -42,7 +42,7 @@ export function ErrorPage({
         <h1>{title}</h1>
         <p>{text}</p>
         <div className="ep-actions">{actions}</div>
-      </motion.div>
+      </MotionSupport.motion.div>
     </main>
   );
 }

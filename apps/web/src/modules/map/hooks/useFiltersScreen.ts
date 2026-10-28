@@ -1,6 +1,5 @@
 'use client';
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
@@ -12,6 +11,7 @@ import {
   propertyService,
   type PropertyFilters,
 } from '../services';
+import { QuerySupport } from '@/support/query';
 
 /** Tipos de inmueble del panel: lo que se lee y el valor que entiende el API. */
 const TYPE_OPTIONS = [
@@ -69,10 +69,10 @@ export function useFiltersScreen() {
   }
 
   // Cuántas propiedades cumplen con los filtros de ahora
-  const countQuery = useQuery({
+  const countQuery = QuerySupport.useQuery({
     queryKey: ['filters-count', filters],
     queryFn: ({ signal }) => propertyService.search(filters, undefined, 1, 1, signal),
-    placeholderData: keepPreviousData,
+    placeholderData: QuerySupport.keepPreviousData,
   });
   const count = countQuery.data?.total;
 

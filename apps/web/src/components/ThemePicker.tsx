@@ -1,9 +1,9 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { ACCENTS, useTheme } from '@/lib/theme';
 import { Icon } from '@/components/icons';
+import { MotionSupport } from '@/support/motion';
 
 /** Boton flotante para probar el color de marca y el modo noche mientras se decide el diseno final. */
 export function ThemePicker() {
@@ -12,9 +12,9 @@ export function ThemePicker() {
 
   return (
     <div className="theme-picker">
-      <AnimatePresence>
+      <MotionSupport.AnimatePresence>
         {open && (
-          <motion.div
+          <MotionSupport.motion.div
             className="theme-panel"
             initial={{ opacity: 0, y: 12, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -47,9 +47,9 @@ export function ThemePicker() {
             <button type="button" className="theme-toggle" onClick={toggleDark}>
               {dark ? 'Modo día' : 'Modo noche'}
             </button>
-          </motion.div>
+          </MotionSupport.motion.div>
         )}
-      </AnimatePresence>
+      </MotionSupport.AnimatePresence>
       <button
         type="button"
         className="theme-fab"

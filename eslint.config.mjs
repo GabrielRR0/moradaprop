@@ -3,6 +3,14 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import moduleBoundaries from './eslint-rules/module-boundaries.mjs';
 
+const WEB_WRAPPED = [
+  ['motion', 'support/motion'],
+  ['@tanstack/react-query', 'support/query'],
+  ['maplibre-gl', 'support/maplibre'],
+];
+const webMessage = (name, wrapper) =>
+  `No importes "${name}" directo: usa el wrapper ${wrapper} (docs/CONVENCIONES.md, "Paquetes de terceros").`;
+
 /**
  * Reglas de arquitectura del proyecto (ver docs/CONVENCIONES.md):
  *  - Nadie lee process.env fuera de config/.
@@ -66,6 +74,20 @@ export default tseslint.config(
             name,
             message: `No importes "${name}" directo: usa el wrapper ${wrapper} (docs/CONVENCIONES.md, "Paquetes de terceros").`,
           })),
+        },
+      ],
+    },
+  },
+  {
+    // Lo mismo en la web: solo a traves de apps/web/src/support/<modulo>.
+    files: ['apps/web/**/*.{ts,tsx}'],
+    ignores: ['apps/web/src/support/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: WEB_WRAPPED.map(([name, wrapper]) => ({ name, message: webMessage(name, wrapper) })),
+          patterns: WEB_WRAPPED.map(([name, wrapper]) => ({ group: [`${name}/*`], message: webMessage(name, wrapper) })),
         },
       ],
     },

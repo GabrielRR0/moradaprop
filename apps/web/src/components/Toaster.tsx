@@ -1,8 +1,8 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { subscribeToasts, type ToastMessage } from '@/lib/toast';
+import { MotionSupport } from '@/support/motion';
 
 const COLORS = { ok: '#1F9D55', info: 'var(--ac)', warn: '#D98A00' } as const;
 
@@ -20,9 +20,9 @@ export function Toaster() {
 
   return (
     <div className="toaster" aria-live="polite">
-      <AnimatePresence>
+      <MotionSupport.AnimatePresence>
         {items.map((item) => (
-          <motion.div
+          <MotionSupport.motion.div
             key={item.id}
             className="toast"
             initial={{ opacity: 0, y: 24, scale: 0.9 }}
@@ -32,9 +32,9 @@ export function Toaster() {
           >
             <span className="toast-dot" style={{ background: COLORS[item.tone] }} />
             {item.text}
-          </motion.div>
+          </MotionSupport.motion.div>
         ))}
-      </AnimatePresence>
+      </MotionSupport.AnimatePresence>
     </div>
   );
 }

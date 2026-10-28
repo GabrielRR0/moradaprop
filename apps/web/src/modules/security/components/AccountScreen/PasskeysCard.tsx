@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Icon } from '@/components/icons';
 import { Button, Field, Notice, Sheet } from '@/components/ui';
@@ -13,6 +12,7 @@ import { securityService } from '../../services/security.service';
 import { timeAgo } from '../../services/event-copy';
 import { Card, ConfirmSheet, ListState } from '../shared/Card';
 import { PasskeyAddForm } from '../shared/PasskeyAddForm';
+import { MotionSupport } from '@/support/motion';
 
 function RenameSheet({ passkey, onClose }: { passkey: Passkey | null; onClose: () => void }) {
   const [label, setLabel] = useState('');
@@ -80,9 +80,9 @@ export function PasskeysCard({ index }: { index: number }) {
         empty={items.length === 0 ? 'Aún no tienes passkeys. Agrega la primera: es lo más seguro y rápido.' : undefined}
       >
         <ul className="sc-list">
-          <AnimatePresence initial={false}>
+          <MotionSupport.AnimatePresence initial={false}>
             {items.map((passkey) => (
-              <motion.li
+              <MotionSupport.motion.li
                 key={passkey.id}
                 className="sc-item"
                 layout
@@ -108,9 +108,9 @@ export function PasskeysCard({ index }: { index: number }) {
                 <Button variant="secondary" size="sm" label="Quitar passkey" onClick={() => setRemoving(passkey)}>
                   <Icon name="close" size={16} />
                 </Button>
-              </motion.li>
+              </MotionSupport.motion.li>
             ))}
-          </AnimatePresence>
+          </MotionSupport.AnimatePresence>
         </ul>
       </ListState>
       {items.length === 1 && (

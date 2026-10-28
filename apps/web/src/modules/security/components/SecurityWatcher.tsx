@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -11,6 +10,7 @@ import type { SecurityEvent } from '@/lib/api-types';
 import { describeEvent } from '../services/event-copy';
 import { securityService } from '../services/security.service';
 import './shared/security.css';
+import { MotionSupport } from '@/support/motion';
 
 /** Solo se avisa de eventos recientes si es la primera vez que este navegador ve la lista. */
 const FRESH_MS = 10 * 60_000;
@@ -72,9 +72,9 @@ export function SecurityWatcher() {
 
   const show = alert !== null && !pathname.startsWith('/seguridad');
   return (
-    <AnimatePresence>
+    <MotionSupport.AnimatePresence>
       {show && (
-        <motion.div
+        <MotionSupport.motion.div
           className="sc-float ui-font"
           style={{ top: 'auto', bottom: 16 }}
           initial={{ opacity: 0, y: 40 }}
@@ -98,8 +98,8 @@ export function SecurityWatcher() {
               <Icon name="close" size={16} />
             </button>
           </div>
-        </motion.div>
+        </MotionSupport.motion.div>
       )}
-    </AnimatePresence>
+    </MotionSupport.AnimatePresence>
   );
 }

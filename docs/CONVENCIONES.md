@@ -133,4 +133,5 @@ Para que una versión mayor futura de un paquete no obligue a tocar medio proyec
 - `support/tests/support-modules.spec.ts` exige `index.ts` + `README.md` por módulo y que todo lo exportado esté documentado.
 - Los módulos de funciones se usan con prefijo: `SpreadsheetSupport.buildXlsx()`, `PasswordSupport.hash()`, `TotpSupport.check()`, `ImagesSupport.render()`; los tipos y enums de Prisma salen de `DbSupport` (`DbSupport.Role`, `DbSupport.User`); así se ve de dónde viene en cada llamada.
 - La API de cada módulo es propia (errores y tipos propios), para que cambiar de paquete no cambie a quienes lo usan.
-- **No se envuelven** los paquetes acoplados al framework (`@nestjs/*`, `class-validator`, `next`, `react`). Los de la web (`motion`, `@tanstack/react-query`, `maplibre-gl`) están pendientes.
+- **No se envuelven** los paquetes acoplados al framework (`@nestjs/*`, `class-validator`, `next`, `react`).
+- **En la web** (`apps/web/src/support/`): `motion` (motion), `query` (@tanstack/react-query) y `maplibre` (maplibre-gl), usados como `MotionSupport.motion.div`, `QuerySupport.useQuery()` y `MapLibreSupport.load()`. Ver `apps/web/src/support/README.md`.

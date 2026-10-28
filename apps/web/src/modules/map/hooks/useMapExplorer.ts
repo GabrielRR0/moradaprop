@@ -1,11 +1,5 @@
 'use client';
 
-import {
-  keepPreviousData,
-  useInfiniteQuery,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MapHandle, ViewportInfo } from '../components/MapCanvas/MapCanvas';
@@ -22,6 +16,7 @@ import {
   type PropertyFilters,
 } from '../services';
 import { DEFAULT_VIEW, suggestPlaces, type Place } from '../utils/places';
+import { QuerySupport } from '@/support/query';
 
 const PAGE_SIZE = 20;
 
@@ -64,7 +59,7 @@ interface Options {
  */
 export function useMapExplorer({ selectionOffset }: Options) {
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
+  const queryClient = QuerySupport.useQueryClient();
   const handle = useRef<MapHandle>(null);
   const [initial] = useState(() => ({
     filters: filtersFromParams(new URLSearchParams(searchParams.toString())),
@@ -83,21 +78,21 @@ export function useMapExplorer({ selectionOffset }: Options) {
   const mapBounds = useMemo(() => (view ? quantize(view.bounds, 0.25) : undefined), [view]);
   const apiZoom = view ? Math.min(20, Math.max(1, Math.round(view.zoom) + 1)) : 10;
 
-  const mapQuery = useQuery({
+  const mapQuery = QuerySupport.useQuery({
     queryKey: ['map', filters, mapBounds, apiZoom],
     queryFn: ({ signal }) => propertyService.map(filters, mapBounds, apiZoom, signal),
     enabled: !!view,
-    placeholderData: keepPreviousData,
+    placeholderData: QuerySupport.keepPreviousData,
   });
 
-  const listQuery = useInfiniteQuery({
+  const listQuery = QuerySupport.useInfiniteQuery({
     queryKey: ['list', filters, listBounds],
     initialPageParam: 1,
     queryFn: ({ pageParam, signal }) =>
       propertyService.search(filters, listBounds, pageParam, PAGE_SIZE, signal),
     getNextPageParam: (last) => (last.page * last.limit < last.total ? last.page + 1 : undefined),
     enabled: !!view,
-    placeholderData: keepPreviousData,
+    placeholderData: QuerySupport.keepPreviousData,
   });
 
   const items = useMemo(
@@ -109,7 +104,7 @@ export function useMapExplorer({ selectionOffset }: Options) {
 
   // La propiedad elegida puede no estar en la primera pagina de la lista: se pide aparte.
   const known = items.find((p) => p.id === selectedId) ?? null;
-  const detailQuery = useQuery({
+  const detailQuery = QuerySupport.useQuery({
     queryKey: ['property', selectedId],
     queryFn: ({ signal }) => propertyService.detail(selectedId as string, signal),
     enabled: !!selectedId && !known,

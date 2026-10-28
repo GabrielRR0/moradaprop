@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'motion/react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, type ReactNode } from 'react';
@@ -8,6 +7,7 @@ import { Icon } from '@/components/icons';
 import type { Role } from '@/lib/api-types';
 import { useSession } from '../session/session.store';
 import '@/components/ui/ui.css';
+import { MotionSupport } from '@/support/motion';
 
 function FullScreen({ children }: { children: ReactNode }) {
   return (
@@ -55,7 +55,7 @@ export function AuthGate({
   if (roles && !roles.some((role) => session.user?.roles.includes(role))) {
     return (
       <FullScreen>
-        <motion.div
+        <MotionSupport.motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className="au-center"
@@ -71,7 +71,7 @@ export function AuthGate({
           <Link href="/mapa" className="ui-btn">
             Volver al mapa
           </Link>
-        </motion.div>
+        </MotionSupport.motion.div>
       </FullScreen>
     );
   }

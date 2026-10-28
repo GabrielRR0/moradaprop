@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/icons';
 import type { FilterOption } from '../../utils/amenities';
 import './explorer.css';
+import { MotionSupport } from '@/support/motion';
 
 interface ChipMenuProps {
   /** Texto del botón (ej. "Precio" o "Hasta $800"). */
@@ -65,9 +65,9 @@ export function ChipMenu({
         {label}
         <Icon name="chevron-down" size={14} strokeWidth={2.6} />
       </button>
-      <AnimatePresence>
+      <MotionSupport.AnimatePresence>
         {open && (
-          <motion.ul
+          <MotionSupport.motion.ul
             role="listbox"
             className={`ex-menu ex-menu-${align}`}
             initial={{ opacity: 0, y: -6, scale: 0.97 }}
@@ -89,9 +89,9 @@ export function ChipMenu({
                 </button>
               </li>
             ))}
-          </motion.ul>
+          </MotionSupport.motion.ul>
         )}
-      </AnimatePresence>
+      </MotionSupport.AnimatePresence>
     </div>
   );
 }

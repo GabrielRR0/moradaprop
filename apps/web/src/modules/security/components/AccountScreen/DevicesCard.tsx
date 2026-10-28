@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { TrustedDevice } from '@/lib/api-types';
@@ -11,6 +10,7 @@ import { timeAgo } from '../../services/event-copy';
 import { securityService } from '../../services/security.service';
 import { Card, ConfirmSheet, ListState } from '../shared/Card';
 import { DeviceRow } from './DeviceRow';
+import { MotionSupport } from '@/support/motion';
 
 /** Dispositivos de confianza. Quitar uno cierra sus sesiones; si es el actual, termina la sesion. */
 export function DevicesCard({ index }: { index: number }) {
@@ -33,7 +33,7 @@ export function DevicesCard({ index }: { index: number }) {
         empty={items.length === 0 ? 'No hay dispositivos registrados.' : undefined}
       >
         <ul className="sc-list">
-          <AnimatePresence initial={false}>
+          <MotionSupport.AnimatePresence initial={false}>
             {items.map((device) => (
               <DeviceRow
                 key={device.id}
@@ -46,7 +46,7 @@ export function DevicesCard({ index }: { index: number }) {
                 onRemove={() => setRemoving(device)}
               />
             ))}
-          </AnimatePresence>
+          </MotionSupport.AnimatePresence>
         </ul>
       </ListState>
       <ConfirmSheet

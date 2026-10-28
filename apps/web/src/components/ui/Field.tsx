@@ -1,9 +1,9 @@
 'use client';
 
-import { motion, useAnimationControls } from 'motion/react';
 import { useEffect, useId, useState, type ChangeEvent, type ReactNode } from 'react';
 import { Icon } from '@/components/icons';
 import './ui.css';
+import { MotionSupport } from '@/support/motion';
 
 interface FieldProps {
   label: string;
@@ -40,7 +40,7 @@ export function Field({
 }: FieldProps) {
   const id = useId();
   const [shown, setShown] = useState(false);
-  const shake = useAnimationControls();
+  const shake = MotionSupport.useAnimationControls();
   // Cada error nuevo hace vibrar la caja una vez (sin recrearla: el cursor no se pierde).
   useEffect(() => {
     if (error) shake.start({ x: [0, -7, 7, -5, 5, 0], transition: { duration: 0.4 } });
@@ -51,7 +51,7 @@ export function Field({
       <label className="ui-label" htmlFor={id}>
         {label}
       </label>
-      <motion.div className={error ? 'ui-box bad' : 'ui-box'} animate={shake}>
+      <MotionSupport.motion.div className={error ? 'ui-box bad' : 'ui-box'} animate={shake}>
         {prefix && <span className="ui-affix">{prefix}</span>}
         <input
           id={id}
@@ -77,7 +77,7 @@ export function Field({
             <Icon name={shown ? 'eye-off' : 'eye'} size={20} />
           </button>
         )}
-      </motion.div>
+      </MotionSupport.motion.div>
       {error ? (
         <span id={`${id}-err`} className="ui-error" role="alert">
           {error}

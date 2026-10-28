@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Icon } from '@/components/icons';
 import { Button, Notice } from '@/components/ui';
 import { toast } from '@/lib/toast';
+import { MotionSupport } from '@/support/motion';
 
 /**
  * Los codigos de respaldo se muestran UNA sola vez: no se guardan en el navegador y no se pueden
@@ -42,7 +42,7 @@ export function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => 
       </Notice>
       <div className="sc-codes" role="list" aria-label="Códigos de respaldo">
         {codes.map((code, index) => (
-          <motion.span
+          <MotionSupport.motion.span
             key={code}
             role="listitem"
             initial={{ opacity: 0, y: 8 }}
@@ -50,7 +50,7 @@ export function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => 
             transition={{ delay: 0.04 * index }}
           >
             {code}
-          </motion.span>
+          </MotionSupport.motion.span>
         ))}
       </div>
       <div className="sc-actions">

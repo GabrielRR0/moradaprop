@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { Icon } from '@/components/icons';
 import { Button } from '@/components/ui';
 import { ROLES } from '../../hooks/register-data';
 import type { RegisterFlow } from '../../hooks/useRegisterFlow';
+import { MotionSupport } from '@/support/motion';
 
 /** Paso 1: que quiere hacer el usuario. Las tarjetas entran en cascada y la elegida se marca. */
 export function RegisterRoleStep({ flow }: { flow: RegisterFlow }) {
@@ -16,7 +16,7 @@ export function RegisterRoleStep({ flow }: { flow: RegisterFlow }) {
       </div>
       <div className="au-col" style={{ gap: 12 }}>
         {ROLES.map((role, index) => (
-          <motion.button
+          <MotionSupport.motion.button
             key={role.id}
             type="button"
             className={role.id === flow.roleId ? 'au-choice on' : 'au-choice'}
@@ -37,7 +37,7 @@ export function RegisterRoleStep({ flow }: { flow: RegisterFlow }) {
             <span className="radio">
               <Icon name="check" size={13} strokeWidth={3.4} />
             </span>
-          </motion.button>
+          </MotionSupport.motion.button>
         ))}
       </div>
       <Button block onClick={flow.goData}>

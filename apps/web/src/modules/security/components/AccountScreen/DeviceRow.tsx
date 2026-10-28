@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { Icon } from '@/components/icons';
 import { Button } from '@/components/ui';
+import { MotionSupport } from '@/support/motion';
 
 /** Texto corto de un user-agent: "Chrome en Windows". */
 export function describeAgent(userAgent: string | null): string {
@@ -49,7 +49,7 @@ export function DeviceRow({
   removeLabel: string;
 }) {
   return (
-    <motion.li
+    <MotionSupport.motion.li
       className="sc-item"
       layout
       initial={{ opacity: 0, scale: 0.96 }}
@@ -70,6 +70,6 @@ export function DeviceRow({
       <Button variant="secondary" size="sm" onClick={onRemove}>
         {removeLabel}
       </Button>
-    </motion.li>
+    </MotionSupport.motion.li>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, type ReactNode } from 'react';
+import { MotionSupport } from '@/support/motion';
 
 /**
  * Cambia de paso con deslizamiento: avanzar entra desde la derecha, volver desde la izquierda,
@@ -18,8 +18,8 @@ export function StepSwitcher({ step, children }: { step: number; children: React
     mounted.current = true;
   }, []);
   return (
-    <AnimatePresence mode="wait" initial={false} custom={direction}>
-      <motion.div
+    <MotionSupport.AnimatePresence mode="wait" initial={false} custom={direction}>
+      <MotionSupport.motion.div
         key={step}
         custom={direction}
         variants={{
@@ -33,7 +33,7 @@ export function StepSwitcher({ step, children }: { step: number; children: React
         transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1] }}
       >
         {children}
-      </motion.div>
-    </AnimatePresence>
+      </MotionSupport.motion.div>
+    </MotionSupport.AnimatePresence>
   );
 }

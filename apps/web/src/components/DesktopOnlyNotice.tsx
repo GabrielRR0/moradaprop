@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'motion/react';
 import Link from 'next/link';
 import { Icon } from '@/components/icons';
+import { MotionSupport } from '@/support/motion';
 
 /** Aviso para pantallas pensadas solo para computador (ej: moderacion del administrador). */
 export function DesktopOnlyNotice() {
@@ -19,7 +19,7 @@ export function DesktopOnlyNotice() {
         textAlign: 'center',
       }}
     >
-      <motion.div
+      <MotionSupport.motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
@@ -31,7 +31,7 @@ export function DesktopOnlyNotice() {
           maxWidth: 340,
         }}
       >
-        <motion.span
+        <MotionSupport.motion.span
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
           style={{
@@ -45,7 +45,7 @@ export function DesktopOnlyNotice() {
           }}
         >
           <Icon name="monitor" size={34} strokeWidth={2} />
-        </motion.span>
+        </MotionSupport.motion.span>
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>
           Mejor desde un computador
         </h1>
@@ -71,7 +71,7 @@ export function DesktopOnlyNotice() {
         >
           Volver al inicio
         </Link>
-      </motion.div>
+      </MotionSupport.motion.div>
     </div>
   );
 }

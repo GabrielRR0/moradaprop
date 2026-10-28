@@ -1,4 +1,4 @@
-import type { StyleSpecification } from 'maplibre-gl';
+import { MapLibreSupport } from '@/support/maplibre';
 
 /**
  * Estilo del mapa: se descarga el estilo base (OpenFreeMap) y se repinta con los colores del
@@ -30,14 +30,14 @@ export function readMapColors(): MapColors {
   };
 }
 
-const cache = new Map<string, Promise<StyleSpecification | null>>();
+const cache = new Map<string, Promise<MapLibreSupport.StyleSpecification | null>>();
 
 /** Descarga el estilo una sola vez; si falla devuelve null (el mapa se ve sin calles pero funciona). */
-export function loadBaseStyle(url: string): Promise<StyleSpecification | null> {
+export function loadBaseStyle(url: string): Promise<MapLibreSupport.StyleSpecification | null> {
   let hit = cache.get(url);
   if (!hit) {
     hit = fetch(url)
-      .then((r) => (r.ok ? (r.json() as Promise<StyleSpecification>) : null))
+      .then((r) => (r.ok ? (r.json() as Promise<MapLibreSupport.StyleSpecification>) : null))
       .catch(() => null);
     cache.set(url, hit);
     // Si fallo, que el siguiente intento vuelva a probar.
@@ -48,7 +48,7 @@ export function loadBaseStyle(url: string): Promise<StyleSpecification | null> {
   return hit;
 }
 
-export function blankStyle(colors: MapColors): StyleSpecification {
+export function blankStyle(colors: MapColors): MapLibreSupport.StyleSpecification {
   return {
     version: 8,
     sources: {},
@@ -56,7 +56,7 @@ export function blankStyle(colors: MapColors): StyleSpecification {
   };
 }
 
-type Layer = StyleSpecification['layers'][number];
+type Layer = MapLibreSupport.StyleSpecification['layers'][number];
 
 function recolor(layer: Layer, c: MapColors): Layer {
   const id = layer.id;
@@ -98,7 +98,7 @@ function recolor(layer: Layer, c: MapColors): Layer {
 }
 
 /** Estilo base repintado con los colores del diseno. */
-export function themedStyle(base: StyleSpecification): StyleSpecification {
+export function themedStyle(base: MapLibreSupport.StyleSpecification): MapLibreSupport.StyleSpecification {
   const colors = readMapColors();
   return { ...base, layers: base.layers.map((layer) => recolor(layer, colors)) };
 }

@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { Button, Notice, Sheet } from '@/components/ui';
 import { useAction } from '../../hooks/useAction';
 import './security.css';
+import { MotionSupport } from '@/support/motion';
 
 /** Tarjeta que sube suavemente al entrar; `index` escalona la aparicion. */
 export function Card({
@@ -21,7 +21,7 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <motion.section
+    <MotionSupport.motion.section
       className="sc-card"
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
@@ -33,7 +33,7 @@ export function Card({
       </div>
       {lead && <p className="lead">{lead}</p>}
       {children}
-    </motion.section>
+    </MotionSupport.motion.section>
   );
 }
 

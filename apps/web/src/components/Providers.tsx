@@ -1,14 +1,14 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MotionConfig } from 'motion/react';
 import { useState, type ReactNode } from 'react';
+import { MotionSupport } from '@/support/motion';
+import { QuerySupport } from '@/support/query';
 
 /** Proveedores de datos de la app (TanStack Query: cache, reintentos y "dato anterior mientras carga"). */
 export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(
     () =>
-      new QueryClient({
+      new QuerySupport.QueryClient({
         defaultOptions: {
           queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false },
         },
@@ -16,8 +16,8 @@ export function Providers({ children }: { children: ReactNode }) {
   );
   // reducedMotion="user": quien pidio menos movimiento en su sistema no ve desplazamientos animados.
   return (
-    <QueryClientProvider client={client}>
-      <MotionConfig reducedMotion="user">{children}</MotionConfig>
-    </QueryClientProvider>
+    <QuerySupport.QueryClientProvider client={client}>
+      <MotionSupport.MotionConfig reducedMotion="user">{children}</MotionSupport.MotionConfig>
+    </QuerySupport.QueryClientProvider>
   );
 }

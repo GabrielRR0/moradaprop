@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -11,6 +10,7 @@ import { timeLeft } from '../../services/deadline';
 import { PasskeyAddForm } from '../shared/PasskeyAddForm';
 import { SecurityShell } from '../shared/SecurityShell';
 import { TotpSetup } from '../shared/TotpSetup';
+import { MotionSupport } from '@/support/motion';
 
 type Step = 'choose' | 'passkey' | 'totp' | 'done';
 
@@ -18,7 +18,7 @@ function Choose({ onPick, canPasskey }: { onPick: (step: Step) => void; canPassk
   return (
     <div className="sc-list">
       {canPasskey && (
-        <motion.button
+        <MotionSupport.motion.button
           type="button"
           className="sc-method best"
           onClick={() => onPick('passkey')}
@@ -35,9 +35,9 @@ function Choose({ onPick, canPasskey }: { onPick: (step: Step) => void; canPassk
             </b>
             <span>La forma más rápida y segura. Nadie puede copiarla ni engañarte para que la entregues.</span>
           </span>
-        </motion.button>
+        </MotionSupport.motion.button>
       )}
-      <motion.button
+      <MotionSupport.motion.button
         type="button"
         className="sc-method"
         onClick={() => onPick('totp')}
@@ -53,7 +53,7 @@ function Choose({ onPick, canPasskey }: { onPick: (step: Step) => void; canPassk
           <b>App autenticadora</b>
           <span>Google Authenticator, Authy o similar. Te damos códigos de respaldo por si pierdes el teléfono.</span>
         </span>
-      </motion.button>
+      </MotionSupport.motion.button>
     </div>
   );
 }

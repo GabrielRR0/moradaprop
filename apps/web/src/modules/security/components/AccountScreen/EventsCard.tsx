@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Icon } from '@/components/icons';
 import { Button } from '@/components/ui';
@@ -9,6 +8,7 @@ import { useEvents } from '../../hooks/useSecurityData';
 import { describeEvent, timeAgo } from '../../services/event-copy';
 import { Card, ListState } from '../shared/Card';
 import { NotMeSheet } from './NotMeSheet';
+import { MotionSupport } from '@/support/motion';
 
 /** Historial de avisos de seguridad. Los de alerta (rojo) ofrecen "No fui yo". */
 export function EventsCard({ index }: { index: number }) {
@@ -33,7 +33,7 @@ export function EventsCard({ index }: { index: number }) {
             const copy = describeEvent(event);
             const alert = copy.severity === 'alert';
             return (
-              <motion.li
+              <MotionSupport.motion.li
                 key={event.id}
                 className="sc-item"
                 initial={{ opacity: 0, y: 8 }}
@@ -56,7 +56,7 @@ export function EventsCard({ index }: { index: number }) {
                     No fui yo
                   </Button>
                 )}
-              </motion.li>
+              </MotionSupport.motion.li>
             );
           })}
         </ul>

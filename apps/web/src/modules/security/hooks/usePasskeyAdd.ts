@@ -1,10 +1,10 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { refreshSession } from '@/lib/api';
 import { toast } from '@/lib/toast';
 import { authService, passkeyProblem, useSession, type Problem } from '@/modules/auth';
 
 import { securityKeys } from './useSecurityData';
+import { QuerySupport } from '@/support/query';
 
 /**
  * Registrar una passkey: pide la clave otra vez (si la cuenta tiene), abre el dialogo del sistema
@@ -12,7 +12,7 @@ import { securityKeys } from './useSecurityData';
  */
 export function usePasskeyAdd(onAdded?: () => void) {
   const { user } = useSession();
-  const client = useQueryClient();
+  const client = QuerySupport.useQueryClient();
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);
 

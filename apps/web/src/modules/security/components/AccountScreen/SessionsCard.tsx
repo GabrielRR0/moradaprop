@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { ActiveSession } from '@/lib/api-types';
@@ -11,6 +10,7 @@ import { timeAgo } from '../../services/event-copy';
 import { securityService } from '../../services/security.service';
 import { Card, ConfirmSheet, ListState } from '../shared/Card';
 import { DeviceRow, describeAgent } from './DeviceRow';
+import { MotionSupport } from '@/support/motion';
 
 /** Sesiones abiertas (una por navegador o dispositivo) con boton para cerrar cada una. */
 export function SessionsCard({ index }: { index: number }) {
@@ -29,7 +29,7 @@ export function SessionsCard({ index }: { index: number }) {
         empty={items.length === 0 ? 'No hay sesiones abiertas.' : undefined}
       >
         <ul className="sc-list">
-          <AnimatePresence initial={false}>
+          <MotionSupport.AnimatePresence initial={false}>
             {items.map((session) => (
               <DeviceRow
                 key={session.id}
@@ -41,7 +41,7 @@ export function SessionsCard({ index }: { index: number }) {
                 onRemove={() => setClosing(session)}
               />
             ))}
-          </AnimatePresence>
+          </MotionSupport.AnimatePresence>
         </ul>
       </ListState>
       <ConfirmSheet

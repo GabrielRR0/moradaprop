@@ -1,8 +1,8 @@
 'use client';
 
-import { motion, useAnimationControls } from 'motion/react';
 import { useEffect, useRef, type ClipboardEvent, type KeyboardEvent } from 'react';
 import './ui.css';
+import { MotionSupport } from '@/support/motion';
 
 interface CodeInputProps {
   value: string;
@@ -29,7 +29,7 @@ export function CodeInput({
   shakeKey = 0,
 }: CodeInputProps) {
   const refs = useRef<Array<HTMLInputElement | null>>([]);
-  const shake = useAnimationControls();
+  const shake = MotionSupport.useAnimationControls();
   useEffect(() => {
     if (shakeKey) shake.start({ x: [0, -9, 9, -6, 6, 0], transition: { duration: 0.4 } });
   }, [shakeKey, shake]);
@@ -65,7 +65,7 @@ export function CodeInput({
   }
 
   return (
-    <motion.div
+    <MotionSupport.motion.div
       className={bad ? 'ui-code bad' : 'ui-code'}
       animate={shake}
       role="group"
@@ -90,6 +90,6 @@ export function CodeInput({
           onFocus={(event) => event.target.select()}
         />
       ))}
-    </motion.div>
+    </MotionSupport.motion.div>
   );
 }

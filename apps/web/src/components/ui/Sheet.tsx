@@ -1,10 +1,10 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useId, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '@/components/icons';
 import './ui.css';
+import { MotionSupport } from '@/support/motion';
 
 /**
  * Panel que sube desde abajo en el telefono y aparece al centro en escritorio.
@@ -43,9 +43,9 @@ export function Sheet({
 
   if (typeof document === 'undefined') return null;
   return createPortal(
-    <AnimatePresence>
+    <MotionSupport.AnimatePresence>
       {open && (
-        <motion.div
+        <MotionSupport.motion.div
           className="ui-sheet-wrap ui-font"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -53,7 +53,7 @@ export function Sheet({
           transition={{ duration: 0.2 }}
           onClick={dismissible ? onClose : undefined}
         >
-          <motion.div
+          <MotionSupport.motion.div
             className="ui-sheet"
             role="dialog"
             aria-modal="true"
@@ -80,10 +80,10 @@ export function Sheet({
               )}
             </div>
             <div className="ui-sheet-body">{children}</div>
-          </motion.div>
-        </motion.div>
+          </MotionSupport.motion.div>
+        </MotionSupport.motion.div>
       )}
-    </AnimatePresence>,
+    </MotionSupport.AnimatePresence>,
     document.body,
   );
 }

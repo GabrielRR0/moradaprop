@@ -1,12 +1,12 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { useState, type FormEvent } from 'react';
 import { Icon, type IconName } from '@/components/icons';
 import { Button, CodeInput, Field, Notice } from '@/components/ui';
 import type { SecondFactorMethod } from '@/lib/api-types';
 import { clock } from '../../hooks/useCooldown';
 import type { LoginFlow } from '../../hooks/useLoginFlow';
+import { MotionSupport } from '@/support/motion';
 
 const METHODS: Record<SecondFactorMethod, { label: string; icon: IconName }> = {
   passkey: { label: 'Huella / Face ID', icon: 'fingerprint' },
@@ -71,7 +71,7 @@ export function LoginSecondStep({ flow }: { flow: LoginFlow }) {
             >
               <Icon name={METHODS[m].icon} size={16} />
               {METHODS[m].label}
-              {m === mode && <motion.span layoutId="chip-bg" className="au-chip-bg" />}
+              {m === mode && <MotionSupport.motion.span layoutId="chip-bg" className="au-chip-bg" />}
             </button>
           ))}
         </div>

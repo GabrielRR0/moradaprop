@@ -1,9 +1,9 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import { Icon } from '@/components/icons';
 import './ui.css';
+import { MotionSupport } from '@/support/motion';
 
 export type NoticeTone = 'error' | 'warn' | 'info' | 'ok';
 
@@ -20,9 +20,9 @@ export function Notice({
   children: ReactNode;
 }) {
   return (
-    <AnimatePresence initial={false}>
+    <MotionSupport.AnimatePresence initial={false}>
       {show && (
-        <motion.div
+        <MotionSupport.motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -35,8 +35,8 @@ export function Notice({
             </span>
             <div>{children}</div>
           </div>
-        </motion.div>
+        </MotionSupport.motion.div>
       )}
-    </AnimatePresence>
+    </MotionSupport.AnimatePresence>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import './ui.css';
+import { MotionSupport } from '@/support/motion';
 
 interface ButtonProps {
   children: ReactNode;
@@ -41,7 +41,7 @@ export function Button({
     .filter(Boolean)
     .join(' ');
   return (
-    <motion.button
+    <MotionSupport.motion.button
       type={type}
       className={className}
       onClick={onClick}
@@ -52,6 +52,6 @@ export function Button({
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
     >
       {loading ? <span className="ui-spinner" role="status" aria-label="Cargando" /> : children}
-    </motion.button>
+    </MotionSupport.motion.button>
   );
 }

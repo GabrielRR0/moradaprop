@@ -1,6 +1,5 @@
 'use client';
 
-import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -8,6 +7,7 @@ import { Icon } from '@/components/icons';
 import { useSession } from '@/modules/auth';
 import { timeLeft } from '../services/deadline';
 import './shared/security.css';
+import { MotionSupport } from '@/support/motion';
 
 const DISMISS_KEY = 'sec:recommend-dismissed';
 /** Pantallas donde el aviso estorba (ya estan en el flujo de acceso o de activacion). */
@@ -62,9 +62,9 @@ export function EnrollmentBanner() {
     : 'Protege tu cuenta con huella o Face ID.';
 
   return (
-    <AnimatePresence>
+    <MotionSupport.AnimatePresence>
       {show && (
-        <motion.div
+        <MotionSupport.motion.div
           className="sc-float ui-font"
           initial={{ opacity: 0, y: -40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -84,8 +84,8 @@ export function EnrollmentBanner() {
               </button>
             )}
           </div>
-        </motion.div>
+        </MotionSupport.motion.div>
       )}
-    </AnimatePresence>
+    </MotionSupport.AnimatePresence>
   );
 }

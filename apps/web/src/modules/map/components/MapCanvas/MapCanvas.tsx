@@ -1,7 +1,5 @@
 'use client';
 
-import 'maplibre-gl/dist/maplibre-gl.css';
-import type { Map as MapLibreMap, Marker as MapLibreMarker } from 'maplibre-gl';
 import {
   forwardRef,
   useEffect,
@@ -19,6 +17,7 @@ import { blankStyle, loadBaseStyle, readMapColors, themedStyle } from '../../uti
 import { VENEZUELA_BOUNDS } from '../../utils/places';
 import { ClusterButton, PinButton } from './MapPins';
 import './mapcanvas.css';
+import { MapLibreSupport } from '@/support/maplibre';
 
 export interface ViewportInfo {
   bounds: Bounds;
@@ -88,11 +87,11 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     style,
   } = props;
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
-  const libRef = useRef<typeof import('maplibre-gl') | null>(null);
-  const recordsRef = useRef(new Map<string, { marker: MapLibreMarker; el: HTMLDivElement }>());
-  const popupRef = useRef<{ marker: MapLibreMarker; el: HTMLDivElement } | null>(null);
-  const meRef = useRef<{ marker: MapLibreMarker; el: HTMLDivElement } | null>(null);
+  const mapRef = useRef<MapLibreSupport.Map | null>(null);
+  const libRef = useRef<MapLibreSupport.Library | null>(null);
+  const recordsRef = useRef(new Map<string, { marker: MapLibreSupport.Marker; el: HTMLDivElement }>());
+  const popupRef = useRef<{ marker: MapLibreSupport.Marker; el: HTMLDivElement } | null>(null);
+  const meRef = useRef<{ marker: MapLibreSupport.Marker; el: HTMLDivElement } | null>(null);
   const latest = useRef({ onViewport, onStatus, initialView, detail, onSelect });
   latest.current = { onViewport, onStatus, initialView, detail, onSelect };
 
@@ -113,7 +112,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     return isDetail ? base : themedStyle(base);
   };
 
-  const emitViewport = (map: MapLibreMap) => {
+  const emitViewport = (map: MapLibreSupport.Map) => {
     const b = map.getBounds();
     const c = map.getCenter();
     latest.current.onViewport({
@@ -126,12 +125,12 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   // ---- Crear el mapa (una sola vez) ----
   useEffect(() => {
     let cancelled = false;
-    let map: MapLibreMap | null = null;
+    let map: MapLibreSupport.Map | null = null;
     let observer: ResizeObserver | null = null;
 
     (async () => {
       const [lib, firstStyle] = await Promise.all([
-        import('maplibre-gl'),
+        MapLibreSupport.load(),
         styleFor(latest.current.detail),
       ]);
       if (cancelled || !containerRef.current) return;
