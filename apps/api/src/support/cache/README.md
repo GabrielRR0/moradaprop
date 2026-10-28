@@ -13,4 +13,4 @@ Cache de respuestas costosas y muy repetidas (mapa y busquedas). Guia completa: 
 **Limite conocido:** se actualiza por vencimiento (unos segundos, segun la politica), no por evento. Una propiedad nueva puede tardar hasta `serverSeconds` en aparecer en el mapa publico.
 
 
-**Exporta:** `CacheModule`, `CacheService`, `CACHE_POLICIES`, `CachePolicy`, `CachePolicyName`, `HttpCache`.
+**Se usa como** `CacheSupport.Service`, `CacheSupport.Module`, `CacheSupport.POLICIES` (tipos `Policy` y `PolicyName`) y el decorador `CacheSupport.HttpCache`. Envuelve `ioredis`.

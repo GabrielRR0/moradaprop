@@ -85,7 +85,7 @@ describe('Rendimiento y proteccion de endpoints publicos (e2e)', () => {
     },
     verificar: ({ busqueda, mapa, ficha }) => {
       expect(busqueda).toContain('public');
-      expect(busqueda).toContain('max-age=10'); // CACHE_POLICIES.search.browserSeconds
+      expect(busqueda).toContain('max-age=10'); // CacheSupport.POLICIES.search.browserSeconds
       expect(mapa).toContain('stale-while-revalidate');
       expect(ficha).toBeUndefined();
     },

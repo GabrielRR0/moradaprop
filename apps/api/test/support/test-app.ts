@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/bootstrap/configure-app';
-import { MailService } from '../../src/support/mail';
+import { MailSupport } from '../../src/support/mail';
 import { TotpSupport } from '../../src/support/totp';
 import { PrismaService } from '../../src/common/prisma';
 
@@ -45,7 +45,7 @@ export interface TestApp {
 export async function createTestApp(): Promise<TestApp> {
   const mail = new FakeMail();
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
-    .overrideProvider(MailService)
+    .overrideProvider(MailSupport.Service)
     .useValue(mail)
     .compile();
 

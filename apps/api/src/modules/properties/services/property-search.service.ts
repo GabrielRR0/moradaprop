@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CACHE_POLICIES, CacheService } from '../../../support/cache';
+import { CacheSupport } from '../../../support/cache';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser } from '../../../common/security/types';
 import { UserVault } from '../../security';
@@ -30,14 +30,14 @@ export class PropertySearchService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly policy: PropertyPolicyService,
-    private readonly cache: CacheService,
+    private readonly cache: CacheSupport.Service,
     private readonly vault: UserVault,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
   /** Busqueda publica. Es igual para todos los usuarios, por eso se puede cachear unos segundos. */
   search(query: SearchPropertiesDto) {
-    return this.cache.remember(cacheKey('search', query), () => this.searchInDatabase(query), CACHE_POLICIES.search);
+    return this.cache.remember(cacheKey('search', query), () => this.searchInDatabase(query), CacheSupport.POLICIES.search);
   }
 
   private async searchInDatabase(query: SearchPropertiesDto) {
@@ -65,7 +65,7 @@ export class PropertySearchService {
   map(query: MapPropertiesDto) {
     const zoom = query.zoom ?? 10;
     const filters = { ...snapBox(query, zoom), zoom };
-    return this.cache.remember(cacheKey('map', filters), () => this.mapInDatabase(filters, zoom), CACHE_POLICIES.map);
+    return this.cache.remember(cacheKey('map', filters), () => this.mapInDatabase(filters, zoom), CacheSupport.POLICIES.map);
   }
 
   private async mapInDatabase(filters: MapPropertiesDto, zoom: number) {

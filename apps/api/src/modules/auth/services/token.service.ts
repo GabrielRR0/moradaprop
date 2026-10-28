@@ -3,7 +3,7 @@ import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { PrismaService } from '../../../common/prisma';
 import type { AccessTokenPayload, TwoFactorChallengePayload } from '../../../common/security/types';
-import { JwtSigner } from '../../../support/jwt';
+import { JwtSupport } from '../../../support/jwt';
 import {
   AccessRiskService,
   PasskeyService,
@@ -31,7 +31,7 @@ const REUSE_GRACE_MS = 10_000;
 export class TokenService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtSigner,
+    private readonly jwt: JwtSupport.Signer,
     private readonly crypto: CryptoService,
     private readonly config: AppConfig,
     private readonly security: SecurityService,

@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { AppConfig } from '../../../config';
-import { MailService } from '../../../support/mail';
+import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
@@ -18,7 +18,7 @@ export class AppointmentCreateService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly policy: PropertyPolicyService,
-    private readonly mail: MailService,
+    private readonly mail: MailSupport.Service,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
     private readonly vault: UserVault,

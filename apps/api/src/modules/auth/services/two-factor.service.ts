@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
-import { MailService } from '../../../support/mail';
+import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { AccessRiskService, FieldCipher } from '../../security';
@@ -31,7 +31,7 @@ export class TwoFactorService {
     private readonly tokens: TokenService,
     private readonly login: LoginService,
     private readonly codes: VerificationCodeService,
-    private readonly mail: MailService,
+    private readonly mail: MailSupport.Service,
     private readonly audit: AuditService,
     private readonly cipher: FieldCipher,
     private readonly accounts: UserAccountService,

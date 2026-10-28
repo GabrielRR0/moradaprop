@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { MailService } from '../../../support/mail';
+import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { SecurityService } from '../../security';
@@ -17,7 +17,7 @@ export class PasswordResetService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly codes: VerificationCodeService,
-    private readonly mail: MailService,
+    private readonly mail: MailSupport.Service,
     private readonly tokens: TokenService,
     private readonly security: SecurityService,
     private readonly audit: AuditService,

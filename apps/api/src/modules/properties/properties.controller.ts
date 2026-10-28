@@ -16,7 +16,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { HttpCache } from '../../support/cache';
+import { CacheSupport } from '../../support/cache';
 import { ImagesSupport } from '../../support/images';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup, PublicGroup, RoleGroup } from '../../common/security/groups';
@@ -44,14 +44,14 @@ export class PropertiesController {
   // ---------------- Lectura publica ----------------
 
   @PublicGroup()
-  @HttpCache('search')
+  @CacheSupport.HttpCache('search')
   @Get()
   search(@Query() query: SearchPropertiesDto) {
     return this.propertiesService.searchProperties(query);
   }
 
   @PublicGroup()
-  @HttpCache('map')
+  @CacheSupport.HttpCache('map')
   @Get('map')
   map(@Query() query: MapPropertiesDto) {
     return this.propertiesService.mapProperties(query);

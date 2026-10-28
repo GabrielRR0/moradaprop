@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { GoogleIdentity } from '../../support/google-identity';
-import { JwtSignerModule } from '../../support/jwt';
+import { GoogleIdentitySupport } from '../../support/google-identity';
+import { JwtSupport } from '../../support/jwt';
 import { SecurityModule } from '../security';
 import { AuthController } from './auth.controller';
 import { PasskeyLoginController } from './passkey-login.controller';
@@ -18,7 +18,7 @@ import { VerificationCodeService } from './services/verification-code.service';
 import { VerifyEmailService } from './services/verify-email.service';
 
 @Module({
-  imports: [JwtSignerModule, SecurityModule],
+  imports: [JwtSupport.Module, SecurityModule],
   controllers: [AuthController, PasskeyLoginController],
   providers: [
     AuthService,
@@ -30,7 +30,7 @@ import { VerifyEmailService } from './services/verify-email.service';
     TwoFactorService,
     PasswordResetService,
     GoogleAuthService,
-    GoogleIdentity,
+    GoogleIdentitySupport.Verifier,
     UserAccountService,
     VerificationCodeService,
     JwtAuthGuard,

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
-import { CacheModule } from './support/cache';
+import { CacheSupport } from './support/cache';
 import { CryptoModule } from './common/crypto';
 import { AppGraphqlModule } from './common/graphql/app-graphql.module';
-import { ImagesModule } from './support/images';
-import { MailModule } from './support/mail';
+import { ImagesSupport } from './support/images';
+import { MailSupport } from './support/mail';
 import { PrismaModule } from './common/prisma';
 import { GlobalGuardsModule } from './common/security/global-guards.module';
 import { StorageModule } from './common/storage';
@@ -27,10 +27,10 @@ import { appRoutes } from './routes';
     ConfigModule,
     PrismaModule,
     CryptoModule,
-    CacheModule,
-    MailModule,
+    CacheSupport.Module,
+    MailSupport.Module,
     StorageModule,
-    ImagesModule,
+    ImagesSupport.Module,
     AppGraphqlModule,
     // Modulos de negocio
     AuditModule,

@@ -6,8 +6,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AppConfig } from '../../../config';
-import { GoogleIdentity } from '../../../support/google-identity';
-import { MailService } from '../../../support/mail';
+import { GoogleIdentitySupport } from '../../../support/google-identity';
+import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { SecurityService, SocialAccountVault, UserVault } from '../../security';
@@ -36,13 +36,13 @@ export class GoogleAuthService {
     private readonly config: AppConfig,
     private readonly login: LoginService,
     private readonly codes: VerificationCodeService,
-    private readonly mail: MailService,
+    private readonly mail: MailSupport.Service,
     private readonly security: SecurityService,
     private readonly audit: AuditService,
     private readonly accounts: UserAccountService,
     private readonly vault: UserVault,
     private readonly social: SocialAccountVault,
-    private readonly google: GoogleIdentity,
+    private readonly google: GoogleIdentitySupport.Verifier,
   ) {}
 
   /**

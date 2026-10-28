@@ -5,13 +5,13 @@
  */
 import { AppConfig } from '../src/config';
 import { loadEnv } from '../src/config/env';
-import { CacheService } from '../src/support/cache';
+import { CacheSupport } from '../src/support/cache';
 
 function server(redisUrl: string) {
   const config = new AppConfig(loadEnv());
   Object.assign(config.cache, { driver: 'redis', ttlSeconds: 10 });
   Object.assign(config.database, { redisUrl });
-  return new CacheService(config);
+  return new CacheSupport.Service(config);
 }
 
 async function main() {

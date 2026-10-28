@@ -1,1 +1,1 @@
-export { GoogleIdentity, type GoogleProfile } from './google-identity';
+export * as GoogleIdentitySupport from './google-identity-support';

@@ -1,5 +1,5 @@
 import { AppConfig } from '../../src/config';
-import { GoogleIdentity } from '../../src/support/google-identity';
+import { GoogleIdentitySupport } from '../../src/support/google-identity';
 import { describeCase } from '../support/describe-case';
 import { registerVerified, userByEmail } from '../support/auth-helpers';
 import { SocialAccountVault, UserVault } from '../../src/modules/security';
@@ -24,7 +24,7 @@ describe('Auth: Google (e2e)', () => {
     t = await createTestApp();
 
     // Google se "simula": no se puede llamar a Google desde los tests.
-    jest.spyOn(t.app.get(GoogleIdentity), 'verify').mockImplementation(async (idToken: string) => {
+    jest.spyOn(t.app.get(GoogleIdentitySupport.Verifier), 'verify').mockImplementation(async (idToken: string) => {
       const identidad = identidades[idToken];
       if (!identidad) throw new Error('token invalido');
       const { email_verified: emailVerified, ...perfil } = identidad;

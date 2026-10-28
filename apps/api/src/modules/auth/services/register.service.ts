@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MailService } from '../../../support/mail';
+import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
 import { AgencyVault, SecurityService, ThreatModelService, UserVault } from '../../security';
@@ -19,7 +19,7 @@ export class RegisterService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly codes: VerificationCodeService,
-    private readonly mail: MailService,
+    private readonly mail: MailSupport.Service,
     private readonly security: SecurityService,
     private readonly threats: ThreatModelService,
     private readonly audit: AuditService,

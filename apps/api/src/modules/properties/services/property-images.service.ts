@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../common/prisma';
-import { ImagesService } from '../../../support/images';
+import { ImagesSupport } from '../../../support/images';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
@@ -20,7 +20,7 @@ export const MAX_IMAGES_PER_PROPERTY = 20;
 export class PropertyImagesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly images: ImagesService,
+    private readonly images: ImagesSupport.Service,
     private readonly writer: PropertyWriteService,
     private readonly audit: AuditService,
     private readonly threats: ThreatModelService,

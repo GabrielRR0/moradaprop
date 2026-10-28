@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
-import { MailService } from '../../../support/mail';
+import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
@@ -18,7 +18,7 @@ export class AgencyMembersService {
     private readonly prisma: PrismaService,
     private readonly access: AgencyAccessService,
     private readonly crypto: CryptoService,
-    private readonly mail: MailService,
+    private readonly mail: MailSupport.Service,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
     private readonly vault: UserVault,

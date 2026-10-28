@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AppConfig } from '../../../config';
-import { MailService } from '../../../support/mail';
+import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
@@ -19,7 +19,7 @@ export class AppointmentManageService {
     private readonly policy: PropertyPolicyService,
     private readonly access: AppointmentPolicy,
     private readonly ownership: OwnershipService,
-    private readonly mail: MailService,
+    private readonly mail: MailSupport.Service,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
     private readonly vault: UserVault,
@@ -88,7 +88,7 @@ export class AppointmentManageService {
     });
 
     const full = await this.reload(id, toLeadView);
-    // Se espera el envio (MailService ya traga sus errores). Con la cola de trabajos pasara a ser un job.
+    // Se espera el envio (MailSupport.Service ya traga sus errores). Con la cola de trabajos pasara a ser un job.
     await this.notifyClient(id, confirm, dto.note);
     await this.log(confirm ? 'appointments.confirmed' : 'appointments.rejected', user, id, context, { type: appointment.type });
     return full;
