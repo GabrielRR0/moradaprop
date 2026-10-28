@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { clusterPoints } from '../services/clusters';
-import { countActiveFilters, filtersFromParams, filtersToParams } from '../services/filters';
-import { MOCK_PROPERTIES } from '../services/mock-data';
-import { mockMap, mockSearch } from '../services/mock-search';
-import { formatPrice, pinPrice, specsOf } from '../utils/format';
+import { clusterPoints } from '../../../lib/properties/clusters';
+import { countActiveFilters, filtersFromParams, filtersToParams } from '../../../lib/properties/filters';
+import { MOCK_PROPERTIES } from '../../../lib/properties/mock-data';
+import { mockMap, mockSearch } from '../../../lib/properties/mock-search';
+import { formatPrice, pinPrice, specsOf } from '../../../lib/properties/format';
 import { suggestPlaces } from '../utils/places';
 
 describe('filtros <-> URL', () => {

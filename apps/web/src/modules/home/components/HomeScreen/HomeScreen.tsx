@@ -26,6 +26,7 @@ export function HomeScreen() {
       }}
     >
       <header
+        className="hm-header"
         style={{
           display: 'flex',
           flexWrap: 'wrap',
@@ -39,6 +40,7 @@ export function HomeScreen() {
       >
         <Link
           href="/"
+          className="hm-brand"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -63,7 +65,10 @@ export function HomeScreen() {
           </span>
           {` ${brand.name} `}
         </Link>
-        <nav style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+        <nav
+          className="hm-nav"
+          style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}
+        >
           <Link
             href="/mapa"
             className="chip"
@@ -93,7 +98,10 @@ export function HomeScreen() {
             Ayuda
           </Link>
         </nav>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
+        <div
+          className="hm-actions"
+          style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}
+        >
           <button
             className="btn2"
             aria-label="Cambiar entre USD y bolívares"
@@ -115,13 +123,14 @@ export function HomeScreen() {
           <Link href={status === 'authed' ? '/seguridad' : '/ingresar'} className="btn2">
             {status === 'authed' ? 'Mi cuenta' : 'Ingresar'}
           </Link>
-          <Link href="/publicar" className="btn">
+          <Link href="/publicar" className="btn hm-publish">
             Publicar gratis
           </Link>
         </div>
       </header>
       <HomeIntro v={v} />
       <section
+        className="hm-pad"
         style={{
           padding: '24px 48px 72px',
           maxWidth: '1440px',
@@ -135,6 +144,7 @@ export function HomeScreen() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <h2
+            className="hm-h2"
             style={{ margin: '0', fontSize: '36px', fontWeight: '800', letterSpacing: '-0.025em' }}
           >
             Busca por lo que importa
@@ -209,6 +219,7 @@ export function HomeScreen() {
           }}
         >
           <h2
+            className="hm-h2"
             style={{ margin: '0', fontSize: '36px', fontWeight: '800', letterSpacing: '-0.025em' }}
           >
             Alquilar es así de fácil
@@ -287,10 +298,12 @@ export function HomeScreen() {
         </div>
       </section>
       <section
+        className="hm-pad"
         style={{ padding: '72px 48px', maxWidth: '1440px', width: '100%', margin: '0 auto' }}
         data-reveal=""
       >
         <div
+          className="hm-cta"
           style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -305,6 +318,7 @@ export function HomeScreen() {
         >
           <div style={{ flex: '1 1 380px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <h2
+              className="hm-h2"
               style={{
                 margin: '0',
                 fontSize: '36px',
@@ -334,6 +348,7 @@ export function HomeScreen() {
         </div>
       </section>
       <footer
+        className="hm-pad"
         style={{
           padding: '28px 48px',
           borderTop: '1px solid var(--line)',

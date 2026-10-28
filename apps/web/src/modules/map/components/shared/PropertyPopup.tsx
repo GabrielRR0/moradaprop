@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { css } from '@/lib/dc';
 import { whatsappUrl } from '@/lib/whatsapp';
-import type { PropertyCard } from '../../services';
-import { badgeOf, formatPrice, photoTint, placeOf, specsOf } from '../../utils/format';
+import type { PropertyCard } from '@/lib/properties';
+import { badgeOf, formatPrice, photoTint, placeOf, specsOf } from '@/lib/properties';
 import { Icon } from '@/components/icons';
 
 /** Ficha flotante del diseno (`.pop`) que se abre sobre el pin elegido. */

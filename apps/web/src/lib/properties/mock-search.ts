@@ -1,7 +1,7 @@
 import { clusterPoints } from './clusters';
 import type { PropertyFilters } from './filters';
 import { MOCK_PROPERTIES } from './mock-data';
-import type { Bounds, MapResult, PointMarker, PropertyCard, PropertyPage } from './types';
+import type { Bounds, MapResult, PointMarker, PropertyCard, PropertyDetail, PropertyPage } from './types';
 
 const norm = (text: string) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -70,6 +70,8 @@ export function mockMap(
   return { zoom, total: points.length, truncated: false, markers: clusterPoints(points, zoom) };
 }
 
-export function mockDetail(id: string): PropertyCard | null {
-  return MOCK_PROPERTIES.find((p) => p.id === id) ?? null;
+export function mockDetail(id: string): PropertyDetail | null {
+  const found = MOCK_PROPERTIES.find((p) => p.id === id);
+  if (!found) return null;
+  return { ...found, description: null, address: null, furnished: false, petsAllowed: false, images: [] };
 }

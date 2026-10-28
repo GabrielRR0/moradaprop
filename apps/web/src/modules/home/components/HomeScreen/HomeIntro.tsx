@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { Fragment } from 'react';
 import { Icon } from '@/components/icons';
 import type { HomeScreenView } from '../../hooks/useHomeScreen';
@@ -7,6 +6,7 @@ import type { HomeScreenView } from '../../hooks/useHomeScreen';
 export function HomeIntro({ v }: { v: HomeScreenView }) {
   return (
     <section
+      className="hm-pad hm-hero"
       style={{
         display: 'flex',
         flexWrap: 'wrap',
@@ -42,6 +42,7 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
           {' Alquileres en toda Venezuela '}
         </span>
         <h1
+          className="hm-h1"
           style={{
             margin: '0',
             fontSize: '62px',
@@ -67,6 +68,7 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
           agua constante, fibra óptica— y contacta por WhatsApp.
         </p>
         <form
+          className="hm-form"
           style={{
             display: 'flex',
             flexWrap: 'wrap',
@@ -78,7 +80,7 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
             border: '1px solid var(--line)',
             boxShadow: '0 18px 44px rgba(15,20,32,.1)',
           }}
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={v.search.submit}
         >
           <label
             style={{
@@ -105,6 +107,8 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
             <input
               type="text"
               placeholder="Ciudad, municipio o urbanización"
+              value={v.search.where}
+              onChange={(e) => v.search.setWhere(e.target.value)}
               style={{
                 border: '0',
                 outline: '0',
@@ -141,7 +145,10 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
             </span>
             <input
               type="text"
-              placeholder="$ 500 /mes"
+              placeholder="Ej. 500 (USD al mes)"
+              inputMode="numeric"
+              value={v.search.maxPrice}
+              onChange={(e) => v.search.setMaxPrice(e.target.value)}
               style={{
                 border: '0',
                 outline: '0',
@@ -179,6 +186,9 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
             <input
               type="text"
               placeholder="Cualquiera"
+              inputMode="numeric"
+              value={v.search.bedrooms}
+              onChange={(e) => v.search.setBedrooms(e.target.value)}
               style={{
                 border: '0',
                 outline: '0',
@@ -190,8 +200,8 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
               }}
             />
           </label>
-          <Link
-            href="/mapa"
+          <button
+            type="submit"
             className="btn"
             style={{
               flex: '0 0 auto',
@@ -203,7 +213,7 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
           >
             <Icon name="search" size={20} strokeWidth={2.4} />
             {' Buscar '}
-          </Link>
+          </button>
         </form>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '14px', color: 'var(--muted)', fontWeight: '600' }}>
@@ -221,6 +231,7 @@ export function HomeIntro({ v }: { v: HomeScreenView }) {
         </div>
       </div>
       <div
+        className="hm-map"
         style={{
           flex: '1 1 460px',
           minWidth: '0',

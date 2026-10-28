@@ -1,41 +1,100 @@
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, type FormEvent } from 'react';
 import { classIf } from '@/lib/classes';
-import { toast } from '@/lib/toast';
-import { HOME_LISTINGS, QUICK_FILTERS } from './home-data';
+import {
+  amenityTags,
+  badgeOf,
+  filtersToParams,
+  formatPrice,
+  photoTint,
+  placeOf,
+  propertyService,
+  typeLabel,
+  useFavorites,
+  type PropertyFilters,
+} from '@/lib/properties';
+import { useSession } from '@/modules/auth';
+import { QuerySupport } from '@/support/query';
+import { QUICK_FILTERS } from './home-data';
 
-/** Inicio: las propiedades de ejemplo con su corazón de favorito y los filtros rápidos del buscador. */
+/** Cuantas propiedades se muestran en el inicio. */
+const HOME_LIMIT = 6;
+
+/** Cada filtro rapido enciende un servicio del API. */
+const FILTER_FLAG: Record<string, keyof PropertyFilters> = {
+  'Planta eléctrica': 'hasGenerator',
+  'Agua constante': 'hasWaterTank',
+  'Fibra óptica': 'hasFiberOptic',
+  Vigilancia: 'hasSecurity',
+};
+
+const digits = (text: string) => {
+  const found = text.replace(/\D/g, '');
+  return found ? Number(found) : undefined;
+};
+
+/** Inicio: propiedades reales del API (las mas recientes), filtros rapidos, buscador y favoritos. */
 export function useHomeScreen() {
-  const [favoriteIds, setFavoriteIds] = useState<number[]>([2]);
-  const [activeFilters, setActiveFilters] = useState<string[]>(['Planta eléctrica']);
+  const router = useRouter();
+  const { status } = useSession();
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [where, setWhere] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [bedrooms, setBedrooms] = useState('');
 
-  function toggleFavorite(propertyId: number) {
-    const wasFavorite = favoriteIds.includes(propertyId);
-    if (wasFavorite) setFavoriteIds(favoriteIds.filter((id) => id !== propertyId));
-    else setFavoriteIds([...favoriteIds, propertyId]);
-    toast(wasFavorite ? 'Quitada de favoritos' : 'Guardada en favoritos');
-  }
+  const filters: PropertyFilters = { sort: 'recent' };
+  for (const name of activeFilters) Object.assign(filters, { [FILTER_FLAG[name]]: true });
+
+  const query = QuerySupport.useQuery({
+    queryKey: ['home', 'listings', activeFilters],
+    queryFn: ({ signal }) => propertyService.search(filters, undefined, 1, HOME_LIMIT, signal),
+    staleTime: 60_000,
+    placeholderData: (previous) => previous,
+  });
+
+  // Favoritos reales: solo con sesion. Sin sesion el corazon lleva a ingresar.
+  const favorites = useFavorites(status === 'authed', () => router.push('/ingresar?next=/'));
 
   function toggleFilter(name: string) {
-    if (activeFilters.includes(name)) setActiveFilters(activeFilters.filter((n) => n !== name));
-    else setActiveFilters([...activeFilters, name]);
+    setActiveFilters((current) =>
+      current.includes(name) ? current.filter((n) => n !== name) : [...current, name],
+    );
   }
 
-  const listings = HOME_LISTINGS.map((listing, index) => {
-    const isFavorite = favoriteIds.includes(listing.id);
+  /** "Buscar" abre el mapa con lo escrito y los filtros rapidos encendidos. */
+  function submitSearch(event?: FormEvent) {
+    event?.preventDefault();
+    const params = filtersToParams({
+      ...filters,
+      sort: undefined,
+      q: where.trim() || undefined,
+      maxPrice: digits(maxPrice),
+      bedrooms: digits(bedrooms),
+    });
+    const text = params.toString();
+    router.push(text ? `/mapa?${text}` : '/mapa');
+  }
+
+  const listings = (query.data?.items ?? []).map((p, index) => {
+    const isFavorite = favorites.isFavorite(p.id);
     return {
-      title: listing.title,
-      place: listing.place,
-      price: listing.price,
-      bedrooms: listing.bedrooms,
-      bathrooms: listing.bathrooms,
-      area: listing.area,
-      badge: listing.badge,
-      amenities: listing.amenities,
+      id: p.id,
+      href: `/propiedad/${p.id}`,
+      title: p.title,
+      place: placeOf(p),
+      kind: typeLabel(p.type),
+      price: formatPrice(p.priceAmount, p.currency),
+      bedrooms: p.bedrooms,
+      bathrooms: p.bathrooms,
+      area: p.areaM2,
+      badge: badgeOf(p),
+      amenities: amenityTags(p),
+      cover: p.cover?.medium ?? null,
       delay: `${index * 80}ms`,
-      tint: `background:color-mix(in srgb, var(--ac) ${10 + index * 3}%, var(--surf2))`,
+      tint: photoTint(index),
       heartFill: isFavorite ? 'currentColor' : 'none',
       heartColor: isFavorite ? 'var(--ac-ink)' : 'var(--text)',
-      toggleFavorite: () => toggleFavorite(listing.id),
+      toggleFavorite: () => favorites.toggle(p.id),
     };
   });
 
@@ -45,7 +104,15 @@ export function useHomeScreen() {
     toggle: () => toggleFilter(name),
   }));
 
-  return { listings, filterChips };
+  return {
+    listings,
+    total: query.data?.total ?? 0,
+    loading: query.isLoading,
+    failed: query.isError && !query.data,
+    retry: () => void query.refetch(),
+    filterChips,
+    search: { where, setWhere, maxPrice, setMaxPrice, bedrooms, setBedrooms, submit: submitSearch },
+  };
 }
 
 /** El tipo de lo que devuelve el hook (las partes de la pantalla lo usan para saber qué hay en `v`). */

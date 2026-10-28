@@ -1,7 +1,7 @@
 'use client';
 
-import type { ClusterMarker, PointMarker } from '../../services';
-import { formatPrice, pinPrice } from '../../utils/format';
+import type { ClusterMarker, PointMarker } from '@/lib/properties';
+import { formatPrice, pinPrice } from '@/lib/properties';
 
 /** Pin con precio del diseno (`.pin`). Reservada = borde punteado; seleccionada = color de marca. */
 export function PinButton({

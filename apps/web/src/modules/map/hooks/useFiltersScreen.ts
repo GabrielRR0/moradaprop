@@ -10,7 +10,7 @@ import {
   filtersToParams,
   propertyService,
   type PropertyFilters,
-} from '../services';
+} from '@/lib/properties';
 import { QuerySupport } from '@/support/query';
 
 /** Tipos de inmueble del panel: lo que se lee y el valor que entiende el API. */

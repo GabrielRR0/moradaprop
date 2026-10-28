@@ -6,7 +6,7 @@ import type {
   MapMarker,
   MapResult,
   PointMarker,
-  PropertyCard,
+  PropertyDetail,
   PropertyPage,
 } from './types';
 
@@ -87,7 +87,7 @@ export const propertyApi = {
     return request('', params, signal);
   },
 
-  detail(id: string, signal?: AbortSignal): Promise<PropertyCard> {
+  detail(id: string, signal?: AbortSignal): Promise<PropertyDetail> {
     return request(`/${encodeURIComponent(id)}`, new URLSearchParams(), signal);
   },
 };

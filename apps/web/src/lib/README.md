@@ -12,3 +12,5 @@ Utilidades compartidas de la web (no pertenecen a un módulo).
 El color de marca y los neutros viven como variables CSS en `app/globals.css`; `theme.tsx` solo cambia `--ac` y `data-theme`.
 
 **Seguridad:** `api.ts` es el cliente HTTP único del API (cabeceras `x-app-*`, access token solo en memoria, **un solo refresh a la vez**, un reintento, aviso `SECOND_FACTOR_ENROLLMENT_REQUIRED`; `ApiError` trae `status` y `code`). `api-types.ts` tiene los tipos de las respuestas de seguridad y `password.ts` los requisitos de contraseña que valida el API.
+
+**Propiedades:** `properties/` es el servicio compartido de propiedades: `propertyService` (búsqueda, mapa y ficha desde el API, con datos de ejemplo opcionales), filtros <-> URL, tipos, `format` (precios, textos) y `useFavorites` (favoritos reales de la cuenta). Lo usan mapa, inicio y ficha.

@@ -14,7 +14,7 @@ import {
   type MapView,
   type PropertyCard,
   type PropertyFilters,
-} from '../services';
+} from '@/lib/properties';
 import { DEFAULT_VIEW, suggestPlaces, type Place } from '../utils/places';
 import { QuerySupport } from '@/support/query';
 

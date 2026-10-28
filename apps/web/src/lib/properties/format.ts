@@ -1,4 +1,4 @@
-import type { Currency, PropertyCard } from '../services/types';
+import type { Currency, PropertyCard } from './types';
 
 const NUMBER = new Intl.NumberFormat('es-VE', { maximumFractionDigits: 0 });
 

@@ -3,7 +3,7 @@ import { publicEnv } from '@/config';
 import type { PropertyFilters } from './filters';
 import { mockDetail, mockMap, mockSearch } from './mock-search';
 import { ApiError, propertyApi } from './property-api';
-import type { Bounds, MapResult, PropertyCard, PropertyPage } from './types';
+import type { Bounds, MapResult, PropertyDetail, PropertyPage } from './types';
 
 export * from './filters';
 export * from './types';
@@ -76,7 +76,7 @@ export const propertyService = {
     );
   },
 
-  detail(id: string, signal?: AbortSignal): Promise<PropertyCard> {
+  detail(id: string, signal?: AbortSignal): Promise<PropertyDetail> {
     return withFallback(
       () => propertyApi.detail(id, signal),
       () => {
@@ -87,3 +87,5 @@ export const propertyService = {
     );
   },
 };
+export * from './format';
+export * from './favorites';

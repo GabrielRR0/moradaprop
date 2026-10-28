@@ -35,6 +35,25 @@ export interface PropertyCard {
   publishedAt: string | null;
 }
 
+/** Foto de la galeria (la portada es la de `isCover`). */
+export interface PropertyImage extends PropertyCover {
+  id: string;
+  isCover: boolean;
+  position: number;
+}
+
+/** Ficha completa: la tarjeta mas lo que solo se ve al abrir la propiedad (`GET /api/properties/:id`). */
+export interface PropertyDetail extends PropertyCard {
+  description: string | null;
+  address: string | null;
+  furnished: boolean;
+  petsAllowed: boolean;
+  images: PropertyImage[];
+  /** Solo si hay sesion. */
+  isFavorite?: boolean;
+  canManage?: boolean;
+}
+
 export interface PropertyPage {
   items: PropertyCard[];
   total: number;

@@ -3,7 +3,7 @@
 import { css } from '@/lib/dc';
 import type { MapExplorer } from '../../hooks/useMapExplorer';
 import { SORT_OPTIONS } from '../../utils/amenities';
-import { amenityTags, badgeOf, formatPrice, photoTint, placeOf, specsOf } from '../../utils/format';
+import { amenityTags, badgeOf, formatPrice, photoTint, placeOf, specsOf } from '@/lib/properties';
 import { ChipMenu } from '../shared/ChipMenu';
 import { Icon } from '@/components/icons';
 

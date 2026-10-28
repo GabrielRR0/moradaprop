@@ -12,7 +12,7 @@ import {
 import { createPortal } from 'react-dom';
 import { publicEnv } from '@/config';
 import { toast } from '@/lib/toast';
-import type { Bounds, ClusterMarker, MapMarker, MapView } from '../../services';
+import type { Bounds, ClusterMarker, MapMarker, MapView } from '@/lib/properties';
 import { blankStyle, loadBaseStyle, readMapColors, themedStyle } from '../../utils/map-style';
 import { VENEZUELA_BOUNDS } from '../../utils/places';
 import { ClusterButton, PinButton } from './MapPins';

@@ -1,4 +1,4 @@
-import type { MapView } from '../services/types';
+import type { MapView } from '@/lib/properties';
 
 /**
  * Lugares de Venezuela para el buscador del mapa: estados, ciudades y zonas conocidas.

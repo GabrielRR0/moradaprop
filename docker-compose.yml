@@ -91,9 +91,21 @@ services:
   web:
     <<: *dev-service
     command: pnpm --filter @app/web dev
+    volumes:
+      # La cache de compilacion de Next (~1 GB) vive en un volumen de Docker, no en la carpeta del proyecto
+      # (que esta en OneDrive): no ocupa espacio en el disco del proyecto ni se sincroniza.
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - api_node_modules:/app/apps/api/node_modules
+      - web_node_modules:/app/apps/web/node_modules
+      - shared_node_modules:/app/packages/shared/node_modules
+      - pnpm_store:/pnpm-store
+      - web_next:/app/apps/web/.next
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
       API_INTERNAL_URL: http://api:3001
+      # Datos reales del API (la base se siembra sola). auto = datos de ejemplo si el API no responde.
+      NEXT_PUBLIC_USE_MOCKS: ${NEXT_PUBLIC_USE_MOCKS:-false}
       WATCHPACK_POLLING: "true"
     ports:
       - "${WEB_PORT:-3000}:3000"
@@ -108,3 +120,4 @@ volumes:
   web_node_modules:
   shared_node_modules:
   pnpm_store:
+  web_next:
