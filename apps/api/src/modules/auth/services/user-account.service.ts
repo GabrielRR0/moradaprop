@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import { UserVault } from '../../security';
+import { DbSupport } from '../../../support/db';
 
 /**
  * Unica puerta para buscar usuarios por correo o id dentro de auth: en la DB el correo y el nombre
@@ -15,16 +15,16 @@ export class UserAccountService {
   ) {}
 
   /** Usuario por correo (ya normalizado) o null. */
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<DbSupport.User | null> {
     const row = await this.prisma.user.findUnique({ where: { emailHash: this.vault.emailHash(email) } });
     return this.vault.decode(row);
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<DbSupport.User | null> {
     return this.vault.decode(await this.prisma.user.findUnique({ where: { id } }));
   }
 
-  async findByIdOrThrow(id: string): Promise<User> {
+  async findByIdOrThrow(id: string): Promise<DbSupport.User> {
     return this.vault.decode(await this.prisma.user.findUniqueOrThrow({ where: { id } }));
   }
 }

@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { PrismaService } from '../../../common/prisma';
@@ -17,6 +16,7 @@ import {
   type SecondFactorStatus,
 } from '../../security';
 import { toPublicUser, type AuthTokens, type RequestContext } from '../utils/auth-context';
+import { DbSupport } from '../../../support/db';
 
 const INVALID_SESSION = 'Sesion invalida o vencida';
 
@@ -46,7 +46,7 @@ export class TokenService {
    * Crea una sesion nueva (refresh token) y su primer access token. `trust` trae el dispositivo y pais que
    * definio el analisis de riesgo (access-risk): la sesion queda atada a ese dispositivo.
    */
-  async startSession(user: User, context: RequestContext, twoFactorVerified: boolean, trust?: LoginTrust): Promise<AuthTokens> {
+  async startSession(user: DbSupport.User, context: RequestContext, twoFactorVerified: boolean, trust?: LoginTrust): Promise<AuthTokens> {
     const refreshToken = this.crypto.randomToken();
     const session = await this.prisma.session.create({
       data: this.sessionVault.encode({
@@ -128,7 +128,7 @@ export class TokenService {
   }
 
   /** Marca la sesion como verificada con 2FA y devuelve un access token actualizado. */
-  async markTwoFactorVerified(user: User, sessionId: string): Promise<string> {
+  async markTwoFactorVerified(user: DbSupport.User, sessionId: string): Promise<string> {
     await this.prisma.session.update({ where: { id: sessionId }, data: { twoFactorVerified: true } });
     return this.signAccess(user, sessionId, true);
   }
@@ -137,7 +137,7 @@ export class TokenService {
    * El claim `twoFactor` significa: esta sesion verifico un factor fuerte Y la cuenta todavia lo tiene (2FA activo o
    * al menos una passkey). Si despues quita el factor, el claim se cae en el siguiente token.
    */
-  async signAccess(user: User, sessionId: string, twoFactorVerified: boolean): Promise<string> {
+  async signAccess(user: DbSupport.User, sessionId: string, twoFactorVerified: boolean): Promise<string> {
     return (await this.issueAccess(user, sessionId, twoFactorVerified)).accessToken;
   }
 
@@ -146,7 +146,7 @@ export class TokenService {
    * modo es enforce), el token lleva `enroll: true` y solo abre las rutas de enrolamiento (SecondFactorGuard).
    */
   private async issueAccess(
-    user: User,
+    user: DbSupport.User,
     sessionId: string,
     twoFactorVerified: boolean,
   ): Promise<{ accessToken: string; enrollment: SecondFactorStatus }> {

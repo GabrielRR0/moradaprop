@@ -1,8 +1,8 @@
-import type { Prisma } from '@prisma/client';
 import { FieldCipher, UserVault } from '../../src/modules/security';
 import { PasswordSupport } from '../../src/support/password';
 import { TotpSupport } from '../../src/support/totp';
 import { PASSWORD, totp, type TestApp } from './test-app';
+import { DbSupport } from '../../src/support/db';
 
 /** Registra un usuario y lo verifica por la API (como lo haria la web). Devuelve su token y su id. */
 export async function registerVerified(t: TestApp, email: string, accountType = 'CLIENT', agencyName?: string) {
@@ -56,24 +56,24 @@ export async function loginUser(t: TestApp, email: string) {
 }
 
 /** Usuario por correo, ya descifrado (en la base el correo esta cifrado: se busca por emailHash). */
-export async function userByEmail<A extends Omit<Prisma.UserFindUniqueOrThrowArgs, 'where'> = object>(
+export async function userByEmail<A extends Omit<DbSupport.Prisma.UserFindUniqueOrThrowArgs, 'where'> = object>(
   t: TestApp,
   email: string,
   args?: A,
 ) {
   const vault = t.app.get(UserVault);
   const row = await t.prisma.user.findUniqueOrThrow({ ...(args as A), where: { emailHash: vault.emailHash(email) } });
-  return vault.decode(row as Prisma.UserGetPayload<A>);
+  return vault.decode(row as DbSupport.Prisma.UserGetPayload<A>);
 }
 
 /** Crea un usuario directo en la base con sus datos personales cifrados. */
-export function createUserRow(t: TestApp, data: { email: string; name: string; phone?: string | null } & Omit<Prisma.UserCreateInput, 'email' | 'emailHash' | 'name' | 'phone' | 'searchTokens'>) {
+export function createUserRow(t: TestApp, data: { email: string; name: string; phone?: string | null } & Omit<DbSupport.Prisma.UserCreateInput, 'email' | 'emailHash' | 'name' | 'phone' | 'searchTokens'>) {
   const { email, name, phone, ...rest } = data;
   return t.prisma.user.create({ data: { ...t.app.get(UserVault).encode({ email, name, phone }), ...rest } });
 }
 
 /** Eventos de auditoria ya descifrados (ip, userAgent y metadata se guardan cifrados). */
-export async function auditLogs(t: TestApp, args?: Prisma.AuditLogFindManyArgs) {
+export async function auditLogs(t: TestApp, args?: DbSupport.Prisma.AuditLogFindManyArgs) {
   const cipher = t.app.get(FieldCipher);
   const rows = await t.prisma.auditLog.findMany(args);
   return rows.map((row) => {
@@ -82,11 +82,11 @@ export async function auditLogs(t: TestApp, args?: Prisma.AuditLogFindManyArgs) 
       ...row,
       ip: row.ip && cipher.decrypt('AuditLog.ip', row.ip),
       userAgent: row.userAgent && cipher.decrypt('AuditLog.userAgent', row.userAgent),
-      metadata: typeof enc === 'string' ? (JSON.parse(cipher.decrypt('AuditLog.metadata', enc)) as Prisma.JsonValue) : row.metadata,
+      metadata: typeof enc === 'string' ? (JSON.parse(cipher.decrypt('AuditLog.metadata', enc)) as DbSupport.Prisma.JsonValue) : row.metadata,
     };
   });
 }
 
-export async function auditLogFirst(t: TestApp, args?: Prisma.AuditLogFindManyArgs) {
+export async function auditLogFirst(t: TestApp, args?: DbSupport.Prisma.AuditLogFindManyArgs) {
   return (await auditLogs(t, { ...args, take: 1 }))[0] ?? null;
 }

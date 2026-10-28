@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { PropertyStatus } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { cardInclude, toCard } from '../utils/property-mapper';
+import { DbSupport } from '../../../support/db';
 
 @Injectable()
 export class PropertyFavoritesService {
@@ -13,7 +13,7 @@ export class PropertyFavoritesService {
 
   async add(userId: string, propertyId: string) {
     const property = await this.prisma.property.findFirst({
-      where: { id: propertyId, status: { not: PropertyStatus.PAUSADA } },
+      where: { id: propertyId, status: { not: DbSupport.PropertyStatus.PAUSADA } },
       select: { id: true },
     });
     if (!property) throw new NotFoundException('Propiedad no encontrada');
@@ -33,7 +33,7 @@ export class PropertyFavoritesService {
 
   async list(userId: string) {
     const favorites = await this.prisma.favorite.findMany({
-      where: { userId, property: { status: { not: PropertyStatus.PAUSADA } } },
+      where: { userId, property: { status: { not: DbSupport.PropertyStatus.PAUSADA } } },
       orderBy: { createdAt: 'desc' },
       take: 200,
       include: { property: { include: cardInclude } },

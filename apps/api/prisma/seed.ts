@@ -17,7 +17,6 @@ import { existsSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { PrismaClient, type Currency, type Prisma, type PropertyStatus, type PropertyType } from '@prisma/client';
 import { ImagesSupport } from '../src/support/images';
 import { PasswordSupport } from '../src/support/password';
 import { blockReason } from '../src/database/migration-guard';
@@ -27,6 +26,7 @@ import { FieldCipher } from '../src/modules/security/encryption/services/field-c
 import { KeyRingService } from '../src/modules/security/encryption/services/key-ring.service';
 import { AgencyVault } from '../src/modules/security/encryption/vaults/agency.vault';
 import { UserVault } from '../src/modules/security/encryption/vaults/user.vault';
+import { DbSupport } from '../src/support/db';
 
 // Toma apps/api/.env si existe; sin variables, apunta a la base local de Docker (la misma que usa `pnpm db:*`).
 if (existsSync('.env')) process.loadEnvFile('.env');
@@ -54,7 +54,7 @@ const SCALE = 2;
 const MIN_DEMO_PROPERTIES = 60 * SCALE;
 const UPLOADS = resolve(process.env.STORAGE_LOCAL_DIR ?? 'uploads');
 const WITH_IMAGES = (process.env.STORAGE_PROVIDER ?? 'local') === 'local';
-const prisma = new PrismaClient();
+const prisma = new DbSupport.PrismaClient();
 
 const motivo = blockReason({ command: 'reset', databaseUrl: process.env.DATABASE_URL ?? '', nodeEnv: process.env.NODE_ENV });
 if (motivo) {
@@ -167,7 +167,7 @@ const CITIES: City[] = [
 ];
 
 /** Tipo -> [peso, precio base USD, habitaciones, banos, area base m2, nombre para el titulo] */
-const TYPES: Array<{ type: PropertyType; weight: number; price: number; beds: [number, number]; baths: [number, number]; area: number; name: string }> = [
+const TYPES: Array<{ type: DbSupport.PropertyType; weight: number; price: number; beds: [number, number]; baths: [number, number]; area: number; name: string }> = [
   { type: 'APARTAMENTO', weight: 50, price: 380, beds: [1, 4], baths: [1, 3], area: 85, name: 'Apartamento' },
   { type: 'CASA', weight: 16, price: 900, beds: [3, 6], baths: [2, 5], area: 220, name: 'Casa' },
   { type: 'TOWNHOUSE', weight: 8, price: 750, beds: [3, 4], baths: [2, 4], area: 160, name: 'Townhouse' },
@@ -240,7 +240,7 @@ async function guardar(bucket: 'public' | 'private', key: string, data: Buffer) 
 
 /** Crea 3 fotos (original privado + thumb/medium/hd publicas) con la misma estructura que la API. */
 async function crearFotos(propertyId: string, hue: number, titulo: string) {
-  const rows: Prisma.PropertyImageCreateManyInput[] = [];
+  const rows: DbSupport.Prisma.PropertyImageCreateManyInput[] = [];
   for (let i = 0; i < 3; i++) {
     const id = randomUUID();
     const base = `properties/${propertyId}`;
@@ -260,7 +260,7 @@ async function crearFotos(propertyId: string, hue: number, titulo: string) {
   return rows;
 }
 
-async function user(email: string, name: string, roles: Prisma.UserCreateInput['roles'], phone?: string) {
+async function user(email: string, name: string, roles: DbSupport.Prisma.UserCreateInput['roles'], phone?: string) {
   return prisma.user.upsert({
     where: { emailHash: vault.emailHash(email) },
     update: {},
@@ -327,12 +327,12 @@ async function main() {
       // Precio en USD coherente con tipo, tamano y ciudad; ~1 de cada 10 se publica en bolivares.
       const usd = round(kind.price * city.price * (0.65 + random() * 0.8) + beds * 45, 10);
       const enBolivares = chance(0.1);
-      const currency: Currency = enBolivares ? 'VES' : 'USD';
+      const currency: DbSupport.Currency = enBolivares ? 'VES' : 'USD';
       const priceAmount = enBolivares ? round(usd * 38, 500) : usd;
 
       // 85% publicada, algunas reservadas, pocas alquiladas o pausadas
       const roll = random();
-      const status: PropertyStatus = roll < 0.85 ? 'PUBLICADA' : roll < 0.93 ? 'RESERVADA' : roll < 0.97 ? 'ALQUILADA' : 'PAUSADA';
+      const status: DbSupport.PropertyStatus = roll < 0.85 ? 'PUBLICADA' : roll < 0.93 ? 'RESERVADA' : roll < 0.97 ? 'ALQUILADA' : 'PAUSADA';
 
       const titulo = `${kind.name} ${pick(ADJETIVOS)} en ${zone.name}`;
       const deAgencia = n % 2 === 1;

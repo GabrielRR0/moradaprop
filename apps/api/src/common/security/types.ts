@@ -1,10 +1,10 @@
 import type { Request } from 'express';
-import type { Role } from '@prisma/client';
+import { DbSupport } from '../../support/db';
 
 /** Usuario autenticado, sacado SIEMPRE del token (nunca del body ni de la URL). */
 export interface AuthUser {
   id: string;
-  roles: Role[];
+  roles: DbSupport.Role[];
   /** id de la sesion (refresh token) a la que pertenece este access token */
   sessionId: string;
   /** true si el usuario tiene 2FA activo y lo paso en esta sesion */
@@ -25,7 +25,7 @@ export interface AppRequest extends Request {
 /** Contenido del access token. */
 export interface AccessTokenPayload {
   sub: string;
-  roles: Role[];
+  roles: DbSupport.Role[];
   sid: string;
   twoFactor: boolean;
   /** Ver AuthUser.enroll. Solo viaja cuando es true. */

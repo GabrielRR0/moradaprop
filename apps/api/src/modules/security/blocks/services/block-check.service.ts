@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import type { BlockRule } from '@prisma/client';
 import { PrismaService } from '../../../../common/prisma';
 import { ipInCidr, normalizeIp } from '../utils/cidr';
+import { DbSupport } from '../../../../support/db';
 
 export interface BlockContext {
   ip?: string;
@@ -15,7 +15,7 @@ const CACHE_TTL_MS = 30_000;
 /** Decide si una peticion esta bloqueada. Las reglas se cachean 30s. */
 @Injectable()
 export class BlockCheckService {
-  private cache: { rules: BlockRule[]; loadedAt: number } | null = null;
+  private cache: { rules: DbSupport.BlockRule[]; loadedAt: number } | null = null;
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -55,7 +55,7 @@ export class BlockCheckService {
     }
   }
 
-  private async activeRules(): Promise<BlockRule[]> {
+  private async activeRules(): Promise<DbSupport.BlockRule[]> {
     const now = Date.now();
     if (this.cache && now - this.cache.loadedAt < CACHE_TTL_MS) {
       return this.cache.rules.filter((r) => !r.expiresAt || r.expiresAt.getTime() > now);

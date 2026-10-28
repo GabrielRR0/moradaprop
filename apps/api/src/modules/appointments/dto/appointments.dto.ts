@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AppointmentStatus, AppointmentType, ContactChannel } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import { IsDateString, IsEnum, IsIn, IsInt, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { DbSupport } from '../../../support/db';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
@@ -11,9 +11,9 @@ export class CreateAppointmentDto {
   @IsUUID()
   propertyId: string;
 
-  @ApiProperty({ enum: AppointmentType, description: 'VISITA pide una fecha; RESERVA aparta directo' })
-  @IsEnum(AppointmentType)
-  type: AppointmentType;
+  @ApiProperty({ enum: DbSupport.AppointmentType, description: 'VISITA pide una fecha; RESERVA aparta directo' })
+  @IsEnum(DbSupport.AppointmentType)
+  type: DbSupport.AppointmentType;
 
   @ApiPropertyOptional({ example: '2026-11-05T15:00:00.000Z', description: 'Obligatoria para VISITA' })
   @IsOptional()
@@ -40,10 +40,10 @@ export class CreateAppointmentDto {
   @Matches(/^\+?[0-9]{7,15}$/, { message: 'Telefono invalido' })
   contactPhone?: string;
 
-  @ApiPropertyOptional({ enum: ContactChannel, default: ContactChannel.WHATSAPP })
+  @ApiPropertyOptional({ enum: DbSupport.ContactChannel, default: DbSupport.ContactChannel.WHATSAPP })
   @IsOptional()
-  @IsEnum(ContactChannel)
-  preferredChannel?: ContactChannel;
+  @IsEnum(DbSupport.ContactChannel)
+  preferredChannel?: DbSupport.ContactChannel;
 }
 
 export class RespondAppointmentDto {
@@ -60,10 +60,10 @@ export class RespondAppointmentDto {
 }
 
 export class ListAppointmentsDto {
-  @ApiPropertyOptional({ enum: AppointmentStatus })
+  @ApiPropertyOptional({ enum: DbSupport.AppointmentStatus })
   @IsOptional()
-  @IsEnum(AppointmentStatus)
-  status?: AppointmentStatus;
+  @IsEnum(DbSupport.AppointmentStatus)
+  status?: DbSupport.AppointmentStatus;
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -1,14 +1,14 @@
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
-import type { AgencyMember, AgencyProfile, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import { mapSheet } from '../utils/row-mapper';
 import { readSheet } from '../utils/sheet-reader';
+import { DbSupport } from '../../../support/db';
 
 const MAX_REPORTED_ERRORS = 200;
 
 export interface ImportOwner {
   userId: string;
-  member: AgencyMember & { agency: AgencyProfile };
+  member: DbSupport.AgencyMember & { agency: DbSupport.AgencyProfile };
 }
 
 /**
@@ -39,7 +39,7 @@ export class ImportProcessorService {
       // Insercion por lotes: una sola sentencia para todas las filas validas.
       await this.prisma.property.createMany({
         data: valid.map(({ data }) => ({
-          ...(data as Prisma.PropertyCreateManyInput),
+          ...(data as DbSupport.Prisma.PropertyCreateManyInput),
           ownerUserId: owner.userId,
           agencyId,
           assignedAgentId,
@@ -84,7 +84,7 @@ export class ImportProcessorService {
 
   private finish(
     jobId: string,
-    data: { status: 'COMPLETADA' | 'FALLIDA'; totalRows: number; importedRows: number; failedRows: number; errors: Prisma.InputJsonValue },
+    data: { status: 'COMPLETADA' | 'FALLIDA'; totalRows: number; importedRows: number; failedRows: number; errors: DbSupport.Prisma.InputJsonValue },
   ) {
     return this.prisma.importJob.update({ where: { id: jobId }, data: { ...data, finishedAt: new Date() } });
   }

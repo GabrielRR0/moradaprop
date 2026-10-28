@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { PasskeyCredential } from '@prisma/client';
 import { PrismaService } from '../../../../common/prisma';
 import { PASSKEY_POLICY } from '../policy';
 import type { VerifiedRegistration } from '../webauthn/types';
+import { DbSupport } from '../../../../support/db';
 
 const active = { revokedAt: null } as const;
 
@@ -32,7 +32,7 @@ export class PasskeyCredentialService {
     return rows.map((r) => r.credentialId);
   }
 
-  findActive(credentialId: string): Promise<PasskeyCredential | null> {
+  findActive(credentialId: string): Promise<DbSupport.PasskeyCredential | null> {
     return this.prisma.passkeyCredential.findFirst({ where: { credentialId, ...active } });
   }
 

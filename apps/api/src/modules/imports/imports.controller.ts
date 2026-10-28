@@ -15,13 +15,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Role } from '@prisma/client';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { RoleGroup } from '../../common/security/groups';
 import { limitPerMinute, RATE_LIMITS } from '../../common/security/rate-limits';
 import type { AuthUser, RequestContext } from '../../common/security/types';
 import { ImportsService } from './services/imports.service';
 import { MAX_IMPORT_BYTES } from './services/import-upload.service';
+import { DbSupport } from '../../support/db';
 
 const SHEET_MIME = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -33,7 +33,7 @@ const SHEET_MIME = [
 
 /** Solo agencias. La agencia sale del token; las rutas fijas (template) van antes que ":id". */
 @ApiTags('imports')
-@RoleGroup(Role.AGENCY)
+@RoleGroup(DbSupport.Role.AGENCY)
 @Controller()
 export class ImportsController {
   constructor(private readonly importsService: ImportsService) {}

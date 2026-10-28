@@ -1,11 +1,11 @@
-import type { User } from '@prisma/client';
 import type { RequestContext } from '../../../common/security/types';
 import type { SecondFactorStatus } from '../../security';
+import { DbSupport } from '../../../support/db';
 
 export type { RequestContext };
 
 /** Usuario que se devuelve al cliente: nunca incluye hashes ni secretos. */
-export function toPublicUser(user: User) {
+export function toPublicUser(user: DbSupport.User) {
   return {
     id: user.id,
     email: user.email,

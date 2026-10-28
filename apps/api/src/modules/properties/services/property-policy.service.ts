@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { Role, type AgencyMember, type Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser } from '../../../common/security/types';
+import { DbSupport } from '../../../support/db';
 
 export interface PropertyOwnership {
   ownerUserId: string;
@@ -15,7 +15,7 @@ export class PropertyPolicyService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Membresia aceptada del usuario en una agencia (o null). */
-  membership(userId: string, agencyId?: string): Promise<AgencyMember | null> {
+  membership(userId: string, agencyId?: string): Promise<DbSupport.AgencyMember | null> {
     return this.prisma.agencyMember.findFirst({
       where: { userId, invitationStatus: 'ACCEPTED', agencyId },
       orderBy: { createdAt: 'asc' },
@@ -28,7 +28,7 @@ export class PropertyPolicyService {
    */
   async canManage(user: AuthUser | undefined, property: PropertyOwnership): Promise<boolean> {
     if (!user) return false;
-    if (user.roles.includes(Role.ADMIN) || property.ownerUserId === user.id) return true;
+    if (user.roles.includes(DbSupport.Role.ADMIN) || property.ownerUserId === user.id) return true;
     if (!property.agencyId) return false;
 
     const member = await this.membership(user.id, property.agencyId);
@@ -37,10 +37,10 @@ export class PropertyPolicyService {
   }
 
   /** Filtro Prisma de "las propiedades que este usuario puede gestionar" (para listados de gestion). */
-  async managedFilter(user: AuthUser): Promise<Prisma.PropertyWhereInput> {
-    if (user.roles.includes(Role.ADMIN)) return {};
+  async managedFilter(user: AuthUser): Promise<DbSupport.Prisma.PropertyWhereInput> {
+    if (user.roles.includes(DbSupport.Role.ADMIN)) return {};
     const member = await this.membership(user.id);
-    const or: Prisma.PropertyWhereInput[] = [{ ownerUserId: user.id }];
+    const or: DbSupport.Prisma.PropertyWhereInput[] = [{ ownerUserId: user.id }];
     if (member?.role === 'AGENCY_ADMIN') or.push({ agencyId: member.agencyId });
     if (member?.role === 'AGENT') or.push({ agencyId: member.agencyId, assignedAgentId: user.id });
     return { OR: or };
@@ -48,7 +48,7 @@ export class PropertyPolicyService {
 
   /** Solo el administrador de la agencia asigna agentes (o un admin de plataforma). */
   async assertCanAssign(user: AuthUser, property: PropertyOwnership): Promise<void> {
-    if (user.roles.includes(Role.ADMIN)) return;
+    if (user.roles.includes(DbSupport.Role.ADMIN)) return;
     const member = property.agencyId ? await this.membership(user.id, property.agencyId) : null;
     if (member?.role !== 'AGENCY_ADMIN') {
       throw new ForbiddenException('Solo el administrador de la agencia puede asignar agentes');

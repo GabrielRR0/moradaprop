@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Role } from '@prisma/client';
 import { REQUIRE_TWO_FACTOR_KEY, ROLES_KEY } from '../decorators';
 import { requestOf } from '../request-of';
+import { DbSupport } from '../../../support/db';
 
 /** Aplica @Roles(...) y @RequireTwoFactor() sobre el usuario ya autenticado. */
 @Injectable()
@@ -11,7 +11,7 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const targets = [context.getHandler(), context.getClass()];
-    const roles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, targets);
+    const roles = this.reflector.getAllAndOverride<DbSupport.Role[]>(ROLES_KEY, targets);
     const needsTwoFactor = this.reflector.getAllAndOverride<boolean>(REQUIRE_TWO_FACTOR_KEY, targets);
     if (!roles?.length && !needsTwoFactor) return true;
 

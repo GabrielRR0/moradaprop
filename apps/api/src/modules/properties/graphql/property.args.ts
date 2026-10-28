@@ -1,7 +1,7 @@
 import { ArgsType, Field, Float, Int, registerEnumType } from '@nestjs/graphql';
-import { Currency, PropertyType } from '@prisma/client';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { MAX_PAGE, PropertySort } from '../dto/search-properties.dto';
+import { DbSupport } from '../../../support/db';
 
 registerEnumType(PropertySort, { name: 'PropertySort' });
 
@@ -15,8 +15,8 @@ export class PropertyFiltersArgs {
   @Field({ nullable: true }) @IsOptional() @IsString() @MaxLength(60) state?: string;
   @Field({ nullable: true }) @IsOptional() @IsString() @MaxLength(80) municipality?: string;
   @Field({ nullable: true }) @IsOptional() @IsString() @MaxLength(100) urbanization?: string;
-  @Field(() => PropertyType, { nullable: true }) @IsOptional() @IsEnum(PropertyType) type?: PropertyType;
-  @Field(() => Currency, { nullable: true }) @IsOptional() @IsEnum(Currency) currency?: Currency;
+  @Field(() => DbSupport.PropertyType, { nullable: true }) @IsOptional() @IsEnum(DbSupport.PropertyType) type?: DbSupport.PropertyType;
+  @Field(() => DbSupport.Currency, { nullable: true }) @IsOptional() @IsEnum(DbSupport.Currency) currency?: DbSupport.Currency;
   @Field(() => Float, { nullable: true }) @IsOptional() @IsNumber() @Min(0) minPrice?: number;
   @Field(() => Float, { nullable: true }) @IsOptional() @IsNumber() @Min(0) maxPrice?: number;
   @Field(() => Int, { nullable: true }) @IsOptional() @IsInt() @Min(0) @Max(20) bedrooms?: number;

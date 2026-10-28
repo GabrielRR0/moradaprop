@@ -1,5 +1,4 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import {
   AccessRiskService,
   PasskeyService,
@@ -12,6 +11,7 @@ import type { LoginResult, RequestContext } from '../utils/auth-context';
 import { LoginService } from './login.service';
 import { TokenService } from './token.service';
 import { UserAccountService } from './user-account.service';
+import { DbSupport } from '../../../support/db';
 
 /**
  * Entrar con passkey (huella, Face ID, Windows Hello). La verificacion de la firma vive en security/passkeys;
@@ -64,7 +64,7 @@ export class PasskeyLoginService {
     return this.login.finishLogin(user, context, true);
   }
 
-  private async userOrFail(userId: string): Promise<User> {
+  private async userOrFail(userId: string): Promise<DbSupport.User> {
     const user = await this.accounts.findById(userId);
     if (!user) throw new UnauthorizedException('Passkey invalida');
     return user;

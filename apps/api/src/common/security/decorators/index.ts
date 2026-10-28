@@ -1,7 +1,7 @@
 import { createParamDecorator, SetMetadata, type ExecutionContext } from '@nestjs/common';
-import type { Role } from '@prisma/client';
 import { requestOf } from '../request-of';
 import type { AppRequest, AuthUser, RequestContext } from '../types';
+import { DbSupport } from '../../../support/db';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const ROLES_KEY = 'roles';
@@ -12,7 +12,7 @@ export const ALLOW_WITHOUT_SECOND_FACTOR_KEY = 'allowWithoutSecondFactor';
 /** La ruta no exige token. */
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 /** La ruta exige alguno de estos roles. */
-export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+export const Roles = (...roles: DbSupport.Role[]) => SetMetadata(ROLES_KEY, roles);
 /** La ruta exige 2FA activo y verificado en la sesion. */
 export const RequireTwoFactor = () => SetMetadata(REQUIRE_TWO_FACTOR_KEY, true);
 /**

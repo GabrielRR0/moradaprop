@@ -128,9 +128,9 @@ Reglas de protección:
 
 Para que una versión mayor futura de un paquete no obligue a tocar medio proyecto, la API usa **módulos propios** en `apps/api/src/support/<modulo>/` y nunca el paquete directo.
 
-- Hoy: `password` (argon2), `cache` (ioredis), `mail` (nodemailer), `images` (sharp), `jwt` (@nestjs/jwt), `google-identity` (google-auth-library), `totp` (otplib + qrcode), `spreadsheet` (exceljs). Lista y cómo agregar uno: `apps/api/src/support/README.md`.
+- Hoy: `password` (argon2), `cache` (ioredis), `mail` (nodemailer), `images` (sharp), `jwt` (@nestjs/jwt), `google-identity` (google-auth-library), `totp` (otplib + qrcode), `spreadsheet` (exceljs), `db` (@prisma/client). Lista y cómo agregar uno: `apps/api/src/support/README.md`.
 - ESLint falla si importas uno de esos paquetes fuera de su carpeta, o un archivo interno de `support/<modulo>` en vez de su `index`.
 - `support/tests/support-modules.spec.ts` exige `index.ts` + `README.md` por módulo y que todo lo exportado esté documentado.
-- Los módulos de funciones se usan con prefijo: `SpreadsheetSupport.buildXlsx()`, `PasswordSupport.hash()`, `TotpSupport.check()`, `ImagesSupport.render()`; así se ve de dónde viene en cada llamada.
+- Los módulos de funciones se usan con prefijo: `SpreadsheetSupport.buildXlsx()`, `PasswordSupport.hash()`, `TotpSupport.check()`, `ImagesSupport.render()`; los tipos y enums de Prisma salen de `DbSupport` (`DbSupport.Role`, `DbSupport.User`); así se ve de dónde viene en cada llamada.
 - La API de cada módulo es propia (errores y tipos propios), para que cambiar de paquete no cambie a quienes lo usan.
-- **No se envuelven** los paquetes acoplados al framework (`@nestjs/*`, `class-validator`, `next`, `react`). `@prisma/client` y los de la web (`motion`, `@tanstack/react-query`, `maplibre-gl`) están pendientes.
+- **No se envuelven** los paquetes acoplados al framework (`@nestjs/*`, `class-validator`, `next`, `react`). Los de la web (`motion`, `@tanstack/react-query`, `maplibre-gl`) están pendientes.

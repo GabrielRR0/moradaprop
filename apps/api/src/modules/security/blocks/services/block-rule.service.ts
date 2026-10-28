@@ -1,10 +1,10 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { BlockType } from '@prisma/client';
 import { isIP } from 'node:net';
 import { PrismaService } from '../../../../common/prisma';
 import type { CreateBlockRuleDto } from '../dto/create-block-rule.dto';
 import { isValidCidr, normalizeIp } from '../utils/cidr';
 import { BlockCheckService } from './block-check.service';
+import { DbSupport } from '../../../../support/db';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,15 +45,15 @@ export class BlockRuleService {
   /** Bloqueo de un usuario por su id. Si ya estaba bloqueado no hace nada (se puede llamar varias veces). */
   async blockUser(userId: string, reason: string, createdBy: string) {
     await this.prisma.blockRule.upsert({
-      where: { type_value: { type: BlockType.USER, value: userId } },
-      create: { type: BlockType.USER, value: userId, reason, createdBy },
+      where: { type_value: { type: DbSupport.BlockType.USER, value: userId } },
+      create: { type: DbSupport.BlockType.USER, value: userId, reason, createdBy },
       update: {},
     });
     this.check.invalidate();
   }
 
   /** Bloqueo con vencimiento (lo usa el modelo de amenazas). Renueva uno vencido y nunca acorta uno permanente. */
-  async blockTemporarily(type: BlockType, rawValue: string, reason: string, expiresAt: Date, createdBy: string) {
+  async blockTemporarily(type: DbSupport.BlockType, rawValue: string, reason: string, expiresAt: Date, createdBy: string) {
     const value = this.normalize(type, rawValue);
     const existing = await this.prisma.blockRule.findUnique({ where: { type_value: { type, value } } });
     if (existing && !existing.expiresAt) return;
@@ -66,7 +66,7 @@ export class BlockRuleService {
   }
 
   async unblockUser(userId: string) {
-    await this.prisma.blockRule.deleteMany({ where: { type: BlockType.USER, value: userId } });
+    await this.prisma.blockRule.deleteMany({ where: { type: DbSupport.BlockType.USER, value: userId } });
     this.check.invalidate();
   }
 
@@ -79,27 +79,27 @@ export class BlockRuleService {
   }
 
   /** Valida y normaliza el valor segun el tipo de bloqueo. */
-  private normalize(type: BlockType, raw: string): string {
+  private normalize(type: DbSupport.BlockType, raw: string): string {
     const value = raw.trim();
     const invalid = (what: string) => new BadRequestException(`Valor invalido para ${what}`);
 
     switch (type) {
-      case BlockType.IP:
+      case DbSupport.BlockType.IP:
         if (!isIP(normalizeIp(value))) throw invalid('una IP');
         return normalizeIp(value);
-      case BlockType.CIDR:
+      case DbSupport.BlockType.CIDR:
         if (!isValidCidr(value)) throw invalid('un CIDR (ej. 192.168.0.0/24)');
         return value;
-      case BlockType.COUNTRY:
+      case DbSupport.BlockType.COUNTRY:
         if (!/^[A-Za-z]{2}$/.test(value)) throw invalid('un pais (codigo de 2 letras, ej. VE)');
         return value.toUpperCase();
-      case BlockType.USER:
+      case DbSupport.BlockType.USER:
         if (!UUID.test(value)) throw invalid('un usuario (UUID)');
         return value.toLowerCase();
-      case BlockType.EMAIL:
+      case DbSupport.BlockType.EMAIL:
         if (!EMAIL.test(value)) throw invalid('un correo');
         return value.toLowerCase();
-      case BlockType.EMAIL_DOMAIN:
+      case DbSupport.BlockType.EMAIL_DOMAIN:
         if (!DOMAIN.test(value)) throw invalid('un dominio (ej. correo-basura.com)');
         return value.toLowerCase();
     }

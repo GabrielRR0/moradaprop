@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser } from '../../../common/security/types';
 import type { ResourcePolicy } from '../../security';
 import { PropertyPolicyService } from '../../properties';
+import { DbSupport } from '../../../support/db';
 
-export type AppointmentWithProperty = Prisma.AppointmentGetPayload<{ include: { property: true } }>;
+export type AppointmentWithProperty = DbSupport.Prisma.AppointmentGetPayload<{ include: { property: true } }>;
 
 /**
  * Pertenencia de una cita para OwnershipService.

@@ -1,8 +1,8 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import type { Prisma, VerificationType } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { PrismaService } from '../../../common/prisma';
+import { DbSupport } from '../../../support/db';
 
 const INVALID_CODE = 'Codigo invalido o vencido';
 
@@ -19,7 +19,7 @@ export class VerificationCodeService {
    * Crea un codigo nuevo e invalida los anteriores del mismo tipo.
    * Respeta el cooldown de reenvio (429 si se pide demasiado pronto).
    */
-  async issue(userId: string, type: VerificationType, payload?: Prisma.InputJsonValue): Promise<string> {
+  async issue(userId: string, type: DbSupport.VerificationType, payload?: DbSupport.Prisma.InputJsonValue): Promise<string> {
     const { codeLength, codeTtlMinutes, resendCooldownSeconds } = this.config.auth;
 
     const last = await this.prisma.verificationCode.findFirst({
@@ -50,7 +50,7 @@ export class VerificationCodeService {
   }
 
   /** Valida el codigo (un solo uso, intentos limitados). Devuelve el payload guardado. */
-  async consume(userId: string, type: VerificationType, code: string): Promise<Prisma.JsonValue | null> {
+  async consume(userId: string, type: DbSupport.VerificationType, code: string): Promise<DbSupport.Prisma.JsonValue | null> {
     const record = await this.prisma.verificationCode.findFirst({
       where: { userId, type, usedAt: null, expiresAt: { gt: new Date() } },
       orderBy: { createdAt: 'desc' },

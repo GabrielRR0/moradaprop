@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { FootprintKind } from '@prisma/client';
 import { PrismaService } from '../../../../common/prisma';
 import { BlindIndexService } from '../../encryption';
 import { RISK_POLICY } from '../policy';
+import { DbSupport } from '../../../../support/db';
 
 /**
  * Donde suele entrar cada usuario: paises y redes ya vistos. El pais se guarda tal cual (2 letras); la red solo
@@ -26,20 +26,20 @@ export class FootprintService {
       orderBy: { lastSeenAt: 'desc' },
       take: RISK_POLICY.footprintsPerKind * 2,
     });
-    const countries = rows.filter((r) => r.kind === FootprintKind.COUNTRY);
+    const countries = rows.filter((r) => r.kind === DbSupport.FootprintKind.COUNTRY);
     return {
       hasHistory: rows.length > 0,
       countries: new Set(countries.map((r) => r.value)),
-      networks: new Set(rows.filter((r) => r.kind === FootprintKind.NETWORK).map((r) => r.value)),
+      networks: new Set(rows.filter((r) => r.kind === DbSupport.FootprintKind.NETWORK).map((r) => r.value)),
       lastLogin: countries[0] ? { country: countries[0].value, at: countries[0].lastSeenAt } : null,
     };
   }
 
   /** Anota el pais y la red de un inicio de sesion completo (y olvida los mas antiguos pasado el tope). */
   async remember(userId: string, country: string | null, networkKey: string | null): Promise<void> {
-    const entries: Array<[FootprintKind, string | null]> = [
-      [FootprintKind.COUNTRY, country],
-      [FootprintKind.NETWORK, networkKey],
+    const entries: Array<[DbSupport.FootprintKind, string | null]> = [
+      [DbSupport.FootprintKind.COUNTRY, country],
+      [DbSupport.FootprintKind.NETWORK, networkKey],
     ];
     for (const [kind, value] of entries) {
       if (!value) continue;
@@ -52,7 +52,7 @@ export class FootprintService {
     }
   }
 
-  private async prune(userId: string, kind: FootprintKind): Promise<void> {
+  private async prune(userId: string, kind: DbSupport.FootprintKind): Promise<void> {
     const stale = await this.prisma.loginFootprint.findMany({
       where: { userId, kind },
       orderBy: { lastSeenAt: 'desc' },

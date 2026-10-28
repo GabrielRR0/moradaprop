@@ -1,9 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { QueryAuditDto } from '../dto/query-audit.dto';
 import { AUDIT_FIELD_CIPHER, AUDIT_USER_DECODER, type AuditFieldCipher, type AuditUserDecoder } from '../types';
 import { sanitize } from '../utils/sanitize';
+import { DbSupport } from '../../../support/db';
 
 export interface AuditEntry {
   action: string;
@@ -50,7 +50,7 @@ export class AuditService {
   async list(query: QueryAuditDto) {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 50, 100);
-    const where: Prisma.AuditLogWhereInput = {
+    const where: DbSupport.Prisma.AuditLogWhereInput = {
       userId: query.userId,
       action: query.action ? { startsWith: query.action } : undefined,
       resource: query.resource,
@@ -86,7 +86,7 @@ export class AuditService {
   }
 
   /** Descifra ip, userAgent, metadata y el usuario de un evento para mostrarlo en el panel admin. */
-  private reveal<T extends { ip: string | null; userAgent: string | null; metadata: Prisma.JsonValue; user: { email?: string | null; name?: string | null } | null }>(item: T): T {
+  private reveal<T extends { ip: string | null; userAgent: string | null; metadata: DbSupport.Prisma.JsonValue; user: { email?: string | null; name?: string | null } | null }>(item: T): T {
     const enc = (item.metadata as { enc?: unknown } | null)?.enc;
     return {
       ...item,

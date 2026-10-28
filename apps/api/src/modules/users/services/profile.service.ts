@@ -1,10 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
 import { SocialAccountVault, UserVault } from '../../security';
 import type { UpdateProfileDto } from '../dto/update-profile.dto';
+import { DbSupport } from '../../../support/db';
 
 @Injectable()
 export class ProfileService {
@@ -65,9 +65,9 @@ export class ProfileService {
   /** Un cliente pasa a poder publicar propiedades como dueno directo. */
   async becomeOwner(userId: string, context: RequestContext) {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
-    if (user.roles.includes(Role.OWNER)) throw new ConflictException('Ya eres dueno directo');
+    if (user.roles.includes(DbSupport.Role.OWNER)) throw new ConflictException('Ya eres dueno directo');
 
-    await this.prisma.user.update({ where: { id: userId }, data: { roles: { set: [...user.roles, Role.OWNER] } } });
+    await this.prisma.user.update({ where: { id: userId }, data: { roles: { set: [...user.roles, DbSupport.Role.OWNER] } } });
     await this.audit.log({
       action: 'users.role.owner-added',
       userId,

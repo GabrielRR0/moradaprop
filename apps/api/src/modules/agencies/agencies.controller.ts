@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup, RoleGroup } from '../../common/security/groups';
 import type { AuthUser, RequestContext } from '../../common/security/types';
 import { AcceptInvitationDto, InviteAgentDto, UpdateAgencyDto } from './dto/agencies.dto';
 import { AgenciesService } from './services/agencies.service';
+import { DbSupport } from '../../support/db';
 
 /** La agencia siempre sale de la cuenta del token: ninguna ruta recibe un agencyId. */
 @ApiTags('agencies')
@@ -13,25 +13,25 @@ import { AgenciesService } from './services/agencies.service';
 export class AgenciesController {
   constructor(private readonly agenciesService: AgenciesService) {}
 
-  @RoleGroup(Role.AGENCY)
+  @RoleGroup(DbSupport.Role.AGENCY)
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
     return this.agenciesService.me(user.id);
   }
 
-  @RoleGroup(Role.AGENCY)
+  @RoleGroup(DbSupport.Role.AGENCY)
   @Patch('me')
   update(@Body() dto: UpdateAgencyDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
     return this.agenciesService.update(user.id, dto, ctx);
   }
 
-  @RoleGroup(Role.AGENCY)
+  @RoleGroup(DbSupport.Role.AGENCY)
   @Post('me/members/invite')
   invite(@Body() dto: InviteAgentDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
     return this.agenciesService.invite(user.id, dto.email, ctx);
   }
 
-  @RoleGroup(Role.AGENCY)
+  @RoleGroup(DbSupport.Role.AGENCY)
   @HttpCode(204)
   @Delete('me/members/:memberId')
   async removeMember(

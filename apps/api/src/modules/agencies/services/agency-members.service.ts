@@ -1,5 +1,4 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { MailService } from '../../../support/mail';
@@ -8,6 +7,7 @@ import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
 import { AgencyVault, UserVault } from '../../security';
 import { AgencyAccessService } from './agency-access.service';
+import { DbSupport } from '../../../support/db';
 
 const INVITATION_DAYS = 7;
 const INVALID_INVITATION = 'Invitacion invalida o vencida';
@@ -99,7 +99,7 @@ export class AgencyMembersService {
       }),
       this.prisma.user.update({
         where: { id: userId },
-        data: { roles: { set: [...new Set([...user.roles, Role.AGENCY])] } },
+        data: { roles: { set: [...new Set([...user.roles, DbSupport.Role.AGENCY])] } },
       }),
     ]);
     await this.audit.log({
@@ -128,7 +128,7 @@ export class AgencyMembersService {
           data: { assignedAgentId: null },
         });
         const user = await tx.user.findUniqueOrThrow({ where: { id: member.userId } });
-        await tx.user.update({ where: { id: member.userId }, data: { roles: { set: user.roles.filter((r) => r !== Role.AGENCY) } } });
+        await tx.user.update({ where: { id: member.userId }, data: { roles: { set: user.roles.filter((r) => r !== DbSupport.Role.AGENCY) } } });
         await tx.session.updateMany({ where: { userId: member.userId, revokedAt: null }, data: { revokedAt: new Date() } });
       }
       await tx.agencyMember.delete({ where: { id: member.id } });

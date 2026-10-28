@@ -1,10 +1,10 @@
-import { Role } from '@prisma/client';
 import { describeCase } from '../../../../../test/support/describe-case';
 import type { AppConfig } from '../../../../config';
 import type { PrismaService } from '../../../../common/prisma';
 import type { PasskeyService } from '../../passkeys';
 import { SecondFactorService } from '../services/second-factor.service';
 import type { SecondFactorMode } from '../types';
+import { DbSupport } from '../../../../support/db';
 
 const DAY = 24 * 60 * 60 * 1000;
 const dias = (n: number) => new Date(Date.now() + n * DAY);
@@ -19,7 +19,7 @@ const setup = (mode: SecondFactorMode, passkeys = false) => {
   return { service, update };
 };
 
-const cuenta = (roles: Role[], extra: { twoFactorEnabled?: boolean; secondFactorRequiredFrom?: Date | null } = {}) => ({
+const cuenta = (roles: DbSupport.Role[], extra: { twoFactorEnabled?: boolean; secondFactorRequiredFrom?: Date | null } = {}) => ({
   id: 'u1',
   roles,
   twoFactorEnabled: extra.twoFactorEnabled ?? false,
@@ -30,7 +30,7 @@ describe('SecondFactorService.status', () => {
   describeCase('second-factor', {
     que: 'un cliente sin passkey ni 2FA',
     espera: 'no es obligatorio (se le recomienda) y nunca se bloquea',
-    ejecutar: () => setup('enforce').service.status(cuenta([Role.CLIENT])),
+    ejecutar: () => setup('enforce').service.status(cuenta([DbSupport.Role.CLIENT])),
     verificar: (s) => expect(s).toMatchObject({ required: false, hasFactor: false, recommended: true, mustEnrollNow: false, blocked: false, graceEndsAt: null }),
   });
 
@@ -39,7 +39,7 @@ describe('SecondFactorService.status', () => {
     espera: 'obligatorio, pero aun no bloquea: dice hasta cuando puede activarlo',
     ejecutar: async () => {
       const limite = dias(5);
-      const s = await setup('enforce').service.status(cuenta([Role.CLIENT, Role.OWNER], { secondFactorRequiredFrom: limite }));
+      const s = await setup('enforce').service.status(cuenta([DbSupport.Role.CLIENT, DbSupport.Role.OWNER], { secondFactorRequiredFrom: limite }));
       return { s, limite };
     },
     verificar: ({ s, limite }) => {
@@ -52,7 +52,7 @@ describe('SecondFactorService.status', () => {
     que: 'un dueño con el plazo vencido, segun el modo',
     espera: 'enforce: bloqueado; monitor: avisa (mustEnrollNow) pero no bloquea; off: no mide nada',
     ejecutar: async () => {
-      const vencido = cuenta([Role.OWNER], { secondFactorRequiredFrom: dias(-1) });
+      const vencido = cuenta([DbSupport.Role.OWNER], { secondFactorRequiredFrom: dias(-1) });
       return {
         enforce: await setup('enforce').service.status(vencido),
         monitor: await setup('monitor').service.status(vencido),
@@ -74,8 +74,8 @@ describe('SecondFactorService.status', () => {
       const dueno = setup('enforce');
       const admin = setup('enforce');
       return {
-        dueno: await dueno.service.status(cuenta([Role.OWNER])),
-        admin: await admin.service.status(cuenta([Role.ADMIN])),
+        dueno: await dueno.service.status(cuenta([DbSupport.Role.OWNER])),
+        admin: await admin.service.status(cuenta([DbSupport.Role.ADMIN])),
         guardadoDueno: (dueno.update.mock.calls[0][0].data.secondFactorRequiredFrom as Date).getTime() - Date.now(),
         guardadoAdmin: (admin.update.mock.calls[0][0].data.secondFactorRequiredFrom as Date).getTime() - Date.now(),
       };
@@ -97,8 +97,8 @@ describe('SecondFactorService.status', () => {
       const conTotp = setup('enforce');
       const conPasskey = setup('enforce', true);
       return {
-        totp: await conTotp.service.status(cuenta([Role.AGENCY], { ...vencido, twoFactorEnabled: true })),
-        passkey: await conPasskey.service.status(cuenta([Role.AGENCY], vencido)),
+        totp: await conTotp.service.status(cuenta([DbSupport.Role.AGENCY], { ...vencido, twoFactorEnabled: true })),
+        passkey: await conPasskey.service.status(cuenta([DbSupport.Role.AGENCY], vencido)),
         escrituras: conTotp.update.mock.calls.length + conPasskey.update.mock.calls.length,
       };
     },
@@ -112,7 +112,7 @@ describe('SecondFactorService.status', () => {
   describeCase('second-factor', {
     que: 'quien tiene varios roles, uno obligatorio (cliente + dueño)',
     espera: 'se le exige por el rol mas alto',
-    ejecutar: () => setup('enforce').service.status(cuenta([Role.CLIENT, Role.OWNER], { secondFactorRequiredFrom: dias(1) })),
+    ejecutar: () => setup('enforce').service.status(cuenta([DbSupport.Role.CLIENT, DbSupport.Role.OWNER], { secondFactorRequiredFrom: dias(1) })),
     verificar: (s) => expect(s.required).toBe(true),
   });
 });

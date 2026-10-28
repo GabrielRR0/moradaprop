@@ -1,9 +1,9 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { Currency, PropertyStatus, PropertyType } from '@prisma/client';
+import { DbSupport } from '../../../support/db';
 
-registerEnumType(PropertyType, { name: 'PropertyType' });
-registerEnumType(PropertyStatus, { name: 'PropertyStatus' });
-registerEnumType(Currency, { name: 'Currency' });
+registerEnumType(DbSupport.PropertyType, { name: 'PropertyType' });
+registerEnumType(DbSupport.PropertyStatus, { name: 'PropertyStatus' });
+registerEnumType(DbSupport.Currency, { name: 'Currency' });
 
 /**
  * Tipos de lectura de GraphQL. Son una VENTANA de lo publico: aqui no existen ownerUserId, agencyId,
@@ -23,12 +23,12 @@ export class PropertyImageType {
 export class PropertyCardType {
   @Field() id: string;
   @Field() title: string;
-  @Field(() => PropertyType) type: PropertyType;
-  @Field(() => PropertyStatus) status: PropertyStatus;
+  @Field(() => DbSupport.PropertyType) type: DbSupport.PropertyType;
+  @Field(() => DbSupport.PropertyStatus) status: DbSupport.PropertyStatus;
   /** true cuando esta "En Proceso de Reserva" */
   @Field() inReservation: boolean;
   @Field(() => Float) priceAmount: number;
-  @Field(() => Currency) currency: Currency;
+  @Field(() => DbSupport.Currency) currency: DbSupport.Currency;
   @Field(() => Int) bedrooms: number;
   @Field(() => Int) bathrooms: number;
   @Field(() => Int) parkingSpots: number;
@@ -87,8 +87,8 @@ export class MapMarkerType {
   @Field(() => [String], { nullable: true }) ids?: string[];
   @Field(() => String, { nullable: true }) propertyId?: string;
   @Field(() => Float, { nullable: true }) priceAmount?: number;
-  @Field(() => Currency, { nullable: true }) currency?: Currency;
-  @Field(() => PropertyStatus, { nullable: true }) status?: PropertyStatus;
+  @Field(() => DbSupport.Currency, { nullable: true }) currency?: DbSupport.Currency;
+  @Field(() => DbSupport.PropertyStatus, { nullable: true }) status?: DbSupport.PropertyStatus;
 }
 
 @ObjectType('PropertyMap')

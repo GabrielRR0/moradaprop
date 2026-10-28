@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import type { PropertyStatus } from '@prisma/client';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import type { CreatePropertyDto } from '../dto/create-property.dto';
 import type { MapPropertiesDto, SearchPropertiesDto } from '../dto/search-properties.dto';
@@ -8,6 +7,7 @@ import { PropertyFavoritesService } from './property-favorites.service';
 import { PropertyImagesService } from './property-images.service';
 import { PropertySearchService } from './property-search.service';
 import { PropertyWriteService } from './property-write.service';
+import { DbSupport } from '../../../support/db';
 
 /** Fachada del modulo: controller y resolver solo hablan con este service. */
 @Injectable()
@@ -42,7 +42,7 @@ export class PropertiesService {
     await this.writer.update(user, id, dto, ctx);
     return this.search.detail(id, user);
   }
-  async changeStatus(user: AuthUser, id: string, status: PropertyStatus, ctx: RequestContext) {
+  async changeStatus(user: AuthUser, id: string, status: DbSupport.PropertyStatus, ctx: RequestContext) {
     await this.writer.changeStatus(user, id, status, ctx);
     return this.search.detail(id, user);
   }

@@ -1,7 +1,7 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
-import { UserStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { DbSupport } from '../../../support/db';
 
 export class ListUsersQueryDto {
   @ApiPropertyOptional({ description: 'Busca por nombre o correo' })
@@ -10,10 +10,10 @@ export class ListUsersQueryDto {
   @MaxLength(100)
   q?: string;
 
-  @ApiPropertyOptional({ enum: UserStatus })
+  @ApiPropertyOptional({ enum: DbSupport.UserStatus })
   @IsOptional()
-  @IsEnum(UserStatus)
-  status?: UserStatus;
+  @IsEnum(DbSupport.UserStatus)
+  status?: DbSupport.UserStatus;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()
@@ -32,9 +32,9 @@ export class ListUsersQueryDto {
 }
 
 export class SetUserStatusDto {
-  @ApiProperty({ enum: UserStatus })
-  @IsEnum(UserStatus)
-  status: UserStatus;
+  @ApiProperty({ enum: DbSupport.UserStatus })
+  @IsEnum(DbSupport.UserStatus)
+  status: DbSupport.UserStatus;
 
   @ApiPropertyOptional()
   @IsOptional()

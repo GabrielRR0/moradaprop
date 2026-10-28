@@ -1,4 +1,4 @@
-import type { Role } from '@prisma/client';
+import { DbSupport } from '../../../support/db';
 
 /** Categorias del modelo STRIDE (Microsoft). Cada mini modulo declara de cual es. */
 export type StrideLetter = 'S' | 'T' | 'R' | 'I' | 'D' | 'E';
@@ -19,7 +19,7 @@ export type ThreatMode = 'off' | 'monitor' | 'enforce';
 export interface ThreatSubject {
   ip?: string;
   userId?: string;
-  roles?: Role[];
+  roles?: DbSupport.Role[];
 }
 
 /** Lo que se sabe de una respuesta ya enviada (lo que ven los escudos). */

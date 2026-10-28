@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Currency, PropertyType } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { DbSupport } from '../../../support/db';
 
 /** Los query params llegan como texto: "true" / "false" -> boolean. */
 const toBoolean = ({ value }: { value: unknown }) => (value === 'true' ? true : value === 'false' ? false : value);
@@ -27,15 +27,15 @@ export class PropertyFiltersDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) municipality?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) urbanization?: string;
 
-  @ApiPropertyOptional({ enum: PropertyType })
+  @ApiPropertyOptional({ enum: DbSupport.PropertyType })
   @IsOptional()
-  @IsEnum(PropertyType)
-  type?: PropertyType;
+  @IsEnum(DbSupport.PropertyType)
+  type?: DbSupport.PropertyType;
 
-  @ApiPropertyOptional({ enum: Currency, description: 'Moneda de minPrice/maxPrice (USD por defecto)' })
+  @ApiPropertyOptional({ enum: DbSupport.Currency, description: 'Moneda de minPrice/maxPrice (USD por defecto)' })
   @IsOptional()
-  @IsEnum(Currency)
-  currency?: Currency;
+  @IsEnum(DbSupport.Currency)
+  currency?: DbSupport.Currency;
 
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) minPrice?: number;
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsNumber() @Min(0) maxPrice?: number;

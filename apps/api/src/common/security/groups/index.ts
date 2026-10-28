@@ -1,9 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Role } from '@prisma/client';
 import { Public, RequireTwoFactor, Roles } from '../decorators';
 import { limitPerMinute, RATE_LIMITS } from '../rate-limits';
+import { DbSupport } from '../../../support/db';
 
 /**
  * GRUPOS DE RUTAS (equivalente a los grupos de middleware de Laravel).
@@ -31,7 +31,7 @@ export const AuthGroup = () => applyDecorators(ApiBearerAuth(), perMinute(RATE_L
 export const TwoFactorGroup = () => applyDecorators(AuthGroup(), RequireTwoFactor());
 
 /** Exige token y alguno de los roles indicados. */
-export const RoleGroup = (...roles: Role[]) => applyDecorators(AuthGroup(), Roles(...roles));
+export const RoleGroup = (...roles: DbSupport.Role[]) => applyDecorators(AuthGroup(), Roles(...roles));
 
 /** Panel de administracion: rol ADMIN y 2FA obligatorio. */
-export const AdminGroup = () => applyDecorators(RoleGroup(Role.ADMIN), RequireTwoFactor());
+export const AdminGroup = () => applyDecorators(RoleGroup(DbSupport.Role.ADMIN), RequireTwoFactor());

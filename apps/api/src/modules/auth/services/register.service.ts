@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
 import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
@@ -9,6 +8,7 @@ import { normalizeEmail, type RequestContext } from '../utils/auth-context';
 import { PasswordSupport } from '../../../support/password';
 import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
+import { DbSupport } from '../../../support/db';
 
 export const REGISTER_RESPONSE = {
   message: 'Si el correo es valido, te enviamos un codigo de verificacion',
@@ -86,7 +86,7 @@ export class RegisterService {
       });
     } catch (error) {
       // Dos registros simultaneos con el mismo correo: se trata igual que "ya existe".
-      if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) throw error;
+      if (!(error instanceof DbSupport.Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) throw error;
     }
     return REGISTER_RESPONSE;
   }
@@ -105,14 +105,14 @@ export class RegisterService {
   }
 
   /** CLIENT siempre puede buscar; OWNER y AGENCY se suman segun lo elegido. */
-  private rolesFor(accountType: AccountType): Role[] {
+  private rolesFor(accountType: AccountType): DbSupport.Role[] {
     switch (accountType) {
       case AccountType.OWNER:
-        return [Role.CLIENT, Role.OWNER];
+        return [DbSupport.Role.CLIENT, DbSupport.Role.OWNER];
       case AccountType.AGENCY:
-        return [Role.CLIENT, Role.AGENCY];
+        return [DbSupport.Role.CLIENT, DbSupport.Role.AGENCY];
       default:
-        return [Role.CLIENT];
+        return [DbSupport.Role.CLIENT];
     }
   }
 }

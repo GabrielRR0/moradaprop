@@ -1,11 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
 import { AgencyVault, UserVault } from '../../security';
 import type { UpdateAgencyDto } from '../dto/agencies.dto';
 import { AgencyAccessService } from './agency-access.service';
+import { DbSupport } from '../../../support/db';
 
 @Injectable()
 export class AgencyProfileService {
@@ -51,7 +51,7 @@ export class AgencyProfileService {
     try {
       await this.prisma.agencyProfile.update({ where: { id: admin.agencyId }, data: this.agencyVault.encodeProfile(dto) });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (error instanceof DbSupport.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException('Ya existe una agencia con ese RIF');
       }
       throw error;

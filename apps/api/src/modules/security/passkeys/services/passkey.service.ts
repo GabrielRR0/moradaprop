@@ -1,6 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
 import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Prisma, type PasskeyChallengeKind } from '@prisma/client';
 import { AppConfig } from '../../../../config';
 import { AuditService } from '../../../audit';
 import { BlindIndexService } from '../../encryption';
@@ -10,6 +9,7 @@ import { WebAuthnError, SUPPORTED_ALGORITHMS, type AuthenticationResponseJSON, t
 import { parseClientData, verifyAuthenticationResponse, verifyRegistrationResponse } from '../webauthn/verify';
 import { PasskeyChallengeService } from './passkey-challenge.service';
 import { PasskeyCredentialService } from './passkey-credential.service';
+import { DbSupport } from '../../../../support/db';
 
 export interface PasskeyUser {
   id: string;
@@ -106,7 +106,7 @@ export class PasskeyService {
       });
       return { id: row.id, label: row.label, backedUp: row.backedUp };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (error instanceof DbSupport.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException('Esta passkey ya esta registrada');
       }
       if (error instanceof WebAuthnError) {
@@ -124,7 +124,7 @@ export class PasskeyService {
    * Opciones para `navigator.credentials.get()`. LOGIN: sin lista de credenciales (el dispositivo ofrece las
    * suyas; no hace falta escribir el correo). STEP_UP: solo las passkeys de ese usuario.
    */
-  async authenticationOptions(kind: Extract<PasskeyChallengeKind, 'LOGIN' | 'STEP_UP'>, userId?: string) {
+  async authenticationOptions(kind: Extract<DbSupport.PasskeyChallengeKind, 'LOGIN' | 'STEP_UP'>, userId?: string) {
     const allowed = userId ? await this.credentials.credentialIds(userId) : [];
     if (kind === 'STEP_UP' && allowed.length === 0) throw new BadRequestException('Esta cuenta no tiene passkeys');
     const challenge = await this.challenges.issue(kind, userId);
@@ -143,7 +143,7 @@ export class PasskeyService {
    */
   async verifyAuthentication(
     response: AuthenticationResponseJSON,
-    kind: Extract<PasskeyChallengeKind, 'LOGIN' | 'STEP_UP'>,
+    kind: Extract<DbSupport.PasskeyChallengeKind, 'LOGIN' | 'STEP_UP'>,
     expectedUserId: string | undefined,
     context: PasskeyContext,
   ): Promise<{ userId: string; passkeyId: string }> {

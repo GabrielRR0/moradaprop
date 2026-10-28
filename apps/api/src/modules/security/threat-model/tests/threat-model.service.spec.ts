@@ -1,5 +1,4 @@
 import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
-import { BlockType, Role } from '@prisma/client';
 import { describeCase } from '../../../../../test/support/describe-case';
 import type { AppConfig } from '../../../../config';
 import type { AuditService } from '../../../audit';
@@ -10,6 +9,7 @@ import { ThreatModelService } from '../services/threat-model.service';
 import { ThreatResponseService } from '../services/threat-response.service';
 import { SHIELDS } from '../shields';
 import type { FileCheck, ResponseFacts, ThreatMode } from '../types';
+import { DbSupport } from '../../../../support/db';
 
 const USER = '11111111-1111-4111-8111-111111111111';
 
@@ -40,14 +40,14 @@ describe('ThreatModelService.observe', () => {
     espera: 'en enforce: se audita threat.detected y se bloquea su USER con vencimiento',
     ejecutar: async () => {
       const { service, audit, security } = setup('enforce');
-      await repetir(10, () => service.observe(respuesta(403, { userId: USER, roles: [Role.CLIENT] })));
+      await repetir(10, () => service.observe(respuesta(403, { userId: USER, roles: [DbSupport.Role.CLIENT] })));
       return { detectado: eventos(audit, 'threat.detected'), bloqueos: security.blockTemporarily.mock.calls };
     },
     verificar: ({ detectado, bloqueos }) => {
       expect(detectado).toHaveLength(1);
       expect(detectado[0]).toMatchObject({ resourceId: 'privilege-probing', metadata: { stride: 'E', blocked: true } });
       expect(bloqueos).toHaveLength(1);
-      expect(bloqueos[0].slice(0, 2)).toEqual([BlockType.USER, USER]);
+      expect(bloqueos[0].slice(0, 2)).toEqual([DbSupport.BlockType.USER, USER]);
       expect(bloqueos[0][3].getTime()).toBeGreaterThan(Date.now());
     },
     describirObtenido: ({ detectado, bloqueos }) => `${detectado.length} deteccion, ${bloqueos.length} bloqueo`,
@@ -72,7 +72,7 @@ describe('ThreatModelService.observe', () => {
     espera: 'se audita pero nunca se bloquea (no puede quedarse fuera del panel)',
     ejecutar: async () => {
       const { service, security } = setup('enforce');
-      await repetir(10, () => service.observe(respuesta(403, { userId: USER, roles: [Role.ADMIN] })));
+      await repetir(10, () => service.observe(respuesta(403, { userId: USER, roles: [DbSupport.Role.ADMIN] })));
       return security.blockTemporarily.mock.calls.length;
     },
     verificar: (bloqueos) => expect(bloqueos).toBe(0),
@@ -86,7 +86,7 @@ describe('ThreatModelService.observe', () => {
       await repetir(20, () => service.observe(respuesta(401)));
       return security.blockTemporarily.mock.calls[0]?.slice(0, 2);
     },
-    verificar: (bloqueo) => expect(bloqueo).toEqual([BlockType.IP, '9.9.9.9']),
+    verificar: (bloqueo) => expect(bloqueo).toEqual([DbSupport.BlockType.IP, '9.9.9.9']),
   });
 
   describeCase('threat-model', {
@@ -101,7 +101,7 @@ describe('ThreatModelService.observe', () => {
     },
     verificar: ({ con7, bloqueo }) => {
       expect(con7).toBe(0);
-      expect(bloqueo.slice(0, 2)).toEqual([BlockType.IP, '9.9.9.9']);
+      expect(bloqueo.slice(0, 2)).toEqual([DbSupport.BlockType.IP, '9.9.9.9']);
       expect((bloqueo[3].getTime() - Date.now()) / 60_000).toBeGreaterThan(119);
     },
     describirObtenido: ({ con7, bloqueo }) => `con 7: ${con7} bloqueos; con 8: ${bloqueo?.[0]} ${bloqueo?.[1]}`,
@@ -119,7 +119,7 @@ describe('ThreatModelService.observe', () => {
     },
     verificar: ({ con2, bloqueo }) => {
       expect(con2).toBe(0);
-      expect(bloqueo.slice(0, 2)).toEqual([BlockType.IP, '82.60.60.60']);
+      expect(bloqueo.slice(0, 2)).toEqual([DbSupport.BlockType.IP, '82.60.60.60']);
       expect((bloqueo[3].getTime() - Date.now()) / 60_000).toBeGreaterThan(119);
     },
   });
@@ -150,7 +150,7 @@ describe('ThreatModelService.observe', () => {
 });
 
 describe('ThreatModelService.inspectFiles', () => {
-  const sujeto = { userId: USER, ip: '9.9.9.9', roles: [Role.OWNER] };
+  const sujeto = { userId: USER, ip: '9.9.9.9', roles: [DbSupport.Role.OWNER] };
   const intento = (p: Promise<unknown>) => p.then(() => null, (e: Error) => e);
   const exe = Buffer.concat([Buffer.from('MZ'), Buffer.alloc(0x3a), Buffer.from([0x80, 0, 0, 0]), Buffer.alloc(0x40), Buffer.from('PE\0\0')]);
 
@@ -196,7 +196,7 @@ describe('ThreatModelService.inspectFiles', () => {
       return security.blockTemporarily.mock.calls[0];
     },
     verificar: (bloqueo) => {
-      expect(bloqueo.slice(0, 2)).toEqual([BlockType.USER, USER]);
+      expect(bloqueo.slice(0, 2)).toEqual([DbSupport.BlockType.USER, USER]);
       const minutos = (bloqueo[3].getTime() - Date.now()) / 60_000;
       expect(minutos).toBeGreaterThan(59);
     },

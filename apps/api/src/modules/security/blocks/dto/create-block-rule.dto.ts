@@ -1,11 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { BlockType } from '@prisma/client';
 import { IsDateString, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { DbSupport } from '../../../../support/db';
 
 export class CreateBlockRuleDto {
-  @ApiProperty({ enum: BlockType })
-  @IsEnum(BlockType)
-  type: BlockType;
+  @ApiProperty({ enum: DbSupport.BlockType })
+  @IsEnum(DbSupport.BlockType)
+  type: DbSupport.BlockType;
 
   @ApiProperty({ example: '190.120.0.0/16', description: 'IP, CIDR, pais (VE), userId, correo o dominio' })
   @IsString()

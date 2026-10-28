@@ -1,5 +1,5 @@
-import type { Prisma } from '@prisma/client';
 import type { StorageProvider } from '../../../common/storage';
+import { DbSupport } from '../../../support/db';
 
 export const appointmentInclude = {
   property: {
@@ -13,9 +13,9 @@ export const appointmentInclude = {
     },
   },
   client: { select: { id: true, name: true, email: true } },
-} satisfies Prisma.AppointmentInclude;
+} satisfies DbSupport.Prisma.AppointmentInclude;
 
-type Row = Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>;
+type Row = DbSupport.Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>;
 
 const toBase = (row: Row, storage: StorageProvider) => ({
   id: row.id,

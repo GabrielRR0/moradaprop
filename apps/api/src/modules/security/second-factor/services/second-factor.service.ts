@@ -1,14 +1,14 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import { AppConfig } from '../../../../config';
 import { PrismaService } from '../../../../common/prisma';
 import { PasskeyService } from '../../passkeys';
 import { SECOND_FACTOR_POLICY } from '../policy';
 import type { SecondFactorMode, SecondFactorStatus } from '../types';
+import { DbSupport } from '../../../../support/db';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-type Subject = Pick<User, 'id' | 'roles' | 'twoFactorEnabled' | 'secondFactorRequiredFrom'>;
+type Subject = Pick<DbSupport.User, 'id' | 'roles' | 'twoFactorEnabled' | 'secondFactorRequiredFrom'>;
 
 /**
  * ¿Debe esta cuenta tener passkey o 2FA, y ya lo tiene? Admin, dueños y agencias manejan datos de otros: se les exige.
@@ -71,7 +71,7 @@ export class SecondFactorService implements OnModuleInit {
     return { ...base, mustEnrollNow, graceEndsAt: deadline.toISOString(), blocked: mode === 'enforce' && mustEnrollNow };
   }
 
-  private startOfPlazo(roles: readonly User['roles'][number][]): Date {
+  private startOfPlazo(roles: readonly DbSupport.User['roles'][number][]): Date {
     const immediate = roles.some((role) => SECOND_FACTOR_POLICY.immediateRoles.includes(role));
     return new Date(Date.now() + (immediate ? 0 : SECOND_FACTOR_POLICY.graceDays * DAY_MS));
   }

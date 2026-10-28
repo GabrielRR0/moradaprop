@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { PrismaService } from '../../../common/prisma';
 import { AuditService } from '../../audit';
@@ -9,6 +8,7 @@ import { normalizeEmail, type LoginResult, type RequestContext } from '../utils/
 import { PasswordSupport } from '../../../support/password';
 import { TokenService } from './token.service';
 import { UserAccountService } from './user-account.service';
+import { DbSupport } from '../../../support/db';
 
 const INVALID_CREDENTIALS = 'Credenciales invalidas';
 
@@ -55,7 +55,7 @@ export class LoginService {
    * y decide si falta el segundo paso. `skipTwoFactor` = true cuando YA se verifico un factor fuerte (TOTP, codigo de
    * respaldo o passkey).
    */
-  async finishLogin(user: User, context: RequestContext, skipTwoFactor = false): Promise<LoginResult> {
+  async finishLogin(user: DbSupport.User, context: RequestContext, skipTwoFactor = false): Promise<LoginResult> {
     if (user.status !== 'ACTIVE') throw new ForbiddenException('Cuenta suspendida');
     await this.security.assertNotBlocked({ ip: context.ip, userId: user.id, email: user.email });
 
@@ -89,14 +89,14 @@ export class LoginService {
     return { twoFactorRequired: false, tokens };
   }
 
-  assertNotLocked(user: User) {
+  assertNotLocked(user: DbSupport.User) {
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       throw new ForbiddenException('Cuenta bloqueada temporalmente por intentos fallidos. Intenta mas tarde');
     }
   }
 
   /** Suma un intento fallido y bloquea la cuenta al llegar al limite. */
-  async registerFailure(user: User, context: RequestContext) {
+  async registerFailure(user: DbSupport.User, context: RequestContext) {
     const { maxFailedLogins, lockMinutes } = this.config.auth;
     const failed = user.failedLogins + 1;
     const lock = failed >= maxFailedLogins;

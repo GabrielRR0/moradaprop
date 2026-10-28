@@ -11,6 +11,7 @@ Un módulo propio por cada paquete de terceros cuya API puede cambiar entre vers
 | `google-identity` | google-auth-library |
 | `totp` | otplib, qrcode |
 | `spreadsheet` | exceljs |
+| `db` | @prisma/client |
 
 ## Reglas (las hace cumplir ESLint y `tests/support-modules.spec.ts`)
 1. Desde fuera solo se importa `support/<modulo>` (su `index.ts`), nunca sus archivos internos (`local/no-internal-imports`).

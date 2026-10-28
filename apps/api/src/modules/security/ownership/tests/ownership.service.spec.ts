@@ -1,10 +1,10 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import { describeCase } from '../../../../../test/support/describe-case';
 import type { AuthUser } from '../../../../common/security/types';
 import type { AuditService } from '../../../audit';
 import { ACCESS_DENIED_ACTION, OwnershipService } from '../services/ownership.service';
 import type { ResourcePolicy } from '../types';
+import { DbSupport } from '../../../../support/db';
 
 interface Doc {
   id: string;
@@ -12,7 +12,7 @@ interface Doc {
 }
 
 const DOCS: Doc[] = [{ id: 'doc-1', userId: 'ana' }];
-const user = (id: string): AuthUser => ({ id, roles: [Role.CLIENT], sessionId: 's', twoFactor: false });
+const user = (id: string): AuthUser => ({ id, roles: [DbSupport.Role.CLIENT], sessionId: 's', twoFactor: false });
 
 const policy = (extra: Partial<ResourcePolicy<Doc>> = {}): ResourcePolicy<Doc> => ({
   resource: 'Doc',

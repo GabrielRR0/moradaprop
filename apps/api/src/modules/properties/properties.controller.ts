@@ -16,7 +16,6 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Role } from '@prisma/client';
 import { HttpCache } from '../../support/cache';
 import { ImagesSupport } from '../../support/images';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
@@ -29,6 +28,7 @@ import { AssignAgentDto, ChangeStatusDto } from './dto/manage-property.dto';
 import { MapPropertiesDto, SearchPropertiesDto } from './dto/search-properties.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { PropertiesService } from './services/properties.service';
+import { DbSupport } from '../../support/db';
 
 const IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -59,7 +59,7 @@ export class PropertiesController {
 
   // ---------------- Mis propiedades y favoritos ----------------
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Get('mine')
   mine(@CurrentUser() user: AuthUser, @Query('page') page?: string, @Query('limit') limit?: string) {
     return this.propertiesService.mine(user, Math.max(Number(page) || 1, 1), Math.min(Number(limit) || 20, 50));
@@ -79,14 +79,14 @@ export class PropertiesController {
 
   // ---------------- Publicar y gestionar ----------------
 
-  @RoleGroup(Role.OWNER, Role.AGENCY)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY)
   @Audit('properties.create', 'Property')
   @Post()
   create(@Body() dto: CreatePropertyDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
     return this.propertiesService.create(user, dto, ctx);
   }
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -97,7 +97,7 @@ export class PropertiesController {
     return this.propertiesService.update(user, id, dto, ctx);
   }
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Patch(':id/status')
   changeStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -108,7 +108,7 @@ export class PropertiesController {
     return this.propertiesService.changeStatus(user, id, dto.status, ctx);
   }
 
-  @RoleGroup(Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Patch(':id/agent')
   assignAgent(
     @Param('id', ParseUUIDPipe) id: string,
@@ -119,7 +119,7 @@ export class PropertiesController {
     return this.propertiesService.assignAgent(user, id, dto.agentUserId, ctx);
   }
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @HttpCode(204)
   @Delete(':id')
   async remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
@@ -128,7 +128,7 @@ export class PropertiesController {
 
   // ---------------- Imagenes ----------------
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Throttle(limitPerMinute(RATE_LIMITS.upload))
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -154,7 +154,7 @@ export class PropertiesController {
     return this.propertiesService.uploadImages(user, id, files, ctx);
   }
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @HttpCode(204)
   @Delete(':id/images/:imageId')
   async removeImage(
@@ -166,7 +166,7 @@ export class PropertiesController {
     await this.propertiesService.removeImage(user, id, imageId, ctx);
   }
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Patch(':id/images/:imageId/cover')
   setCover(
     @Param('id', ParseUUIDPipe) id: string,

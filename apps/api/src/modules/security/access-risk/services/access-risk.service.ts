@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import { AppConfig } from '../../../../config';
 import { PrismaService } from '../../../../common/prisma';
 import type { RequestContext } from '../../../../common/security/types';
@@ -12,6 +11,7 @@ import { deviceLabel } from '../utils/device-label';
 import { DeviceRegistryService } from './device-registry.service';
 import { FootprintService } from './footprint.service';
 import { RiskAssessorService } from './risk-assessor.service';
+import { DbSupport } from '../../../../support/db';
 
 const MINUTE_MS = 60_000;
 
@@ -54,7 +54,7 @@ export class AccessRiskService implements OnModuleInit {
   }
 
   /** Mide un inicio de sesion. No cambia nada. */
-  assess(user: Pick<User, 'id'>, context: RequestContext): Promise<RiskVerdict> {
+  assess(user: Pick<DbSupport.User, 'id'>, context: RequestContext): Promise<RiskVerdict> {
     return this.assessor.assess(user.id, context);
   }
 
@@ -74,7 +74,7 @@ export class AccessRiskService implements OnModuleInit {
    * Agregar, cambiar o quitar un metodo de verificacion (passkey, 2FA) solo se permite desde un dispositivo CONFIRMADO
    * (con enforce). Si no, un atacante que solo conoce la clave podria registrar SU passkey y dejar fuera al dueño.
    */
-  async assertTrustedContext(user: Pick<User, 'id'>, context: RequestContext): Promise<void> {
+  async assertTrustedContext(user: Pick<DbSupport.User, 'id'>, context: RequestContext): Promise<void> {
     if (this.mode !== 'enforce') return;
     const device = await this.devices.find(user.id, context.deviceToken);
     if (device?.confirmed) return;
@@ -100,7 +100,7 @@ export class AccessRiskService implements OnModuleInit {
    * Riesgo ALTO y la cuenta no tiene ningun segundo factor: no se entra. Se le indica activar uno desde un
    * dispositivo conocido (registrar un factor desde un lugar raro dejaria fuera al dueño).
    */
-  async assertCanProceed(user: Pick<User, 'id'>, verdict: RiskVerdict, hasSecondFactor: boolean, context: RequestContext) {
+  async assertCanProceed(user: Pick<DbSupport.User, 'id'>, verdict: RiskVerdict, hasSecondFactor: boolean, context: RequestContext) {
     if (!this.requiresStrongFactor(verdict) || hasSecondFactor) return;
     await this.audit.log({
       action: 'risk.denied',
@@ -119,7 +119,7 @@ export class AccessRiskService implements OnModuleInit {
    * El inicio de sesion se completo (clave sola, o clave + segundo factor): registra el dispositivo, recuerda el
    * pais y la red, y deja constancia. Solo se "aprende" de un inicio ALTO si paso por segundo factor.
    */
-  async onLoginSuccess(user: Pick<User, 'id'>, context: RequestContext, verdict: RiskVerdict, factorVerified: boolean): Promise<LoginTrust> {
+  async onLoginSuccess(user: Pick<DbSupport.User, 'id'>, context: RequestContext, verdict: RiskVerdict, factorVerified: boolean): Promise<LoginTrust> {
     if (this.mode === 'off') return { deviceId: null, country: context.country ?? null };
 
     const { assessment, device } = verdict;
@@ -206,7 +206,7 @@ export class AccessRiskService implements OnModuleInit {
    * Un codigo de segundo factor fallo en un inicio de sesion ALTO. A los N fallos recientes: se bloquea la cuenta,
    * queda auditado y se cuenta contra el escudo `account-takeover-attempt` (que bloquea la IP en `enforce`).
    */
-  async stepUpFailed(user: Pick<User, 'id'>, context: RequestContext): Promise<void> {
+  async stepUpFailed(user: Pick<DbSupport.User, 'id'>, context: RequestContext): Promise<void> {
     const { maxFailures, windowMinutes, lockMinutes } = RISK_POLICY.stepUp;
     await this.audit.log({ action: 'risk.stepup.failed', userId: user.id, ip: context.ip, userAgent: context.userAgent });
 

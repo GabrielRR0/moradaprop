@@ -1,20 +1,20 @@
-import type { Prisma } from '@prisma/client';
 import type { StorageProvider } from '../../../common/storage';
+import { DbSupport } from '../../../support/db';
 
 /** Una sola imagen (la portada) para tarjetas y listados. */
 export const cardInclude = {
   images: { orderBy: [{ isCover: 'desc' }, { position: 'asc' }], take: 1 },
-} satisfies Prisma.PropertyInclude;
+} satisfies DbSupport.Prisma.PropertyInclude;
 
 /** Galeria completa + quien la publica. */
 export const detailInclude = {
   images: { orderBy: [{ isCover: 'desc' }, { position: 'asc' }] },
   agency: { select: { id: true, name: true, logoUrl: true } },
   owner: { select: { id: true, name: true, avatarUrl: true } },
-} satisfies Prisma.PropertyInclude;
+} satisfies DbSupport.Prisma.PropertyInclude;
 
-type CardRow = Prisma.PropertyGetPayload<{ include: typeof cardInclude }>;
-type DetailRow = Prisma.PropertyGetPayload<{ include: typeof detailInclude }>;
+type CardRow = DbSupport.Prisma.PropertyGetPayload<{ include: typeof cardInclude }>;
+type DetailRow = DbSupport.Prisma.PropertyGetPayload<{ include: typeof detailInclude }>;
 type ImageRow = CardRow['images'][number];
 
 const toImage = (image: ImageRow, storage: StorageProvider) => ({

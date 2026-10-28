@@ -1,5 +1,4 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, PropertyStatus } from '@prisma/client';
 import { CACHE_POLICIES, CacheService } from '../../../support/cache';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser } from '../../../common/security/types';
@@ -16,11 +15,12 @@ import { cacheKey } from '../utils/cache-key';
 import { clusterPoints, POINTS_FROM_ZOOM, type MapPoint } from '../utils/clusters';
 import { cardInclude, detailInclude, toCard, toDetail } from '../utils/property-mapper';
 import { PropertyPolicyService } from './property-policy.service';
+import { DbSupport } from '../../../support/db';
 
 /** Estados que aparecen en busquedas publicas: la reservada sigue visible con su insignia. */
-const PUBLIC_SEARCH_STATUSES: PropertyStatus[] = [PropertyStatus.PUBLICADA, PropertyStatus.RESERVADA];
+const PUBLIC_SEARCH_STATUSES: DbSupport.PropertyStatus[] = [DbSupport.PropertyStatus.PUBLICADA, DbSupport.PropertyStatus.RESERVADA];
 /** La alquilada ya no se ofrece, pero su ficha sigue abierta (enlaces compartidos). */
-const PUBLIC_DETAIL_STATUSES: PropertyStatus[] = [...PUBLIC_SEARCH_STATUSES, PropertyStatus.ALQUILADA];
+const PUBLIC_DETAIL_STATUSES: DbSupport.PropertyStatus[] = [...PUBLIC_SEARCH_STATUSES, DbSupport.PropertyStatus.ALQUILADA];
 /** Tope de pines por consulta de mapa alejado (se agrupan en clusters) y de mapa cercano (pines sueltos). */
 const MAP_POINT_LIMIT = 5000;
 const MAP_CLOSE_LIMIT = 500;
@@ -112,7 +112,7 @@ export class PropertySearchService {
     return { items: rows.map((row) => toCard(row, this.storage)), total, page, limit };
   }
 
-  private buildWhere(f: PropertyFiltersDto): Prisma.PropertyWhereInput {
+  private buildWhere(f: PropertyFiltersDto): DbSupport.Prisma.PropertyWhereInput {
     const hasPrice = f.minPrice !== undefined || f.maxPrice !== undefined;
     const insensitive = (value: string) => ({ equals: value, mode: 'insensitive' as const });
 
@@ -146,7 +146,7 @@ export class PropertySearchService {
     };
   }
 
-  private orderBy(sort?: PropertySort): Prisma.PropertyOrderByWithRelationInput[] {
+  private orderBy(sort?: PropertySort): DbSupport.Prisma.PropertyOrderByWithRelationInput[] {
     switch (sort) {
       case PropertySort.PRICE_ASC:
         return [{ priceAmount: 'asc' }];

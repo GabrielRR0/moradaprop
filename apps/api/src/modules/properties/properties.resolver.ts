@@ -1,6 +1,5 @@
 import { ParseUUIDPipe } from '@nestjs/common';
 import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
 import { CurrentUser } from '../../common/security/decorators';
 import { PublicGroup, RoleGroup } from '../../common/security/groups';
 import type { AuthUser } from '../../common/security/types';
@@ -8,6 +7,7 @@ import { toGraphqlMarker } from './graphql/map-marker.mapper';
 import { MapPropertiesArgs, SearchPropertiesArgs } from './graphql/property.args';
 import { PropertyDetailType, PropertyMapType, PropertyPageType } from './graphql/property.types';
 import { PropertiesService } from './services/properties.service';
+import { DbSupport } from '../../support/db';
 
 /**
  * GraphQL solo para LECTURA (busqueda, ficha, mapa, mis propiedades): donde conviene pedir justo los
@@ -37,7 +37,7 @@ export class PropertiesResolver {
     return { ...result, markers: result.markers.map(toGraphqlMarker) };
   }
 
-  @RoleGroup(Role.OWNER, Role.AGENCY, Role.ADMIN)
+  @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Query(() => PropertyPageType, { name: 'myProperties', description: 'Propiedades que gestiono, en cualquier estado' })
   mine(
     @CurrentUser() user: AuthUser,

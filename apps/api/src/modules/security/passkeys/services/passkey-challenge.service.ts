@@ -1,10 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import type { PasskeyChallengeKind } from '@prisma/client';
 import { CryptoService } from '../../../../common/crypto';
 import { PrismaService } from '../../../../common/prisma';
 import { PASSKEY_POLICY } from '../policy';
 import { WebAuthnError } from '../webauthn/types';
+import { DbSupport } from '../../../../support/db';
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -21,7 +21,7 @@ export class PasskeyChallengeService {
   ) {}
 
   /** Emite un desafio nuevo (base64url). REGISTER y STEP_UP quedan atados al usuario; LOGIN no (la passkey dice quien es). */
-  async issue(kind: PasskeyChallengeKind, userId?: string): Promise<string> {
+  async issue(kind: DbSupport.PasskeyChallengeKind, userId?: string): Promise<string> {
     const challenge = randomBytes(32).toString('base64url');
     await this.prisma.passkeyChallenge.create({
       data: {
@@ -40,7 +40,7 @@ export class PasskeyChallengeService {
    * Gasta un desafio: debe existir, ser del tipo esperado, estar vigente, sin usar y (si se indica) ser de ese usuario.
    * Es atomico: dos respuestas con el mismo desafio, solo una pasa.
    */
-  async consume(challenge: string, kind: PasskeyChallengeKind, userId?: string): Promise<void> {
+  async consume(challenge: string, kind: DbSupport.PasskeyChallengeKind, userId?: string): Promise<void> {
     const { count } = await this.prisma.passkeyChallenge.updateMany({
       where: {
         challengeHash: this.crypto.hashToken(challenge),

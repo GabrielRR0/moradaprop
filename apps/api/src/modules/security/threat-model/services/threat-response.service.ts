@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BlockType, Role } from '@prisma/client';
 import { AuditService } from '../../../audit';
 import { SecurityService } from '../../blocks';
 import type { FileCheck, FileFacts, ThreatMode, ThreatShield, ThreatSubject } from '../types';
+import { DbSupport } from '../../../../support/db';
 
 const CREATED_BY = 'threat-model';
 
@@ -41,11 +41,11 @@ export class ThreatResponseService {
 
   /** Bloquea al usuario (si esta identificado) o a su IP. Los administradores nunca se bloquean solos. */
   private async block(shield: ThreatShield, subject: ThreatSubject): Promise<boolean> {
-    if (subject.roles?.includes(Role.ADMIN)) return false;
+    if (subject.roles?.includes(DbSupport.Role.ADMIN)) return false;
     const target = subject.userId
-      ? { type: BlockType.USER, value: subject.userId }
+      ? { type: DbSupport.BlockType.USER, value: subject.userId }
       : subject.ip
-        ? { type: BlockType.IP, value: subject.ip }
+        ? { type: DbSupport.BlockType.IP, value: subject.ip }
         : null;
     if (!target) return false;
 

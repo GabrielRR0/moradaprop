@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Currency, PropertyType } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -13,6 +12,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { DbSupport } from '../../../support/db';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
@@ -39,9 +39,9 @@ export class CreatePropertyDto {
   @MaxLength(5000)
   description: string;
 
-  @ApiProperty({ enum: PropertyType })
-  @IsEnum(PropertyType)
-  type: PropertyType;
+  @ApiProperty({ enum: DbSupport.PropertyType })
+  @IsEnum(DbSupport.PropertyType)
+  type: DbSupport.PropertyType;
 
   @ApiProperty({ example: 450 })
   @Type(() => Number)
@@ -50,10 +50,10 @@ export class CreatePropertyDto {
   @Max(1_000_000_000)
   priceAmount: number;
 
-  @ApiPropertyOptional({ enum: Currency, default: Currency.USD })
+  @ApiPropertyOptional({ enum: DbSupport.Currency, default: DbSupport.Currency.USD })
   @IsOptional()
-  @IsEnum(Currency)
-  currency?: Currency;
+  @IsEnum(DbSupport.Currency)
+  currency?: DbSupport.Currency;
 
   @ApiPropertyOptional({ default: 0 })
   @IsOptional()

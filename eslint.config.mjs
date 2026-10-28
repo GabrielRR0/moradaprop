@@ -61,6 +61,7 @@ export default tseslint.config(
             ['otplib', 'support/totp'],
             ['qrcode', 'support/totp'],
             ['exceljs', 'support/spreadsheet'],
+            ['@prisma/client', 'support/db'],
           ].map(([name, wrapper]) => ({
             name,
             message: `No importes "${name}" directo: usa el wrapper ${wrapper} (docs/CONVENCIONES.md, "Paquetes de terceros").`,

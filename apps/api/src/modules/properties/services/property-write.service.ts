@@ -1,5 +1,4 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Role, type Property, PropertyStatus } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { AuthUser, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
@@ -9,9 +8,10 @@ import type { UpdatePropertyDto } from '../dto/update-property.dto';
 import { OwnershipService } from '../../security';
 import { PropertyAccessPolicy } from './property-access.policy';
 import { PropertyPolicyService } from './property-policy.service';
+import { DbSupport } from '../../../support/db';
 
 /** Transiciones permitidas. La reservada puede volver a publicarse si la reserva se cae. */
-const TRANSITIONS: Record<PropertyStatus, PropertyStatus[]> = {
+const TRANSITIONS: Record<DbSupport.PropertyStatus, DbSupport.PropertyStatus[]> = {
   PUBLICADA: ['RESERVADA', 'ALQUILADA', 'PAUSADA'],
   RESERVADA: ['PUBLICADA', 'ALQUILADA', 'PAUSADA'],
   ALQUILADA: ['PUBLICADA', 'PAUSADA'],
@@ -33,9 +33,9 @@ export class PropertyWriteService {
    * El dueno, la agencia y el agente salen del TOKEN, nunca del body.
    * Una agencia publica a nombre de su organizacion; un dueno directo, a nombre propio.
    */
-  async create(user: AuthUser, dto: CreatePropertyDto, context: RequestContext): Promise<Property> {
-    const isAgency = user.roles.includes(Role.AGENCY);
-    if (!isAgency && !user.roles.includes(Role.OWNER)) {
+  async create(user: AuthUser, dto: CreatePropertyDto, context: RequestContext): Promise<DbSupport.Property> {
+    const isAgency = user.roles.includes(DbSupport.Role.AGENCY);
+    if (!isAgency && !user.roles.includes(DbSupport.Role.OWNER)) {
       throw new ForbiddenException('Tu cuenta no puede publicar propiedades');
     }
 
@@ -56,14 +56,14 @@ export class PropertyWriteService {
     return property;
   }
 
-  async update(user: AuthUser, id: string, dto: UpdatePropertyDto, context: RequestContext): Promise<Property> {
+  async update(user: AuthUser, id: string, dto: UpdatePropertyDto, context: RequestContext): Promise<DbSupport.Property> {
     const property = await this.findManaged(user, id, context);
     const updated = await this.prisma.property.update({ where: { id }, data: dto });
     await this.log('properties.updated', user, property.id, context, { fields: Object.keys(dto) });
     return updated;
   }
 
-  async changeStatus(user: AuthUser, id: string, status: PropertyStatus, context: RequestContext): Promise<Property> {
+  async changeStatus(user: AuthUser, id: string, status: DbSupport.PropertyStatus, context: RequestContext): Promise<DbSupport.Property> {
     const property = await this.findManaged(user, id, context);
     if (!TRANSITIONS[property.status].includes(status)) {
       throw new BadRequestException(`No se puede pasar de ${property.status} a ${status}`);
@@ -76,7 +76,7 @@ export class PropertyWriteService {
     return updated;
   }
 
-  async assignAgent(user: AuthUser, id: string, agentUserId: string, context: RequestContext): Promise<Property> {
+  async assignAgent(user: AuthUser, id: string, agentUserId: string, context: RequestContext): Promise<DbSupport.Property> {
     const property = await this.findProperty(id);
     await this.policy.assertCanAssign(user, property);
     if (!property.agencyId) throw new BadRequestException('Solo las propiedades de una agencia tienen agente');
@@ -101,11 +101,11 @@ export class PropertyWriteService {
   }
 
   /** Busca la propiedad y exige que el usuario pueda gestionarla. */
-  findManaged(user: AuthUser, id: string, context?: RequestContext): Promise<Property> {
+  findManaged(user: AuthUser, id: string, context?: RequestContext): Promise<DbSupport.Property> {
     return this.ownership.require(this.access, user, id, 'manage', context);
   }
 
-  private async findProperty(id: string): Promise<Property> {
+  private async findProperty(id: string): Promise<DbSupport.Property> {
     const property = await this.prisma.property.findUnique({ where: { id } });
     if (!property) throw new NotFoundException('Propiedad no encontrada');
     return property;

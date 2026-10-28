@@ -1,5 +1,4 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { MailService } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
@@ -11,6 +10,7 @@ import { PropertyPolicyService } from '../../properties';
 import type { ListAppointmentsDto, RespondAppointmentDto } from '../dto/appointments.dto';
 import { AppointmentPolicy } from './appointment.policy';
 import { appointmentInclude, toClientView, toLeadView } from '../utils/appointment-mapper';
+import { DbSupport } from '../../../support/db';
 
 @Injectable()
 export class AppointmentManageService {
@@ -107,9 +107,9 @@ export class AppointmentManageService {
   // ---------------- Internos ----------------
 
   private async page<T>(
-    where: Prisma.AppointmentWhereInput,
+    where: DbSupport.Prisma.AppointmentWhereInput,
     query: ListAppointmentsDto,
-    map: (row: Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>, storage: StorageProvider) => T,
+    map: (row: DbSupport.Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>, storage: StorageProvider) => T,
   ) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
@@ -122,7 +122,7 @@ export class AppointmentManageService {
 
   private async reload<T>(
     id: string,
-    map: (row: Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>, storage: StorageProvider) => T,
+    map: (row: DbSupport.Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>, storage: StorageProvider) => T,
   ) {
     const row = await this.prisma.appointment.findUniqueOrThrow({ where: { id }, include: appointmentInclude });
     return map({ ...this.appointmentVault.decode(row), client: this.vault.decode(row.client) }, this.storage);

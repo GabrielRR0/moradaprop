@@ -5,7 +5,6 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import { AppConfig } from '../../../config';
 import { CryptoService } from '../../../common/crypto';
 import { MailService } from '../../../support/mail';
@@ -19,6 +18,7 @@ import { LoginService } from './login.service';
 import { TokenService } from './token.service';
 import { UserAccountService } from './user-account.service';
 import { VerificationCodeService } from './verification-code.service';
+import { DbSupport } from '../../../support/db';
 
 const INVALID_CODE = 'Codigo invalido';
 const BACKUP_CODE = /^[a-z0-9]{5}-[a-z0-9]{5}$/;
@@ -149,7 +149,7 @@ export class TwoFactorService {
   // ---------------------------------------------------------------
 
   /** TOTP, o codigo de respaldo; durante el login tambien el codigo enviado por correo. */
-  private async verifyAnyCode(user: User, code: string, allowEmail = false) {
+  private async verifyAnyCode(user: DbSupport.User, code: string, allowEmail = false) {
     const clean = code.trim().toLowerCase();
 
     if (/^\d{6}$/.test(clean)) {
@@ -170,7 +170,7 @@ export class TwoFactorService {
   }
 
   /** Valida un TOTP (tolerancia de +-30s) y rechaza reusar el mismo paso de tiempo. */
-  private async verifyTotp(user: User, code: string) {
+  private async verifyTotp(user: DbSupport.User, code: string) {
     if (!user.twoFactorSecret) throw new UnauthorizedException(INVALID_CODE);
 
     // delta: 0 = paso actual, -1 = anterior, 1 = siguiente; null = codigo incorrecto.
@@ -208,14 +208,14 @@ export class TwoFactorService {
     return codes;
   }
 
-  private async assertPassword(user: User, password: string | undefined) {
+  private async assertPassword(user: DbSupport.User, password: string | undefined) {
     if (!user.passwordHash) return; // cuenta creada solo con Google
     if (!password || !(await PasswordSupport.verify(user.passwordHash, password))) {
       throw new ForbiddenException('Contrasena incorrecta');
     }
   }
 
-  private async getUser(userId: string): Promise<User> {
+  private async getUser(userId: string): Promise<DbSupport.User> {
     const user = await this.accounts.findById(userId);
     if (!user) throw new UnauthorizedException('Sesion invalida');
     return user;

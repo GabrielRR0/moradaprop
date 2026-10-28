@@ -1,6 +1,6 @@
 import { ImagesSupport } from '../../src/support/images';
-import type { Prisma } from '@prisma/client';
 import type { TestApp } from './test-app';
+import { DbSupport } from '../../src/support/db';
 
 /** Cuerpo valido para crear una propiedad por la API (Caracas, Chacao). */
 export const propiedadValida = (overrides: Record<string, unknown> = {}) => ({
@@ -24,7 +24,7 @@ export const propiedadValida = (overrides: Record<string, unknown> = {}) => ({
 });
 
 /** Inserta una propiedad directo en la base (para preparar escenarios de busqueda sin pasar por la API). */
-export async function seedProperty(t: TestApp, ownerUserId: string, overrides: Partial<Prisma.PropertyUncheckedCreateInput> = {}) {
+export async function seedProperty(t: TestApp, ownerUserId: string, overrides: Partial<DbSupport.Prisma.PropertyUncheckedCreateInput> = {}) {
   return t.prisma.property.create({
     data: {
       title: 'Propiedad de prueba',

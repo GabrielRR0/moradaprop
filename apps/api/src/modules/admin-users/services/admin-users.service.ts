@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../common/prisma';
 import type { RequestContext } from '../../../common/security/types';
 import { AuditService } from '../../audit';
 import { SecurityService, UserVault } from '../../security';
 import type { ListUsersQueryDto, SetUserStatusDto } from '../dto/admin-users.dto';
+import { DbSupport } from '../../../support/db';
 
 @Injectable()
 export class AdminUsersService {
@@ -18,7 +18,7 @@ export class AdminUsersService {
   async list(query: ListUsersQueryDto) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const where: Prisma.UserWhereInput = {
+    const where: DbSupport.Prisma.UserWhereInput = {
       status: query.status,
       ...this.vault.searchWhere(query.q),
     };
