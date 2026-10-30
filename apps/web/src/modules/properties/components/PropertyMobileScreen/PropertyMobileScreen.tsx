@@ -42,10 +42,25 @@ export function PropertyMobileScreen() {
             <Fragment key={$index}>
               <div
                 style={css(
-                  `${p.tint}; flex:0 0 100%; scroll-snap-align:center; display:grid; place-items:center; color:var(--ac-ink)`,
+                  `${p.tint}; position:relative; flex:0 0 100%; scroll-snap-align:center; display:grid; place-items:center; color:var(--ac-ink)`,
                 )}
               >
-                <Icon name="home" size={72} strokeWidth={1} />
+                {p.src ? (
+                  <img
+                    src={p.src}
+                    alt={v.property?.title ?? ''}
+                    loading={$index === 0 ? 'eager' : 'lazy'}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  <Icon name="home" size={72} strokeWidth={1} />
+                )}
               </div>
             </Fragment>
           ))}
@@ -85,13 +100,28 @@ export function PropertyMobileScreen() {
             gap: '5px',
           }}
         >
-          <span className="dot on" style={{ width: '22px' }} />
-          <span className="dot" style={{ width: '7px' }} />
-          <span className="dot" style={{ width: '7px' }} />
-          <span className="dot" style={{ width: '7px' }} />
+          {v.photoTiles.length > 1 &&
+            v.photoTiles.map((_, $index) => (
+              <span
+                key={$index}
+                className={$index === 0 ? 'dot on' : 'dot'}
+                style={{ width: $index === 0 ? '22px' : '7px' }}
+              />
+            ))}
         </span>
+        {v.property ? (
+          <PropertyMobileDetails v={v} p={v.property} />
+        ) : (
+          <p style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--muted)' }}>
+            {v.loading ? 'Cargando propiedad…' : 'No pudimos cargar esta propiedad.'}
+            {v.failed && (
+              <button className="btn2" type="button" onClick={v.retry} style={{ marginLeft: '8px' }}>
+                Reintentar
+              </button>
+            )}
+          </p>
+        )}
       </div>
-      <PropertyMobileDetails v={v} />
     </div>
   );
 }

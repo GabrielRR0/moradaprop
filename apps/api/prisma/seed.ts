@@ -3,7 +3,7 @@
  *
  * Crea (si no existen): un administrador, un dueno directo, una agencia con su administrador, un cliente
  * y ~120 propiedades repartidas por Venezuela (Caracas, Valencia, Merida, Aragua, Zulia y mas), cada una con
- * 3 fotos generadas. Es DETERMINISTA (mismos datos siempre) y no repite: si ya hay 120+ propiedades demo no hace
+ * 3 fotos reales: hay 5 juegos de fotos en prisma/seed-photos y se reparten entre todas las propiedades. Es DETERMINISTA (mismos datos siempre) y no repite: si ya hay 120+ propiedades demo no hace
  * nada. Para regenerarlas desde cero:  pnpm db:seed -- --fresh
  * SE NIEGA a correr en produccion o contra una base remota (Supabase).
  *
@@ -15,7 +15,7 @@
  */
 import { existsSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { ImagesSupport } from '../src/support/images';
 import { PasswordSupport } from '../src/support/password';
@@ -186,7 +186,6 @@ const DESCRIPCIONES = [
   'A pocos minutos de avenidas principales, colegios y centros comerciales.',
   'Edificio con buen mantenimiento y servicios de agua constantes gracias al tanque.',
 ];
-const SALAS = ['Sala', 'Cocina', 'Habitación principal', 'Baño', 'Fachada', 'Balcón'];
 
 // ---------------------------------------------------------------
 // Utilidades
@@ -215,21 +214,42 @@ function pickType() {
   return TYPES.find((t) => (roll -= t.weight) < 0) ?? TYPES[0];
 }
 
-const esc = (text: string) => text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
+/** Juegos de fotos reales (prisma/seed-photos): 3 de apartamento y 2 de casa, de 3 fotos cada uno. */
+const PHOTO_SETS = ['apto-1', 'apto-2', 'apto-3', 'casa-1', 'casa-2'];
+const HOUSE_TYPES: string[] = ['CASA', 'TOWNHOUSE', 'GALPON', 'TERRENO'];
 
-/** Foto generada: degradado por tipo de propiedad con el nombre del ambiente. */
-function fotoSvg(hue: number, ambiente: string, titulo: string) {
-  return Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200">
-      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="hsl(${hue},55%,62%)"/><stop offset="1" stop-color="hsl(${(hue + 40) % 360},60%,38%)"/>
-      </linearGradient></defs>
-      <rect width="1600" height="1200" fill="url(#g)"/>
-      <rect x="120" y="760" width="1360" height="320" rx="24" fill="rgba(0,0,0,0.25)"/>
-      <text x="800" y="900" font-size="96" font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="#fff" text-anchor="middle">${esc(ambiente)}</text>
-      <text x="800" y="990" font-size="44" font-family="Arial, Helvetica, sans-serif" fill="#fff" fill-opacity="0.9" text-anchor="middle">${esc(titulo.slice(0, 48))}</text>
-    </svg>`,
-  );
+interface RenderedPhoto {
+  original: Buffer;
+  thumb: Buffer;
+  medium: Buffer;
+  hd: Buffer;
+}
+const photoCache = new Map<string, Promise<RenderedPhoto[]>>();
+
+/** Procesa un juego una sola vez (original + thumb/medium/hd) y lo reutiliza en todas las propiedades. */
+function loadPhotoSet(name: string) {
+  let set = photoCache.get(name);
+  if (!set) {
+    set = Promise.all(
+      ['a', 'b', 'c'].map(async (letter) => {
+        const source = await readFile(join(__dirname, 'seed-photos', `${name}-${letter}.jpg`));
+        return {
+          original: await ImagesSupport.render(source, { format: 'jpeg', quality: 85 }),
+          thumb: await ImagesSupport.render(source, { format: 'webp', quality: 70, size: { width: 300, height: 200, fit: 'cover' } }),
+          medium: await ImagesSupport.render(source, { format: 'webp', quality: 75, size: { width: 800, height: 600 } }),
+          hd: await ImagesSupport.render(source, { format: 'webp', quality: 80, size: { width: 1600, height: 1200 } }),
+        };
+      }),
+    );
+    photoCache.set(name, set);
+  }
+  return set;
+}
+
+/** Los apartamentos usan los juegos apto-*, las casas y similares los casa-*; se alternan segun el numero de propiedad. */
+function photoSetFor(type: string, index: number) {
+  const sets = PHOTO_SETS.filter((name) => name.startsWith(HOUSE_TYPES.includes(type) ? 'casa' : 'apto'));
+  return sets[index % sets.length];
 }
 
 async function guardar(bucket: 'public' | 'private', key: string, data: Buffer) {
@@ -238,10 +258,11 @@ async function guardar(bucket: 'public' | 'private', key: string, data: Buffer) 
   await writeFile(file, data);
 }
 
-/** Crea 3 fotos (original privado + thumb/medium/hd publicas) con la misma estructura que la API. */
-async function crearFotos(propertyId: string, hue: number, titulo: string) {
+/** Copia las 3 fotos del juego a la propiedad (original privado + thumb/medium/hd publicas) con la misma estructura que la API. */
+async function crearFotos(propertyId: string, setName: string) {
+  const photos = await loadPhotoSet(setName);
   const rows: DbSupport.Prisma.PropertyImageCreateManyInput[] = [];
-  for (let i = 0; i < 3; i++) {
+  for (const [i, photo] of photos.entries()) {
     const id = randomUUID();
     const base = `properties/${propertyId}`;
     const keys = {
@@ -250,11 +271,10 @@ async function crearFotos(propertyId: string, hue: number, titulo: string) {
       mediumKey: `${base}/medium/${id}.webp`,
       hdKey: `${base}/hd/${id}.webp`,
     };
-    const svg = fotoSvg((hue + i * 18) % 360, pick(SALAS), titulo);
-    await guardar('private', keys.originalKey, await ImagesSupport.render(svg, { format: 'jpeg', quality: 85 }));
-    await guardar('public', keys.thumbKey, await ImagesSupport.render(svg, { format: 'webp', quality: 70, size: { width: 300, height: 200, fit: 'cover' } }));
-    await guardar('public', keys.mediumKey, await ImagesSupport.render(svg, { format: 'webp', quality: 75, size: { width: 800, height: 600 } }));
-    await guardar('public', keys.hdKey, await ImagesSupport.render(svg, { format: 'webp', quality: 80, size: { width: 1600, height: 1200 } }));
+    await guardar('private', keys.originalKey, photo.original);
+    await guardar('public', keys.thumbKey, photo.thumb);
+    await guardar('public', keys.mediumKey, photo.medium);
+    await guardar('public', keys.hdKey, photo.hd);
     rows.push({ propertyId, ...keys, position: i, isCover: i === 0 });
   }
   return rows;
@@ -370,12 +390,12 @@ async function main() {
         },
       });
       if (WITH_IMAGES) {
-        await prisma.propertyImage.createMany({ data: await crearFotos(property.id, (TYPES.findIndex((t) => t.type === kind.type) * 40 + 200) % 360, `${kind.name} · ${zone.name}`) });
+        await prisma.propertyImage.createMany({ data: await crearFotos(property.id, photoSetFor(kind.type, total)) });
       }
       total++;
     }
   }
-  console.log(`Seed listo: ${total} propiedades${WITH_IMAGES ? ' con 3 fotos cada una' : ' (sin fotos: STORAGE_PROVIDER no es local)'}.`);
+  console.log(`Seed listo: ${total} propiedades${WITH_IMAGES ? ' con 3 fotos reales cada una' : ' (sin fotos: STORAGE_PROVIDER no es local)'}.`);
   console.log(`Cuentas (clave ${PASSWORD}): admin@demo.local, dueno@demo.local, agencia@demo.local, cliente@demo.local`);
 }
 

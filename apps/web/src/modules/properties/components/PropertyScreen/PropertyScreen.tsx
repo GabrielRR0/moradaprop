@@ -62,7 +62,18 @@ export function PropertyScreen() {
           {' Volver al mapa'}
         </Link>
       </header>
-      <PropertyBooking v={v} />
+      {v.property ? (
+        <PropertyBooking v={v} p={v.property} />
+      ) : (
+        <p style={{ padding: '64px 48px', textAlign: 'center', color: 'var(--muted)' }}>
+          {v.loading ? 'Cargando propiedad…' : 'No pudimos cargar esta propiedad.'}
+          {v.failed && (
+            <button className="btn2" type="button" onClick={v.retry} style={{ marginLeft: '8px' }}>
+              Reintentar
+            </button>
+          )}
+        </p>
+      )}
     </div>
   );
 }

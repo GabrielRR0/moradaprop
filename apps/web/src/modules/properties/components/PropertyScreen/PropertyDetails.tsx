@@ -1,10 +1,18 @@
 'use client';
 import Link from 'next/link';
 import { css } from '@/lib/dc';
-import { Icon } from '@/components/icons';
+import { Icon, type IconName } from '@/components/icons';
+import type { PropertyInfo } from '../../hooks/usePropertyBooking';
 import type { PropertyScreenView } from '../../hooks/usePropertyScreen';
 
-export function PropertyDetails({ v }: { v: PropertyScreenView }) {
+const AMENITY_ICON: Record<string, IconName> = {
+  'Planta eléctrica': 'bolt',
+  'Tanque de agua': 'droplet',
+  'Fibra óptica': 'wifi',
+  Vigilancia: 'shield',
+};
+
+export function PropertyDetails({ v, p }: { v: PropertyScreenView; p: PropertyInfo }) {
   return (
     <div
       style={{
@@ -35,7 +43,7 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
               fontWeight: '800',
             }}
           >
-            Disponible
+            {p.status}
           </span>
           <h1
             style={{
@@ -46,7 +54,7 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
               letterSpacing: '-0.03em',
             }}
           >
-            Apartamento moderno con vista
+            {p.title}
           </h1>
           <div
             style={{
@@ -58,7 +66,7 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
             }}
           >
             <Icon name="pin" size={18} />
-            {' Los Palos Grandes, Chacao · Caracas'}
+            {` ${p.place}`}
           </div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -93,7 +101,7 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
             background: 'var(--surf2)',
           }}
         >
-          <span style={{ fontWeight: '800', fontSize: '26px' }}>2</span>
+          <span style={{ fontWeight: '800', fontSize: '26px' }}>{p.bedrooms}</span>
           <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: '600' }}>
             Habitaciones
           </span>
@@ -108,7 +116,7 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
             background: 'var(--surf2)',
           }}
         >
-          <span style={{ fontWeight: '800', fontSize: '26px' }}>2</span>
+          <span style={{ fontWeight: '800', fontSize: '26px' }}>{p.bathrooms}</span>
           <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: '600' }}>Baños</span>
         </div>
         <div
@@ -121,7 +129,7 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
             background: 'var(--surf2)',
           }}
         >
-          <span style={{ fontWeight: '800', fontSize: '26px' }}>1</span>
+          <span style={{ fontWeight: '800', fontSize: '26px' }}>{p.parkingSpots}</span>
           <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: '600' }}>Puesto</span>
         </div>
         <div
@@ -134,54 +142,39 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
             background: 'var(--surf2)',
           }}
         >
-          <span style={{ fontWeight: '800', fontSize: '26px' }}>85 m²</span>
+          <span style={{ fontWeight: '800', fontSize: '26px' }}>{p.area}</span>
           <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: '600' }}>Área</span>
         </div>
       </div>
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h2 style={{ margin: '0', fontSize: '24px', fontWeight: '800', letterSpacing: '-0.02em' }}>
-          Servicios del inmueble
-        </h2>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '12px',
-          }}
-        >
-          <div className="am">
-            <span className="i">
-              <Icon name="bolt" strokeWidth={2} />
-            </span>
-            Planta eléctrica
+      {p.amenities.length > 0 && (
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <h2 style={{ margin: '0', fontSize: '24px', fontWeight: '800', letterSpacing: '-0.02em' }}>
+            Servicios del inmueble
+          </h2>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '12px',
+            }}
+          >
+            {p.amenities.map((name) => (
+              <div key={name} className="am">
+                <span className="i">
+                  <Icon name={AMENITY_ICON[name] ?? 'bolt'} strokeWidth={2} />
+                </span>
+                {name}
+              </div>
+            ))}
           </div>
-          <div className="am">
-            <span className="i">
-              <Icon name="droplet" strokeWidth={2} />
-            </span>
-            Tanque de agua
-          </div>
-          <div className="am">
-            <span className="i">
-              <Icon name="wifi" strokeWidth={2} />
-            </span>
-            Fibra óptica
-          </div>
-          <div className="am">
-            <span className="i">
-              <Icon name="shield" strokeWidth={2} />
-            </span>
-            Vigilancia 24 h
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <h2 style={{ margin: '0', fontSize: '24px', fontWeight: '800', letterSpacing: '-0.02em' }}>
           Descripción
         </h2>
         <p style={{ margin: '0', fontSize: '16px', lineHeight: '1.7', color: 'var(--muted)' }}>
-          [Descripción escrita por el dueño o la inmobiliaria: luz natural, vista, cercanía a
-          transporte y comercios, condiciones del contrato.]
+          {p.description}
         </p>
       </section>
       <section style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -276,7 +269,7 @@ export function PropertyDetails({ v }: { v: PropertyScreenView }) {
               boxShadow: '0 6px 16px rgba(15,20,32,.3)',
             }}
           >
-            $450
+            {p.price}
           </span>
           <span
             style={{

@@ -1,9 +1,17 @@
 'use client';
 import { Fragment } from 'react';
-import { Icon } from '@/components/icons';
+import { Icon, type IconName } from '@/components/icons';
+import type { PropertyInfo } from '../../hooks/usePropertyBooking';
 import type { PropertyMobileScreenView } from '../../hooks/usePropertyMobileScreen';
 
-export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
+const AMENITY_ICON: Record<string, IconName> = {
+  'Planta eléctrica': 'bolt',
+  'Tanque de agua': 'droplet',
+  'Fibra óptica': 'wifi',
+  Vigilancia: 'shield',
+};
+
+export function PropertyMobileDetails({ v, p }: { v: PropertyMobileScreenView; p: PropertyInfo }) {
   return (
     <div
       style={{
@@ -20,7 +28,7 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <span style={{ fontWeight: '800', fontSize: '32px', letterSpacing: '-0.03em' }}>
-            $450
+            {p.price}
             <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--muted)' }}>
               {' /mes'}
             </span>
@@ -30,7 +38,7 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
           </span>
         </div>
         <span style={{ fontWeight: '800', fontSize: '20px', lineHeight: '1.2' }}>
-          Apartamento moderno con vista
+          {p.title}
         </span>
         <span
           style={{
@@ -42,7 +50,7 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
           }}
         >
           <Icon name="pin" size={16} />
-          Los Palos Grandes, Caracas
+          {p.place}
         </span>
       </div>
       <div
@@ -56,7 +64,7 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontWeight: '800', fontSize: '20px' }}>2</div>
+          <div style={{ fontWeight: '800', fontSize: '20px' }}>{p.bedrooms}</div>
           <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted)' }}>Hab.</div>
         </div>
         <div
@@ -67,7 +75,7 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontWeight: '800', fontSize: '20px' }}>2</div>
+          <div style={{ fontWeight: '800', fontSize: '20px' }}>{p.bathrooms}</div>
           <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted)' }}>Baños</div>
         </div>
         <div
@@ -78,7 +86,7 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontWeight: '800', fontSize: '20px' }}>1</div>
+          <div style={{ fontWeight: '800', fontSize: '20px' }}>{p.parkingSpots}</div>
           <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted)' }}>Puesto</div>
         </div>
         <div
@@ -89,41 +97,31 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
             textAlign: 'center',
           }}
         >
-          <div style={{ fontWeight: '800', fontSize: '20px' }}>85</div>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted)' }}>m²</div>
+          <div style={{ fontWeight: '800', fontSize: '20px' }}>{p.area}</div>
+          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--muted)' }}>Área</div>
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <span style={{ fontWeight: '800', fontSize: '18px' }}>Servicios</span>
-        <div
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px' }}
-        >
-          <div className="am">
-            <span className="i">
-              <Icon name="bolt" size={20} strokeWidth={2} />
-            </span>
-            Planta eléctrica
-          </div>
-          <div className="am">
-            <span className="i">
-              <Icon name="droplet" size={20} strokeWidth={2} />
-            </span>
-            Tanque de agua
-          </div>
-          <div className="am">
-            <span className="i">
-              <Icon name="wifi" size={20} strokeWidth={2} />
-            </span>
-            Fibra óptica
-          </div>
-          <div className="am">
-            <span className="i">
-              <Icon name="shield" size={20} strokeWidth={2} />
-            </span>
-            Vigilancia 24 h
+      {p.amenities.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <span style={{ fontWeight: '800', fontSize: '18px' }}>Servicios</span>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gap: '10px',
+            }}
+          >
+            {p.amenities.map((name) => (
+              <div key={name} className="am">
+                <span className="i">
+                  <Icon name={AMENITY_ICON[name] ?? 'bolt'} size={20} strokeWidth={2} />
+                </span>
+                {name}
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <span style={{ fontWeight: '800', fontSize: '18px' }}>Agenda una visita</span>
         <div
@@ -148,7 +146,7 @@ export function PropertyMobileDetails({ v }: { v: PropertyMobileScreenView }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <span style={{ fontWeight: '800', fontSize: '18px' }}>Descripción</span>
         <p style={{ margin: '0', fontSize: '15px', lineHeight: '1.65', color: 'var(--muted)' }}>
-          [Descripción escrita por el dueño o la inmobiliaria.]
+          {p.description}
         </p>
       </div>
       <div

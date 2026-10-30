@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { classIf } from '@/lib/classes';
 import { toast } from '@/lib/toast';
-import { SIMILAR_PROPERTIES, VISIT_SLOTS } from './property-data';
+import { VISIT_SLOTS } from './property-data';
 import { usePropertyBooking } from './usePropertyBooking';
 
 /** Ficha en escritorio: lo común más la hora de la visita, "Apartar" y las propiedades parecidas. */
@@ -21,11 +21,6 @@ export function usePropertyScreen() {
     // Texto del botón: "Solicitar visita · Mañana 10:30"
     visitSummary: `${booking.selectedDayName} ${VISIT_SLOTS[slotIndex]}`,
     reserve: () => toast('Propiedad apartada. El agente te contactará para confirmar.'),
-
-    similarProperties: SIMILAR_PROPERTIES.map((property, index) => ({
-      ...property,
-      tint: `background:color-mix(in srgb, var(--ac) ${12 + index * 6}%, var(--surf2))`,
-    })),
   };
 }
 

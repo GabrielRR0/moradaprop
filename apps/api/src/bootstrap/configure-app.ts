@@ -26,7 +26,13 @@ export function configureApp(app: INestApplication) {
   // Almacenamiento local: solo las variantes publicas se sirven; los originales privados nunca.
   const storage = app.get(STORAGE_PROVIDER);
   if (storage instanceof LocalStorageProvider) {
-    (app as NestExpressApplication).useStaticAssets(storage.publicDir, { prefix: '/uploads', index: false, dotfiles: 'deny' });
+    (app as NestExpressApplication).useStaticAssets(storage.publicDir, {
+      prefix: '/uploads',
+      index: false,
+      dotfiles: 'deny',
+      // helmet manda "same-origin" por defecto y el navegador bloquearia las fotos pedidas desde la web (otro puerto/dominio).
+      setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'),
+    });
   }
   app.useGlobalPipes(
     new ValidationPipe({
