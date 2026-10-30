@@ -6,6 +6,7 @@ Un módulo propio por cada librería de terceros cuya API puede cambiar entre ve
 | `motion` | `MotionSupport.motion.div`, `MotionSupport.AnimatePresence` | motion |
 | `query` | `QuerySupport.useQuery(...)` | @tanstack/react-query |
 | `maplibre` | `MapLibreSupport.load()`, `MapLibreSupport.Map` | maplibre-gl |
+| `maplibre-worker` | `MapLibreWorkerSupport.readWorkerFile(name)` (solo servidor) | archivos del worker de maplibre-gl |
 
 ## Reglas (las hace cumplir ESLint)
 1. La librería solo se importa dentro de su carpeta (`no-restricted-imports` en `eslint.config.mjs`).

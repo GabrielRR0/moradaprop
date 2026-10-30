@@ -5,7 +5,9 @@
   overflow: hidden;
   background: var(--map-bg);
 }
-.mc-map {
+/* `.mc-wrap` delante: MapLibre agrega `.maplibregl-map { position: relative }` al mismo elemento
+   y, con igual especificidad, gana el que se cargue despues y el mapa queda con alto 0. */
+.mc-wrap .mc-map {
   position: absolute;
   inset: 0;
 }

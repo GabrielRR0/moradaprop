@@ -24,8 +24,7 @@ map/
   hooks/
     useMapExplorer.ts              # TODO el estado del mapa: filtros, pines, lista, selección, buscador, URL
     useFiltersScreen.ts            # filtros del panel + conteo real "Ver N propiedades"
-  services/                        # datos: API real o datos de ejemplo (ver abajo)
-  utils/                           # format (precios, textos), places (ciudades/estados), map-style, amenities
+  utils/                           # places (ciudades/estados), map-style, amenities
   tests/map.test.ts
 ```
 
@@ -36,8 +35,8 @@ map/
    lo **repinta con los colores del diseño** (`--map-bg`, `--map-road`, `--map-park`, `--map-water`), así que cambia
    solo con el modo noche. El botón "tipo de mapa" alterna con el estilo detallado (`NEXT_PUBLIC_MAP_DETAIL_STYLE_URL`).
    Si el estilo no carga (sin internet) el mapa queda liso pero los pines siguen funcionando.
-2. **Worker.** Next no empaqueta bien el worker de MapLibre, por eso `apps/web/scripts/copy-maplibre-worker.mjs` lo
-   copia a `public/maplibre/` antes de `dev` y `build` (carpeta ignorada por git).
+2. **Worker.** Next no empaqueta bien el worker de MapLibre, por eso la ruta `app/maplibre/[file]` lo sirve directo
+   desde `node_modules` (`support/maplibre-worker`); no hay copia en el repo.
 3. **Datos.** Cada vez que el mapa se mueve (espera 280 ms) `useMapExplorer` pide:
    - `GET /api/properties/map` con la caja visible (+25 % de margen), `zoom` (MapLibre + 1 = escala del backend) y filtros → pines y grupos;
    - `GET /api/properties` con la caja exacta, 20 por página ("Ver más") → lista y total;
@@ -50,9 +49,23 @@ map/
 6. **URL compartible.** Filtros, centro y zoom van en la URL (`?maxPrice=500&hasGenerator=true&c=10.49,-66.9&z=11`).
    `/filtros` lee y devuelve esos mismos parámetros.
 
-## Fuente de datos (`services/`)
+## Si el mapa no se ve
 
-`NEXT_PUBLIC_USE_MOCKS`: `auto` (por defecto) usa el API y, si no responde, **datos de ejemplo** (≈60 propiedades en las
+| Síntoma | Causa y arreglo |
+|---|---|
+| Área del mapa vacía, pero hay canvas y pines en el DOM | El contenedor `.mc-map` colapsó a alto 0: MapLibre le pone `position: relative` y pisa al CSS propio. La regla `.mc-wrap .mc-map` de `mapcanvas.css` lo evita; no la simplifiques. |
+| Error rojo `WebGL2 is required` (`GPUInitializationError`) | El navegador no tiene WebGL2: aceleración desactivada, GPU degradada (disco o memoria al límite) o una extensión de privacidad. Probar en incógnito y revisar `chrome://gpu`. |
+| `Worker failed to load` | `/maplibre/maplibre-gl-worker.mjs` no da 200. Ver `src/support/maplibre-worker/README.md`. |
+| Mapa liso sin calles | OpenFreeMap no cargó (sin internet): el mapa queda liso y los pines siguen. |
+| Pines que nunca llegan | `NEXT_PUBLIC_API_URL` apunta a un túnel de Cloudflare caído; para pruebas locales usar `http://localhost:3001`. |
+
+Tras editar archivos de la web con Docker en Windows hay que correr `docker compose restart web`. Para verificar, no basta con ver un canvas en el DOM: medir `.mc-map` (alto > 0) y mirar una captura.
+
+## Fuente de datos (`src/lib/properties/`)
+
+El servicio de propiedades (API real o datos de ejemplo), los filtros, los tipos y el formato de precios viven en `src/lib/properties/` porque los comparten el mapa, el inicio y la ficha. Docker lo arranca con `NEXT_PUBLIC_USE_MOCKS=false` (solo datos reales del API).
+
+`NEXT_PUBLIC_USE_MOCKS`: `auto` usa el API y, si no responde, **datos de ejemplo** (≈60 propiedades en las
 mismas ciudades que `apps/api/prisma/seed.ts`) mostrando el aviso "Datos de ejemplo"; `true` siempre ejemplo; `false` solo API.
 El API se llama con `X-App-Client: web` y `X-App-Key` (`NEXT_PUBLIC_APP_CLIENT_KEY`) y el origen debe estar en
 `CORS_ALLOWED_ORIGINS`. `property-api.ts` aplana los marcadores (`point` anidado → plano).

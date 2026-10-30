@@ -173,7 +173,7 @@ Un solo `docker-compose.yml` en la raíz. El usuario copia `.env.example` a `.en
 
 - `db`: imagen `postgis/postgis`, con volumen persistente.
 - `api`: NestJS en modo watch (código montado), corre `prisma migrate deploy` + seed con datos de ejemplo al iniciar.
-- `web`: Next.js en modo dev con hot reload.
+- `web`: Next.js en modo dev con hot reload. **En Windows el volumen no avisa de los cambios**: si editas la web y no se refleja (CSS, rutas, `support/`), reinicia solo ese servicio con `docker compose restart web` y espera la primera compilación.
 - `redis`: rate limit y colas.
 - `mailpit`: ver correos (códigos de verificación) en local sin configurar nada.
 - Supabase es **opcional**: se descomenta `DATABASE_URL` para apuntar a él.

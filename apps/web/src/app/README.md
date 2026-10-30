@@ -17,6 +17,7 @@ App Router. Cada `page.tsx` solo importa la página de su módulo (`@/modules/<m
 | `/propiedad/[id]`    | `properties`       | Ficha de propiedad (por ahora datos de ejemplo para cualquier `id`) |
 | `/admin`             | `admin`            | Moderación (solo escritorio)                                        |
 | `/diseno`            | `design`           | Kit de diseño                                                       |
+| `/maplibre/[file]`   | (support)          | Route handler: sirve el worker de MapLibre desde node_modules       |
 
 Otros archivos:
 
