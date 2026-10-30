@@ -124,6 +124,14 @@
   background: var(--surf);
   font-weight: 600;
   font-size: 14px;
+  width: 100%;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+}
+.ds-filtersscreen select.sel:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .ds-filtersscreen .in {
   animation: rise-filtersscreen 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -143,4 +151,111 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Panel que sube desde abajo y queda centrado sobre el mapa, con el fondo desenfocado. */
+.ds-filtersscreen.fs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg) 35%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.ds-filtersscreen .fs-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+}
+/* Teléfono: cubre toda la pantalla. */
+@media (max-width: 899px) {
+  .ds-filtersscreen.fs-backdrop {
+    padding: 0;
+  }
+  .ds-filtersscreen .fs-panel {
+    max-width: none;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Control de precio con dos puntas: dos <input type=range> encimados; solo las puntas reciben el toque. */
+.ds-filtersscreen .range {
+  position: relative;
+  height: 28px;
+}
+.ds-filtersscreen .range-track,
+.ds-filtersscreen .range-fill {
+  position: absolute;
+  top: 12px;
+  height: 4px;
+  border-radius: 2px;
+}
+.ds-filtersscreen .range-track {
+  left: 0;
+  right: 0;
+  background: var(--line);
+}
+.ds-filtersscreen .range-fill {
+  background: var(--ac);
+}
+.ds-filtersscreen .range input[type='range'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ds-filtersscreen .range input[type='range']::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+.ds-filtersscreen .range input[type='range']::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+.ds-filtersscreen .range input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: var(--surf);
+  border: 3px solid var(--ac);
+  box-shadow: 0 3px 8px rgba(15, 20, 32, 0.25);
+  cursor: grab;
+}
+.ds-filtersscreen .range input[type='range']::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surf);
+  border: 3px solid var(--ac);
+  box-shadow: 0 3px 8px rgba(15, 20, 32, 0.25);
+  cursor: grab;
+}
+.ds-filtersscreen .range input[type='range']:active::-webkit-slider-thumb {
+  cursor: grabbing;
 }

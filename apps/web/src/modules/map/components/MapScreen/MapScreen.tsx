@@ -2,7 +2,13 @@
 
 import Link from 'next/link';
 import { brand } from '@/config';
+import { askLogin } from '@/lib/login-prompt';
+import { toast } from '@/lib/toast';
+import { useSession } from '@/modules/auth';
+import { useState } from 'react';
+import { closeFiltersRoute } from '../FiltersScreen/filters-route';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
+import { FiltersOverlay } from '../FiltersScreen';
 import { MapFilterBar } from './MapFilterBar';
 import { MapPane } from './MapPane';
 import { MapResults } from './MapResults';
@@ -10,15 +16,19 @@ import './mapscreen.css';
 import { Icon } from '@/components/icons';
 
 /** Desplazamiento del punto elegido para que la ficha flotante (arriba del pin) quede a la vista. */
-const POPUP_OFFSET: [number, number] = [0, 150];
+const POPUP_OFFSET: [number, number] = [0, 120];
 
 /**
  * Mapa + lista (escritorio). El diseno vive en docs/diseno/pantallas/Mapa.dc.html; aqui el mapa es el
  * real de Venezuela y los datos salen del API (o de datos de ejemplo si el API no responde).
  */
-export function MapScreen() {
+export function MapScreen({ startWithFilters = false }: { startWithFilters?: boolean }) {
   const ex = useMapExplorer({ selectionOffset: POPUP_OFFSET });
   const { search } = ex;
+  const [filtersOpen, setFiltersOpen] = useState(startWithFilters);
+  const session = useSession();
+  const needAccount = (reason: string) =>
+    session.status === 'authed' ? toast('Muy pronto disponible', 'info') : askLogin(reason);
 
   return (
     <div
@@ -134,11 +144,11 @@ export function MapScreen() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button className="btn2" aria-label="Favoritos" type="button">
+          <button className="btn2" aria-label="Favoritos" type="button" onClick={() => needAccount('ver tus favoritos')}>
             <Icon name="heart" size={18} />
             {' Favoritos'}
           </button>
-          <button className="btn2" aria-label="Crear alerta" type="button">
+          <button className="btn2" aria-label="Crear alerta" type="button" onClick={() => needAccount('crear alertas')}>
             <Icon name="bell" size={18} />
             {' Alertas'}
           </button>
@@ -148,11 +158,24 @@ export function MapScreen() {
         </div>
       </header>
 
-      <MapFilterBar ex={ex} />
+      <MapFilterBar ex={ex} onOpenFilters={() => setFiltersOpen(true)} />
       <div style={{ flex: '1 1 auto', display: 'flex', minHeight: 0 }}>
         <MapResults ex={ex} />
         <MapPane ex={ex} />
       </div>
+      <FiltersOverlay
+        open={filtersOpen}
+        filters={ex.filters}
+        onApply={(next) => {
+          ex.replaceFilters(next);
+          setFiltersOpen(false);
+          closeFiltersRoute();
+        }}
+        onClose={() => {
+          setFiltersOpen(false);
+          closeFiltersRoute();
+        }}
+      />
     </div>
   );
 }

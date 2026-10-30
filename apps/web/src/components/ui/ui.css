@@ -9,8 +9,9 @@
 .ui-font *::after {
   box-sizing: border-box;
 }
-.ui-font button,
-.ui-font input {
+/* :where() deja esta regla sin peso: si no, `color: inherit` le gana a `.ui-btn { color: #fff }` y el texto del boton sale negro. */
+:where(.ui-font) button,
+:where(.ui-font) input {
   font: inherit;
   color: inherit;
 }

@@ -14,6 +14,7 @@ import { snapBox } from '../utils/bounding-box';
 import { cacheKey } from '../utils/cache-key';
 import { clusterPoints, POINTS_FROM_ZOOM, type MapPoint } from '../utils/clusters';
 import { cardInclude, detailInclude, toCard, toDetail } from '../utils/property-mapper';
+import { computeRentStats } from '../utils/rent-stats';
 import { PropertyPolicyService } from './property-policy.service';
 import { DbSupport } from '../../../support/db';
 
@@ -38,6 +39,26 @@ export class PropertySearchService {
   /** Busqueda publica. Es igual para todos los usuarios, por eso se puede cachear unos segundos. */
   search(query: SearchPropertiesDto) {
     return this.cache.remember(cacheKey('search', query), () => this.searchInDatabase(query), CacheSupport.POLICIES.search);
+  }
+
+  /**
+   * Alquiler típico por estado con TODAS las propiedades publicadas en USD (vivienda: apartamento, casa,
+   * townhouse y habitación). Se calcula aquí y se cachea unos minutos porque cambia lento.
+   */
+  rentStats() {
+    return this.cache.remember('properties:rent-stats', () => this.rentStatsInDatabase(), CacheSupport.POLICIES.rentStats);
+  }
+
+  private async rentStatsInDatabase() {
+    const rows = await this.prisma.property.findMany({
+      where: {
+        status: { in: PUBLIC_SEARCH_STATUSES },
+        currency: 'USD',
+        type: { in: ['APARTAMENTO', 'CASA', 'TOWNHOUSE', 'HABITACION'] },
+      },
+      select: { state: true, priceAmount: true },
+    });
+    return { states: computeRentStats(rows.map((row) => ({ state: row.state, priceAmount: Number(row.priceAmount) }))) };
   }
 
   private async searchInDatabase(query: SearchPropertiesDto) {

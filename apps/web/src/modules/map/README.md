@@ -7,7 +7,7 @@ Mantiene el diseño de `docs/diseno/pantallas/Mapa.dc.html`, `Movil.dc.html` y `
 | Ruta       | Página        | Pantallas                                                                  |
 | ---------- | ------------- | -------------------------------------------------------------------------- |
 | `/mapa`    | `MapPage`     | `MapScreen` (escritorio) o `MapMobileScreen` (teléfono): solo se monta una |
-| `/filtros` | `FiltersPage` | `FiltersScreen`                                                            |
+| `/filtros` | `FiltersPage` | el mapa con el panel de filtros abierto (`FiltersOverlay`)                 |
 
 ## Estructura
 
@@ -19,11 +19,11 @@ map/
     MapCanvas/                     # el mapa: MapLibre + pines (MapPins) + estilos del diseño (mapcanvas.css)
     MapScreen/                     # escritorio: MapFilterBar, MapResults (lista), MapPane (mapa + botones)
     MapMobileScreen/               # teléfono: mapa completo + hoja inferior con tarjetas + pestañas
-    FiltersScreen/                 # panel de filtros (Básico / Avanzado)
+    FiltersScreen/                 # panel de filtros (Básico / Avanzado): sube desde abajo y queda centrado sobre el mapa (en el teléfono cubre toda la pantalla) con el fondo desenfocado (FiltersOverlay)
     shared/                        # ChipMenu (menús de precio/habitaciones/orden), PropertyPopup (ficha flotante)
   hooks/
     useMapExplorer.ts              # TODO el estado del mapa: filtros, pines, lista, selección, buscador, URL
-    useFiltersScreen.ts            # filtros del panel + conteo real "Ver N propiedades"
+    useFiltersScreen.ts            # filtros del panel: precio con barras reales y control de arrastre, estado/municipio y conteo real "Ver N propiedades"
   utils/                           # places (ciudades/estados), map-style, amenities
   tests/map.test.ts
 ```
@@ -47,7 +47,7 @@ map/
 5. **Buscador.** `utils/places.ts` tiene estados, ciudades y urbanizaciones con su centro: al elegir una el mapa vuela
    allí. Si se escribe algo que no es un lugar, se usa como texto de búsqueda (`q`).
 6. **URL compartible.** Filtros, centro y zoom van en la URL (`?maxPrice=500&hasGenerator=true&c=10.49,-66.9&z=11`).
-   `/filtros` lee y devuelve esos mismos parámetros.
+   El panel de filtros se abre sobre el mapa (sin cambiar de página) y al aplicar actualiza esos mismos filtros; `/filtros` solo abre el mapa con el panel ya desplegado.
 
 ## Si el mapa no se ve
 

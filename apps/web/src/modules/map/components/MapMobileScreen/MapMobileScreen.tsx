@@ -1,16 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { css } from '@/lib/dc';
 import { useSession } from '@/modules/auth';
+import { askLogin } from '@/lib/login-prompt';
 import { useTheme } from '@/lib/theme';
+import { toast } from '@/lib/toast';
 import { useMapExplorer } from '../../hooks/useMapExplorer';
 import type { PropertyCard } from '@/lib/properties';
 import { AMENITY_FILTERS } from '../../utils/amenities';
 import { badgeOf, formatPrice, photoTint, placeOf, specsOf } from '@/lib/properties';
 import { MapCanvas } from '../MapCanvas/MapCanvas';
+import { FiltersOverlay } from '../FiltersScreen';
+import { closeFiltersRoute } from '../FiltersScreen/filters-route';
 import '../shared/explorer.css';
 import './mapmobilescreen.css';
 import { Icon } from '@/components/icons';
@@ -101,13 +104,16 @@ function Card({
  * Mapa en el telefono: mapa a pantalla completa, hoja inferior con tarjetas deslizables y barra de pestañas.
  * Diseno: docs/diseno/pantallas/Movil.dc.html.
  */
-export function MapMobileScreen() {
+export function MapMobileScreen({ startWithFilters = false }: { startWithFilters?: boolean }) {
   const ex = useMapExplorer({ selectionOffset: SHEET_OFFSET });
   const { dark } = useTheme();
   const session = useSession();
+  // Favoritos y alertas piden cuenta: sin sesion se abre el aviso con el boton a ingresar.
+  const needAccount = (reason: string) =>
+    session.status === 'authed' ? toast('Muy pronto disponible', 'info') : askLogin(reason);
   const { search, filters } = ex;
   const [listOpen, setListOpen] = useState(false);
-  const currentSearch = useSearchParams().toString();
+  const [filtersOpen, setFiltersOpen] = useState(startWithFilters);
 
   // La tarjeta elegida se centra en el carrusel.
   useEffect(() => {
@@ -224,10 +230,12 @@ export function MapMobileScreen() {
               </ul>
             )}
           </div>
-          <Link
-            href={`/filtros?${currentSearch}`}
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
             aria-label="Abrir filtros"
             style={{
+              border: 0,
               position: 'relative',
               width: 52,
               height: 52,
@@ -260,7 +268,7 @@ export function MapMobileScreen() {
                 {ex.activeFilters}
               </span>
             )}
-          </Link>
+          </button>
         </div>
         <div
           style={{
@@ -458,11 +466,11 @@ export function MapMobileScreen() {
           <Icon name="map" />
           Explorar
         </button>
-        <button className="tab" type="button">
+        <button className="tab" type="button" onClick={() => needAccount('ver tus favoritos')}>
           <Icon name="heart" />
           Favoritos
         </button>
-        <button className="tab" type="button">
+        <button className="tab" type="button" onClick={() => needAccount('crear alertas')}>
           <Icon name="bell" />
           Alertas
         </button>
@@ -471,6 +479,19 @@ export function MapMobileScreen() {
           Perfil
         </Link>
       </nav>
+      <FiltersOverlay
+        open={filtersOpen}
+        filters={ex.filters}
+        onApply={(next) => {
+          ex.replaceFilters(next);
+          setFiltersOpen(false);
+          closeFiltersRoute();
+        }}
+        onClose={() => {
+          setFiltersOpen(false);
+          closeFiltersRoute();
+        }}
+      />
     </div>
   );
 }

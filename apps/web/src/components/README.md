@@ -9,6 +9,7 @@ Componentes de interfaz compartidos por todos los módulos de la web.
 | `Toaster`           | Dibuja los avisos de `lib/toast` con animación de resorte (`motion`). Va una sola vez en el layout.                                       |
 | `ThemePicker`       | Botón flotante para probar color de marca y modo noche mientras se decide el diseño. Se oculta con `NEXT_PUBLIC_SHOW_THEME_PICKER=false`. |
 | `RevealObserver`    | Hace aparecer con animación los bloques con `data-reveal` al hacer scroll.                                                                |
+| `LoginPrompt`       | Aviso (Sheet) "ingresa para continuar" que abre `askLogin()` cuando alguien sin sesión toca favoritos, alertas, etc. Va en `Providers`.   |
 
 Animaciones globales de la app: transición de página (`app/template.tsx`), aviso al guardar/cambiar, aparición al
 hacer scroll, cambio suave claro/oscuro y las animaciones propias de cada pantalla (en su `.css`).

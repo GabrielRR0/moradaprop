@@ -18,20 +18,4 @@ home/
 ```
 
 - `hooks/useHomeScreen.ts` — estado y datos de ejemplo de `HomeScreen`.
-
-## Cómo funciona
-
-- Cada pantalla es el diseño convertido a React: el JSX conserva los estilos del diseño y el CSS
-  de la pantalla va **acotado** bajo su clase raíz (`.ds-<pantalla>`), así no se pisa con otras.
-- La lógica vive en el hook de la pantalla y devuelve un objeto `v` que el JSX consume (equivale al
-  `renderVals()` del diseño). Los **datos son de ejemplo** y están dentro del hook: al conectar el API
-  se reemplazan por llamadas a `services/` (TanStack Query) sin tocar el JSX.
-- El tema (color de marca `--ac` y modo noche) sale de `src/app/globals.css` + `ThemeProvider`.
-- Escritorio y móvil se alternan por CSS (`<Responsive>`, corte en 900 px).
-- Los avisos (`toast`) y la navegación entre pantallas están en los hooks (`hooks/use<Pantalla>.ts`).
-
-## Reglas
-
-- Fuera de este módulo solo se importa `index.ts` (regla ESLint `local/no-internal-imports`).
-- Máximo 600 líneas por archivo: las pantallas grandes se parten en partes con nombre (ej. `HomeIntro`, `HomeListings`).
-- Estas pantallas ya se mantienen **a mano**: el conversor del diseño quedó retirado (ver `scripts/diseno-a-react/README.md`).
+- `hooks/useRentMap.ts` + `HomeScreen/HomeRentMap.tsx` — sección «¿Cuánto cuesta alquilar?» (debajo de las propiedades recientes), con el diseño del lienzo «Cuánto cuesta alquilar». Datos de `GET /api/properties/rent-stats` (todas las propiedades publicadas en USD, por estado: mediana, rango de la mayoría, mínimo, máximo e histograma). Muestra una ciudad destacada (precio típico que cuenta hacia arriba, histograma y rango) y un ranking con escala común; en el teléfono las ciudades son botones deslizables. Los colores van de verde (≤ $150) a rojo (≥ $1.000) con `rentColor` de `lib/properties/rent.ts` (la luminosidad cambia con el tema por `--rent-l`). Solo se muestran estados con 3 o más propiedades.n; en el teléfono las ciudades son botones deslizables. Los colores van de verde (≤ $150) a rojo (≥ $1.000) con `rentColor` de `lib/properties/rent.ts` (la luminosidad cambia con el tema por `--rent-l`). Solo se muestran estados con 3 o más propiedades.

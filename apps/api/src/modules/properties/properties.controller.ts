@@ -57,6 +57,13 @@ export class PropertiesController {
     return this.propertiesService.mapProperties(query);
   }
 
+  @PublicGroup()
+  @CacheSupport.HttpCache('rentStats')
+  @Get('rent-stats')
+  rentStats() {
+    return this.propertiesService.rentStats();
+  }
+
   // ---------------- Mis propiedades y favoritos ----------------
 
   @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)

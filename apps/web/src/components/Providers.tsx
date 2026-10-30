@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { LoginPrompt } from '@/components/LoginPrompt';
 import { MotionSupport } from '@/support/motion';
 import { QuerySupport } from '@/support/query';
 
@@ -17,7 +18,9 @@ export function Providers({ children }: { children: ReactNode }) {
   // reducedMotion="user": quien pidio menos movimiento en su sistema no ve desplazamientos animados.
   return (
     <QuerySupport.QueryClientProvider client={client}>
-      <MotionSupport.MotionConfig reducedMotion="user">{children}</MotionSupport.MotionConfig>
+      <MotionSupport.MotionConfig reducedMotion="user">{children}
+        <LoginPrompt />
+      </MotionSupport.MotionConfig>
     </QuerySupport.QueryClientProvider>
   );
 }

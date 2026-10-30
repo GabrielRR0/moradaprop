@@ -3,10 +3,13 @@ import { publicEnv } from '@/config';
 import type { PropertyFilters } from './filters';
 import { mockDetail, mockMap, mockSearch } from './mock-search';
 import { ApiError, propertyApi } from './property-api';
+import { MOCK_PROPERTIES } from './mock-data';
+import { rentStatsFrom, type StateRent } from './rent';
 import type { Bounds, MapResult, PropertyDetail, PropertyPage } from './types';
 
 export * from './filters';
 export * from './types';
+export * from './rent';
 export { ApiError } from './property-api';
 
 /**
@@ -73,6 +76,13 @@ export const propertyService = {
     return withFallback(
       () => propertyApi.search(filters, bounds, page, limit, signal),
       () => mockSearch(filters, bounds, page, limit),
+    );
+  },
+
+  rentStats(signal?: AbortSignal): Promise<StateRent[]> {
+    return withFallback(
+      () => propertyApi.rentStats(signal),
+      () => rentStatsFrom(MOCK_PROPERTIES),
     );
   },
 

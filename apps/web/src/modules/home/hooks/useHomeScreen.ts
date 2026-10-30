@@ -53,7 +53,7 @@ export function useHomeScreen() {
   });
 
   // Favoritos reales: solo con sesion. Sin sesion el corazon lleva a ingresar.
-  const favorites = useFavorites(status === 'authed', () => router.push('/ingresar?next=/'));
+  const favorites = useFavorites(status === 'authed');
 
   function toggleFilter(name: string) {
     setActiveFilters((current) =>

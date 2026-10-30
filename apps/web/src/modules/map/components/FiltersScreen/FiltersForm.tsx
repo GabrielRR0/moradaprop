@@ -53,111 +53,43 @@ export function FiltersForm({ v }: { v: FiltersScreenView }) {
           style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '44px' }}
           aria-hidden="true"
         >
-          <span
-            style={{ flex: '1', height: '30%', background: 'var(--ac-soft)', borderRadius: '3px' }}
-          />
-          <span
-            style={{ flex: '1', height: '50%', background: 'var(--ac-soft)', borderRadius: '3px' }}
-          />
-          <span
-            style={{
-              flex: '1',
-              height: '80%',
-              background: 'var(--ac)',
-              opacity: '.55',
-              borderRadius: '3px',
-            }}
-          />
-          <span
-            style={{
-              flex: '1',
-              height: '100%',
-              background: 'var(--ac)',
-              opacity: '.55',
-              borderRadius: '3px',
-            }}
-          />
-          <span
-            style={{
-              flex: '1',
-              height: '70%',
-              background: 'var(--ac)',
-              opacity: '.55',
-              borderRadius: '3px',
-            }}
-          />
-          <span
-            style={{
-              flex: '1',
-              height: '55%',
-              background: 'var(--ac)',
-              opacity: '.55',
-              borderRadius: '3px',
-            }}
-          />
-          <span
-            style={{ flex: '1', height: '40%', background: 'var(--ac-soft)', borderRadius: '3px' }}
-          />
-          <span
-            style={{ flex: '1', height: '25%', background: 'var(--ac-soft)', borderRadius: '3px' }}
-          />
-          <span
-            style={{ flex: '1', height: '15%', background: 'var(--ac-soft)', borderRadius: '3px' }}
-          />
-          <span
-            style={{ flex: '1', height: '10%', background: 'var(--ac-soft)', borderRadius: '3px' }}
-          />
+          {v.slider.bars.map((bar, $index) => (
+            <span
+              key={$index}
+              style={{
+                flex: '1',
+                height: bar.height,
+                background: bar.inRange ? 'var(--ac)' : 'var(--ac-soft)',
+                opacity: bar.inRange ? '.55' : '1',
+                borderRadius: '3px',
+                transition: 'background .2s, opacity .2s, height .3s',
+              }}
+            />
+          ))}
         </div>
-        <div style={{ position: 'relative', height: '28px' }} aria-hidden="true">
+        <div className="range">
+          <span className="range-track" />
           <span
-            style={{
-              position: 'absolute',
-              left: '0',
-              right: '0',
-              top: '12px',
-              height: '4px',
-              borderRadius: '2px',
-              background: 'var(--line)',
-            }}
+            className="range-fill"
+            style={{ left: `${v.slider.leftPercent}%`, right: `${v.slider.rightPercent}%` }}
           />
-          <span
-            style={{
-              position: 'absolute',
-              left: '18%',
-              right: '34%',
-              top: '12px',
-              height: '4px',
-              borderRadius: '2px',
-              background: 'var(--ac)',
-            }}
+          <input
+            type="range"
+            min={0}
+            max={v.slider.max}
+            step={v.slider.step}
+            value={v.slider.minValue}
+            onChange={v.slider.onMin}
+            aria-label="Precio mínimo"
           />
-          <span
-            style={{
-              position: 'absolute',
-              left: '18%',
-              top: '2px',
-              width: '24px',
-              height: '24px',
-              marginLeft: '-12px',
-              borderRadius: '50%',
-              background: 'var(--surf)',
-              border: '3px solid var(--ac)',
-              boxShadow: '0 3px 8px rgba(15,20,32,.25)',
-            }}
-          />
-          <span
-            style={{
-              position: 'absolute',
-              left: '66%',
-              top: '2px',
-              width: '24px',
-              height: '24px',
-              marginLeft: '-12px',
-              borderRadius: '50%',
-              background: 'var(--surf)',
-              border: '3px solid var(--ac)',
-              boxShadow: '0 3px 8px rgba(15,20,32,.25)',
-            }}
+          <input
+            type="range"
+            min={0}
+            max={v.slider.max}
+            step={v.slider.step}
+            value={v.slider.maxValue}
+            onChange={v.slider.onMax}
+            aria-label="Precio máximo"
           />
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -290,24 +222,37 @@ export function FiltersForm({ v }: { v: FiltersScreenView }) {
               </div>
             </section>
             <section style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <span style={{ fontWeight: '800', fontSize: '17px' }}>Ubicación exacta</span>
-              <div className="sel">
-                <span>Distrito Capital</span>
-                <Icon name="chevron-down" size={16} strokeWidth={2.6} />
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <div className="sel" style={{ flex: '1' }}>
-                  <span>Chacao</span>
-                  <Icon name="chevron-down" size={16} strokeWidth={2.6} />
-                </div>
-                <div className="sel" style={{ flex: '1' }}>
-                  <span style={{ color: 'var(--muted)' }}>Urbanización</span>
-                  <Icon name="chevron-down" size={16} strokeWidth={2.6} />
-                </div>
-              </div>
+              <span style={{ fontWeight: '800', fontSize: '17px' }}>Ubicación</span>
+              <select
+                className="sel"
+                value={v.state}
+                onChange={v.chooseState}
+                aria-label="Estado"
+              >
+                <option value="">Todos los estados</option>
+                {v.states.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="sel"
+                value={v.municipality}
+                onChange={v.chooseMunicipality}
+                disabled={!v.state}
+                aria-label="Municipio"
+              >
+                <option value="">{v.state ? 'Todos los municipios' : 'Elige un estado primero'}</option>
+                {v.municipalities.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
             </section>
             <section style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <span style={{ fontWeight: '800', fontSize: '17px' }}>Estacionamiento y área</span>
+              <span style={{ fontWeight: '800', fontSize: '17px' }}>Estacionamiento</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {v.parkingPills.map((b, $index) => (
                   <Fragment key={$index}>
@@ -318,62 +263,6 @@ export function FiltersForm({ v }: { v: FiltersScreenView }) {
                     >{`${b.label}`}</button>
                   </Fragment>
                 ))}
-              </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <label
-                  style={{
-                    flex: '1',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2px',
-                    padding: '10px 16px',
-                    borderRadius: '14px',
-                    border: '1px solid var(--line)',
-                  }}
-                >
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--muted)' }}>
-                    Área mínima (m²)
-                  </span>
-                  <input
-                    type="text"
-                    defaultValue="40"
-                    style={{
-                      border: '0',
-                      outline: '0',
-                      background: 'transparent',
-                      fontWeight: '800',
-                      fontSize: '18px',
-                      width: '100%',
-                    }}
-                  />
-                </label>
-                <label
-                  style={{
-                    flex: '1',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2px',
-                    padding: '10px 16px',
-                    borderRadius: '14px',
-                    border: '1px solid var(--line)',
-                  }}
-                >
-                  <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--muted)' }}>
-                    Disponible desde
-                  </span>
-                  <input
-                    type="text"
-                    defaultValue="Cualquier fecha"
-                    style={{
-                      border: '0',
-                      outline: '0',
-                      background: 'transparent',
-                      fontWeight: '800',
-                      fontSize: '16px',
-                      width: '100%',
-                    }}
-                  />
-                </label>
               </div>
             </section>
           </div>

@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import type { MapExplorer } from '../../hooks/useMapExplorer';
 import {
   AMENITY_FILTERS,
@@ -13,9 +11,8 @@ import { ChipMenu } from '../shared/ChipMenu';
 import { Icon } from '@/components/icons';
 
 /** Barra de filtros bajo el encabezado: precio, habitaciones, servicios y "Más filtros". */
-export function MapFilterBar({ ex }: { ex: MapExplorer }) {
+export function MapFilterBar({ ex, onOpenFilters }: { ex: MapExplorer; onOpenFilters: () => void }) {
   const { filters } = ex;
-  const search = useSearchParams().toString();
   const priceLabel = filters.maxPrice ? `Hasta $${filters.maxPrice}` : 'Precio';
   const bedLabel = filters.bedrooms ? `Habitaciones · ${filters.bedrooms}+` : 'Habitaciones';
 
@@ -58,7 +55,7 @@ export function MapFilterBar({ ex }: { ex: MapExplorer }) {
           {label}
         </button>
       ))}
-      <Link href={`/filtros?${search}`} className="btn2" style={{ marginLeft: 'auto' }}>
+      <button type="button" onClick={onOpenFilters} className="btn2" style={{ marginLeft: 'auto' }}>
         <Icon name="sliders" size={18} />
         {' Más filtros '}
         {ex.activeFilters > 0 && (
@@ -78,7 +75,7 @@ export function MapFilterBar({ ex }: { ex: MapExplorer }) {
             {ex.activeFilters}
           </span>
         )}
-      </Link>
+      </button>
     </div>
   );
 }

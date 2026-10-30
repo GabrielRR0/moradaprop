@@ -22,6 +22,8 @@ export const CACHE_POLICIES = {
   search: { serverSeconds: 10, browserSeconds: 10, staleSeconds: 30 },
   /** Pines del mapa: se consulta muchisimo y cambia poco, asi que dura un poco mas. */
   map: { serverSeconds: 15, browserSeconds: 15, staleSeconds: 45 },
+  /** Alquiler tipico por estado: recorre todas las propiedades y cambia lento. */
+  rentStats: { serverSeconds: 300, browserSeconds: 300, staleSeconds: 600 },
 } satisfies Record<string, CachePolicy>;
 
 export type CachePolicyName = keyof typeof CACHE_POLICIES;

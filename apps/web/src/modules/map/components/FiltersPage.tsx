@@ -1,11 +1,9 @@
-import { Suspense } from 'react';
-import { FiltersScreen } from './FiltersScreen';
+import { MapPage } from './MapPage';
 
+/**
+ * `/filtros`: el mapa con el panel de filtros ya abierto encima (lo usa el botón "Filtros" del inicio).
+ * Desde el mapa el panel se abre sin cambiar de página.
+ */
 export function FiltersPage() {
-  // useSearchParams (los filtros vienen en la URL del mapa) pide un Suspense.
-  return (
-    <Suspense fallback={null}>
-      <FiltersScreen />
-    </Suspense>
-  );
+  return <MapPage startWithFilters />;
 }

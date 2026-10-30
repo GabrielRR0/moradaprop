@@ -6,6 +6,7 @@ import './homescreen.css';
 import { useHomeScreen } from '../../hooks/useHomeScreen';
 import { HomeIntro } from './HomeIntro';
 import { HomeListings } from './HomeListings';
+import { HomeRentMap } from './HomeRentMap';
 import { Icon } from '@/components/icons';
 import { useSession } from '@/modules/auth';
 
@@ -199,6 +200,7 @@ export function HomeScreen() {
         </div>
       </section>
       <HomeListings v={v} />
+      <HomeRentMap />
       <section
         style={{
           background: 'var(--surf2)',

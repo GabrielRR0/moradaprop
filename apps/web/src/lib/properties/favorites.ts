@@ -1,4 +1,5 @@
 import { api } from '@/lib/api';
+import { askLogin } from '@/lib/login-prompt';
 import { toast } from '@/lib/toast';
 import { QuerySupport } from '@/support/query';
 
@@ -8,9 +9,9 @@ type FavoritesResponse = { items?: Array<{ id: string }> } | Array<{ id: string 
 
 /**
  * Favoritos reales de la cuenta (GET/POST/DELETE /properties/:id/favorite). Sin sesion no hay lista y
- * al tocar el corazon se llama a `onNeedLogin` (la pantalla decide a donde llevar al usuario).
+ * al tocar el corazon se abre el aviso de "ingresa" (lib/login-prompt) con un boton que lleva al login.
  */
-export function useFavorites(authed: boolean, onNeedLogin: () => void) {
+export function useFavorites(authed: boolean) {
   const client = QuerySupport.useQueryClient();
   const query = QuerySupport.useQuery({
     queryKey: KEY,
@@ -25,8 +26,7 @@ export function useFavorites(authed: boolean, onNeedLogin: () => void) {
 
   async function toggle(id: string) {
     if (!authed) {
-      toast('Ingresa para guardar tus favoritos', 'info');
-      onNeedLogin();
+      askLogin('guardar tus favoritos');
       return;
     }
     const was = ids.includes(id);

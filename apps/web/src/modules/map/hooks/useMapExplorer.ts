@@ -152,6 +152,8 @@ export function useMapExplorer({ selectionOffset }: Options) {
     setFilters((prev) => cleanFilters({ ...prev, ...patch }));
   }, []);
   const clearFilters = useCallback(() => setFilters({}), []);
+  /** Reemplaza todos los filtros de una vez (lo usa el panel de filtros al aplicar). */
+  const replaceFilters = useCallback((next: PropertyFilters) => setFilters(cleanFilters(next)), []);
 
   // ---- Buscador de zonas ----
   const [searchText, setSearchText] = useState(initial.filters.q ?? '');
@@ -189,6 +191,7 @@ export function useMapExplorer({ selectionOffset }: Options) {
     filters,
     patchFilters,
     clearFilters,
+    replaceFilters,
     activeFilters: countActiveFilters(filters),
     markers,
     items,

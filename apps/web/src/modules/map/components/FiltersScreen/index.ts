@@ -1,1 +1,1 @@
-export { FiltersScreen } from './FiltersScreen';
+export { FiltersOverlay } from './FiltersOverlay';

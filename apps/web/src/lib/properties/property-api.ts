@@ -9,6 +9,7 @@ import type {
   PropertyDetail,
   PropertyPage,
 } from './types';
+import type { StateRent } from './rent';
 
 /** Error del API (o de red: status 0). */
 export class ApiError extends Error {
@@ -85,6 +86,12 @@ export const propertyApi = {
     params.set('page', String(page));
     params.set('limit', String(limit));
     return request('', params, signal);
+  },
+
+  /** Alquiler típico por estado con todas las propiedades publicadas. */
+  async rentStats(signal?: AbortSignal): Promise<StateRent[]> {
+    const data = await request('/rent-stats', new URLSearchParams(), signal);
+    return data.states;
   },
 
   detail(id: string, signal?: AbortSignal): Promise<PropertyDetail> {

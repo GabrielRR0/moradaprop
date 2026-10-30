@@ -1,28 +1,54 @@
 'use client';
-import Link from 'next/link';
+import { useEffect } from 'react';
 import './filtersscreen.css';
 import { useFiltersScreen } from '../../hooks/useFiltersScreen';
 import { FiltersForm } from './FiltersForm';
 import { Icon } from '@/components/icons';
+import type { PropertyFilters } from '@/lib/properties';
+import { MotionSupport } from '@/support/motion';
 
-export function FiltersScreen() {
-  const v = useFiltersScreen();
+/**
+ * Panel de filtros: sube desde abajo y queda centrado sobre el mapa (en el teléfono ocupa toda la pantalla);
+ * al cerrar vuelve a bajar. El mapa queda detrás con desenfoque.
+ * Se cierra con la X, tocando el fondo o con Escape.
+ */
+export function FiltersScreen({
+  initial,
+  onApply,
+  onClose,
+}: {
+  initial: PropertyFilters;
+  onApply: (filters: PropertyFilters) => void;
+  onClose: () => void;
+}) {
+  const v = useFiltersScreen({ initial, onApply, onClose });
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
-    <div
-      className="ds-filtersscreen"
-      style={{
-        width: '100%',
-        height: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--bg)',
-        color: 'var(--text)',
-        fontFamily: "'Plus Jakarta Sans',system-ui,sans-serif",
-        overflow: 'hidden',
-        maxWidth: '560px',
-        margin: '0 auto',
-      }}
+    <MotionSupport.motion.div
+      className="ds-filtersscreen fs-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
     >
+      <MotionSupport.motion.div
+        className="fs-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Filtros"
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 360, damping: 38 }}
+        onClick={(event) => event.stopPropagation()}
+      >
       <header
         style={{
           flex: '0 0 auto',
@@ -35,10 +61,13 @@ export function FiltersScreen() {
         <span style={{ fontWeight: '800', fontSize: '24px', letterSpacing: '-0.02em' }}>
           Filtros
         </span>
-        <Link
-          href={v.backLink}
+        <button
+          onClick={v.close}
+          type="button"
           aria-label="Cerrar filtros"
           style={{
+            border: '0',
+            color: 'var(--text)',
             width: '44px',
             height: '44px',
             borderRadius: '50%',
@@ -48,7 +77,7 @@ export function FiltersScreen() {
           }}
         >
           <Icon name="close" size={20} strokeWidth={2.4} />
-        </Link>
+        </button>
       </header>
       <div style={{ flex: '0 0 auto', padding: '0 28px 16px' }}>
         <div
@@ -80,23 +109,6 @@ export function FiltersScreen() {
           background: 'var(--bg)',
         }}
       >
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-          }}
-        >
-          <input
-            type="checkbox"
-            defaultChecked
-            style={{ width: '20px', height: '20px', accentColor: 'var(--ac)' }}
-          />
-          {' Avísame cuando haya propiedades nuevas con estos filtros '}
-        </label>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             style={{
@@ -114,11 +126,12 @@ export function FiltersScreen() {
           >
             Limpiar
           </button>
-          <Link href={v.applyLink} className="btn" style={{ flex: '1' }}>
+          <button onClick={v.apply} className="btn" style={{ flex: '1' }} type="button">
             {v.countLabel}
-          </Link>
+          </button>
         </div>
       </footer>
-    </div>
+      </MotionSupport.motion.div>
+    </MotionSupport.motion.div>
   );
 }

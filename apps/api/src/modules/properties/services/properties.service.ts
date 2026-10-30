@@ -26,6 +26,9 @@ export class PropertiesService {
   mapProperties(query: MapPropertiesDto) {
     return this.search.map(query);
   }
+  rentStats() {
+    return this.search.rentStats();
+  }
   detail(id: string, user: AuthUser | undefined) {
     return this.search.detail(id, user);
   }

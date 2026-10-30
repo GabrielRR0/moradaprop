@@ -1,4 +1,4 @@
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import {
   amenityTags,
@@ -50,7 +50,6 @@ function describe(p: PropertyDetail) {
  * `dayClass` es la clase base de los botones de día ("chip" en escritorio, "day" en teléfono).
  */
 export function usePropertyBooking(dayClass: string) {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { status } = useSession();
@@ -85,7 +84,7 @@ export function usePropertyBooking(dayClass: string) {
       tint: photoTint(index),
     }));
 
-  const favorites = useFavorites(status === 'authed', () => router.push(`/ingresar?next=/propiedad/${id}`));
+  const favorites = useFavorites(status === 'authed');
   const isFavorite = favorites.isFavorite(id);
 
   return {
