@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsDateString, IsIP, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export class QueryAuditDto {
   @ApiPropertyOptional()
@@ -19,6 +19,27 @@ export class QueryAuditDto {
   @IsString()
   @MaxLength(100)
   resource?: string;
+
+  @ApiPropertyOptional({ example: '203.0.113.7', description: 'Eventos de esa IP (solo los registrados desde que existe el filtro)' })
+  @IsOptional()
+  @IsIP()
+  ip?: string;
+
+  @ApiPropertyOptional({ description: 'true = solo eventos sin usuario (anonimos)' })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  anonymous?: boolean;
+
+  @ApiPropertyOptional({ example: '2026-11-01T00:00:00Z' })
+  @IsOptional()
+  @IsDateString()
+  from?: string;
+
+  @ApiPropertyOptional({ example: '2026-11-02T00:00:00Z' })
+  @IsOptional()
+  @IsDateString()
+  to?: string;
 
   @ApiPropertyOptional({ default: 1 })
   @IsOptional()

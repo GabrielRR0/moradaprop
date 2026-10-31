@@ -555,6 +555,8 @@ model AuditLog {
   resourceId String?
   /// cifrado
   ip         String?
+  /// HMAC de la IP: solo sirve para filtrar el visor admin por IP sin guardarla en claro
+  ipHash     String?
   /// cifrado
   userAgent  String?
   /// estado antes/despues y metadatos (NUNCA contrasenas, tokens ni codigos); cifrado como { enc: "v1..." }
@@ -566,6 +568,7 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([action, createdAt])
   @@index([resource, resourceId])
+  @@index([ipHash, createdAt])
 }
 
 /// Ajustes de la plataforma que el admin puede cambiar sin tocar variables de entorno (modulo settings).

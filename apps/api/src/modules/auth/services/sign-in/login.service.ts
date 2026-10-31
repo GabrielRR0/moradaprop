@@ -35,6 +35,8 @@ export class LoginService {
     const user = await this.accounts.findByEmail(email);
     if (!user?.passwordHash) {
       await PasswordSupport.burnCheck(dto.password);
+      // Evento anonimo (sin usuario ni correo): sirve para ver de donde vienen los intentos a cuentas que no existen.
+      await this.audit.log({ action: 'auth.login.unknown', ip: context.ip, userAgent: context.userAgent });
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 

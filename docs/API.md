@@ -118,7 +118,8 @@ El prefijo sale de la variable `ADMIN_API_PREFIX` (en desarrollo `admin`; en pro
 | `GET /security` · `POST /security` ⏱ · `DELETE /security/:id` ⏱ | Bloqueos (IP, CIDR, país, usuario, correo, dominio) |
 | `GET /settings` · `PUT /settings/:key` ⏱ · `DELETE /settings/:key` ⏱ | Ajustes de la plataforma (API key de Resend, remitente). Los secretos se guardan cifrados y salen enmascarados (`re_••••ail9`) |
 | `POST /settings/mail/test` | Envía un correo de prueba al propio admin con la configuración actual; responde `{ ok, to, error }` |
-| `GET /audit` | Auditoría con filtros (`userId`, `action`, `resource`, `page`) |
+| `GET /audit` | Auditoría con filtros (`userId`, `action`, `resource`, `ip`, `anonymous=true`, `from`, `to`, `page`). Los eventos sin usuario se borran a los 5 días |
+| `POST /security/from-log` ⏱ | Bloquea la IP de un evento de la auditoría (`{ auditLogId, reason?, hours? }`); no deja bloquear la IP del propio admin |
 | `GET /users` · `PATCH /users/:id/status` ⏱ | Listar usuarios; suspender (corta el acceso al instante y cierra sesiones) o reactivar |
 
 ## Salud

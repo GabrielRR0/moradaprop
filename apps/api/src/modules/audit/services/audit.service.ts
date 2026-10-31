@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/common/prisma';
 import type { QueryAuditDto } from '../contracts/dto/query-audit.dto';
 import type { AuditLogListResource } from '../contracts/resources';
-import { AUDIT_FIELD_CIPHER, AUDIT_USER_DECODER, type AuditFieldCipher, type AuditUserDecoder } from '../types';
+import { AUDIT_FIELD_CIPHER, AUDIT_IP_INDEX, AUDIT_USER_DECODER, type AuditFieldCipher, type AuditIpIndex, type AuditUserDecoder } from '../types';
 import { sanitize } from '../utils/sanitize';
 import { DbSupport } from '@/support/db';
 
@@ -24,6 +24,7 @@ export class AuditService {
     private readonly prisma: PrismaService,
     @Inject(AUDIT_USER_DECODER) private readonly users: AuditUserDecoder,
     @Inject(AUDIT_FIELD_CIPHER) private readonly cipher: AuditFieldCipher,
+    @Inject(AUDIT_IP_INDEX) private readonly ipIndex: AuditIpIndex,
   ) {}
 
   /** Registra un evento. Nunca lanza error: la auditoria no debe romper la accion auditada. */
@@ -36,6 +37,7 @@ export class AuditService {
           resource: entry.resource,
           resourceId: entry.resourceId,
           ip: entry.ip && this.cipher.encrypt('AuditLog.ip', entry.ip),
+          ipHash: entry.ip ? this.ipIndex.hash(entry.ip) : undefined,
           userAgent: entry.userAgent && this.cipher.encrypt('AuditLog.userAgent', entry.userAgent.slice(0, 300)),
           metadata:
             entry.metadata === undefined
@@ -55,6 +57,10 @@ export class AuditService {
       userId: query.userId,
       action: query.action ? { startsWith: query.action } : undefined,
       resource: query.resource,
+      ipHash: query.ip ? this.ipIndex.hash(query.ip) : undefined,
+      // Sin usuario = anonimos (intentos de login a cuentas que no existen, amenazas detectadas...).
+      ...(query.anonymous ? { userId: null } : {}),
+      createdAt: query.from || query.to ? { gte: query.from ? new Date(query.from) : undefined, lte: query.to ? new Date(query.to) : undefined } : undefined,
     };
 
     const [items, total] = await this.prisma.$transaction([
@@ -86,11 +92,20 @@ export class AuditService {
     });
   }
 
+  /** La IP (descifrada) de un evento, o null si no existe o no la tiene. Sirve para bloquearla desde el visor. */
+  async ipOf(id: string): Promise<string | null> {
+    const row = await this.prisma.auditLog.findUnique({ where: { id }, select: { ip: true } });
+    return row?.ip ? this.cipher.decrypt('AuditLog.ip', row.ip) : null;
+  }
+
   /** Descifra ip, userAgent, metadata y el usuario de un evento para mostrarlo en el panel admin. */
-  private reveal<T extends { ip: string | null; userAgent: string | null; metadata: DbSupport.Prisma.JsonValue; user: { email?: string | null; name?: string | null } | null }>(item: T): T {
+  private reveal<T extends { ip: string | null; userAgent: string | null; metadata: DbSupport.Prisma.JsonValue; user: { email?: string | null; name?: string | null } | null }>(row: T): T {
+    // ipHash es solo un indice interno para filtrar: no sale nunca en una respuesta.
+    const item: T & { ipHash?: string | null } = { ...row };
+    delete item.ipHash;
     const enc = (item.metadata as { enc?: unknown } | null)?.enc;
     return {
-      ...item,
+      ...(item as unknown as T),
       ip: item.ip && this.cipher.decrypt('AuditLog.ip', item.ip),
       userAgent: item.userAgent && this.cipher.decrypt('AuditLog.userAgent', item.userAgent),
       metadata: typeof enc === 'string' ? JSON.parse(this.cipher.decrypt('AuditLog.metadata', enc)) : item.metadata,
