@@ -1,10 +1,10 @@
-import { describeCase } from '../../../../../test/support/describe-case';
-import type { AppConfig } from '../../../../config';
-import type { PrismaService } from '../../../../common/prisma';
-import type { PasskeyService } from '../../passkeys';
+import { describeCase } from '@/../test/support/describe-case';
+import type { AppConfig } from '@/config';
+import type { PrismaService } from '@/common/prisma';
+import type { PasskeyService } from '@/modules/security/passkeys';
 import { SecondFactorService } from '../services/second-factor.service';
 import type { SecondFactorMode } from '../types';
-import { DbSupport } from '../../../../support/db';
+import { DbSupport } from '@/support/db';
 
 const DAY = 24 * 60 * 60 * 1000;
 const dias = (n: number) => new Date(Date.now() + n * DAY);

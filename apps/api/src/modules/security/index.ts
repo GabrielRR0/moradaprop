@@ -33,3 +33,4 @@ export { SecondFactorService, SecondFactorGuard, secondFactorRoutes, type Second
 
 // threat-model: escudos STRIDE y revision de archivos
 export { ThreatModelService, threatObserver, type FileCheck, type FileFacts, type ThreatShield, type ThreatSubject } from './threat-model';
+export type { PasskeyAuthenticationOptionsResource } from './passkeys';

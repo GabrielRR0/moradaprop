@@ -1,11 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
-import type { RequestContext } from '../../../common/security/types';
-import { AuditService } from '../../audit';
-import { AgencyVault, UserVault } from '../../security';
-import type { UpdateAgencyDto } from '../dto/agencies.dto';
+import { PrismaService } from '@/common/prisma';
+import type { RequestContext } from '@/common/security/types';
+import { AuditService } from '@/modules/audit';
+import { AgencyVault, UserVault } from '@/modules/security';
+import type { UpdateAgencyDto } from '../contracts/dto/update-agency.dto';
+import type { MyAgencyResource } from '../contracts/resources';
 import { AgencyAccessService } from './agency-access.service';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 @Injectable()
 export class AgencyProfileService {
@@ -18,7 +19,7 @@ export class AgencyProfileService {
   ) {}
 
   /** La agencia del usuario con su equipo y el uso de su plan. */
-  async me(userId: string) {
+  async me(userId: string): Promise<MyAgencyResource> {
     const member = await this.access.requireMember(userId);
     const [members, properties] = await Promise.all([
       this.prisma.agencyMember.findMany({
@@ -46,7 +47,7 @@ export class AgencyProfileService {
     };
   }
 
-  async update(userId: string, dto: UpdateAgencyDto, context: RequestContext) {
+  async update(userId: string, dto: UpdateAgencyDto, context: RequestContext): Promise<MyAgencyResource> {
     const admin = await this.access.requireAdmin(userId);
     try {
       await this.prisma.agencyProfile.update({ where: { id: admin.agencyId }, data: this.agencyVault.encodeProfile(dto) });

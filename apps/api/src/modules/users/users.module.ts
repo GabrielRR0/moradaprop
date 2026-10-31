@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
+import { UsersController } from './controllers/private/user/users.controller';
 import { ChangePasswordService } from './services/change-password.service';
 import { ProfileService } from './services/profile.service';
 import { UsersService } from './services/users.service';

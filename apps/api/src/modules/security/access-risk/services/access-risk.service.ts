@@ -1,31 +1,24 @@
 import { ForbiddenException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { AppConfig } from '../../../../config';
-import { PrismaService } from '../../../../common/prisma';
-import type { RequestContext } from '../../../../common/security/types';
-import { AuditService } from '../../../audit';
-import { ThreatModelService } from '../../threat-model';
+import { AppConfig } from '@/config';
+import type { RequestContext } from '@/common/security/types';
+import { AuditService } from '@/modules/audit';
+import { DbSupport } from '@/support/db';
+import type { AccessRiskOverviewResource } from '../contracts/resources';
 import { RISK_POLICY } from '../policy';
 import { SIGNALS } from '../signals';
-import type { LoginTrust, RiskMode, RiskVerdict } from '../types';
+import type { LoginTrust, RiskMode, RiskVerdict, SessionRef } from '../types';
 import { deviceLabel } from '../utils/device-label';
-import { DeviceRegistryService } from './device-registry.service';
-import { FootprintService } from './footprint.service';
-import { RiskAssessorService } from './risk-assessor.service';
-import { DbSupport } from '../../../../support/db';
-
-const MINUTE_MS = 60_000;
-
-/** Sesion que se renueva (lo que el refresh necesita saber para compararla con quien llega). */
-export interface SessionRef {
-  id: string;
-  userId: string;
-  deviceId: string | null;
-  country: string | null;
-}
+import { riskMetadata } from '../utils/risk-metadata';
+import { RiskAssessorService } from './assessment/risk-assessor.service';
+import { DeviceRegistryService } from './devices/device-registry.service';
+import { LoginTrustService } from './login/login-trust.service';
+import { RefreshGuardService } from './login/refresh-guard.service';
+import { StepUpService } from './login/step-up.service';
 
 /**
  * Fachada del riesgo de inicio de sesion: lo UNICO que `auth` usa. Mide cada inicio de sesion (pais, red,
  * dispositivo), decide si hay que pedir segundo factor, recuerda lo habitual y vigila la renovacion de sesiones.
+ * El trabajo pesado esta en `login/` (aprender, vigilar el refresh, fallos del segundo factor) y `assessment/`.
  */
 @Injectable()
 export class AccessRiskService implements OnModuleInit {
@@ -33,12 +26,12 @@ export class AccessRiskService implements OnModuleInit {
 
   constructor(
     private readonly config: AppConfig,
-    private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly assessor: RiskAssessorService,
     private readonly devices: DeviceRegistryService,
-    private readonly footprints: FootprintService,
-    private readonly threats: ThreatModelService,
+    private readonly trust: LoginTrustService,
+    private readonly refreshGuard: RefreshGuardService,
+    private readonly stepUp: StepUpService,
   ) {}
 
   get mode(): RiskMode {
@@ -107,7 +100,7 @@ export class AccessRiskService implements OnModuleInit {
       userId: user.id,
       ip: context.ip,
       userAgent: context.userAgent,
-      metadata: this.metadata(verdict, context, { outcome: 'denied' }),
+      metadata: riskMetadata(verdict, context, { outcome: 'denied' }),
     });
     throw new ForbiddenException({
       message: 'Por seguridad, entra desde tu dispositivo habitual y activa passkey o verificacion en dos pasos para poder entrar desde otros lugares',
@@ -115,120 +108,23 @@ export class AccessRiskService implements OnModuleInit {
     });
   }
 
-  /**
-   * El inicio de sesion se completo (clave sola, o clave + segundo factor): registra el dispositivo, recuerda el
-   * pais y la red, y deja constancia. Solo se "aprende" de un inicio ALTO si paso por segundo factor.
-   */
-  async onLoginSuccess(user: Pick<DbSupport.User, 'id'>, context: RequestContext, verdict: RiskVerdict, factorVerified: boolean): Promise<LoginTrust> {
-    if (this.mode === 'off') return { deviceId: null, country: context.country ?? null };
-
-    const { assessment, device } = verdict;
-    const learn = assessment.level !== 'HIGH' || factorVerified;
-    let deviceId: string;
-    let deviceSecret: string | undefined;
-
-    if (device) {
-      deviceId = device.id;
-      await this.devices.touch(device.id, verdict.country);
-      if (factorVerified && !device.confirmed) {
-        await this.devices.confirm(device.id);
-        await this.logDeviceConfirmed(user.id, device.id, device.label, context);
-      }
-    } else {
-      // La primera entrada de la cuenta (linea base) o una verificada con segundo factor confirman el dispositivo.
-      const confirmed = !verdict.hasHistory || factorVerified;
-      const created = await this.devices.register(user.id, { userAgent: context.userAgent, country: verdict.country, confirmed });
-      deviceId = created.id;
-      deviceSecret = created.secret;
-      if (confirmed) await this.logDeviceConfirmed(user.id, created.id, created.label, context);
-    }
-
-    if (learn) await this.footprints.remember(user.id, verdict.country, verdict.network);
-
-    if (assessment.level !== 'LOW') {
-      await this.audit.log({
-        action: factorVerified ? 'risk.stepup.passed' : 'risk.assessed',
-        userId: user.id,
-        ip: context.ip,
-        userAgent: context.userAgent,
-        metadata: this.metadata(verdict, context, { outcome: 'allowed', factorVerified }),
-      });
-    }
-    return { deviceId, deviceSecret, country: verdict.country };
+  /** El inicio de sesion se completo: registra el dispositivo, recuerda pais y red y deja constancia (ver login/login-trust). */
+  onLoginSuccess(user: Pick<DbSupport.User, 'id'>, context: RequestContext, verdict: RiskVerdict, factorVerified: boolean): Promise<LoginTrust> {
+    return this.trust.onLoginSuccess(user, context, verdict, factorVerified);
   }
 
-  /**
-   * Renovacion de sesion (refresh): una sesion con dispositivo solo se renueva desde ESE dispositivo; una anterior a
-   * esta funcion, mientras no cambie de pais. Si no, se revoca (en `enforce`) y hay que iniciar sesion de nuevo, que
-   * pasa por la medicion completa. Defiende el robo del refresh token.
-   */
-  async checkRefresh(session: SessionRef, context: RequestContext): Promise<'ok' | 'revoke'> {
-    if (this.mode === 'off') return 'ok';
-
-    const country = context.country ?? null;
-    let reason: 'device-mismatch' | 'country-change' | null = null;
-
-    if (session.deviceId) {
-      const presented = await this.devices.find(session.userId, context.deviceToken);
-      if (presented?.id !== session.deviceId) {
-        reason = 'device-mismatch';
-      } else {
-        await this.devices.touch(presented.id, country);
-        if (country && session.country && country !== session.country) {
-          // Mismo dispositivo en otro pais (viaje o VPN): se permite y se avisa.
-          await this.audit.log({
-            action: 'risk.assessed',
-            userId: session.userId,
-            ip: context.ip,
-            userAgent: context.userAgent,
-            metadata: { level: 'MEDIUM', mode: this.mode, outcome: 'allowed', country, device: presented.label, reasons: [{ signal: 'refresh-new-country', points: 0, reason: `la sesion paso de ${session.country} a ${country}` }] },
-          });
-        }
-      }
-    } else if (session.country && country && session.country !== country) {
-      reason = 'country-change';
-    }
-
-    if (!reason) return 'ok';
-    await this.audit.log({
-      action: 'risk.session.revoked',
-      userId: session.userId,
-      resource: 'Session',
-      resourceId: session.id,
-      ip: context.ip,
-      userAgent: context.userAgent,
-      metadata: { reason, country, mode: this.mode, revoked: this.mode === 'enforce' },
-    });
-    return this.mode === 'enforce' ? 'revoke' : 'ok';
+  /** Renovacion de sesion: ¿sigue siendo el mismo dispositivo? Si no, se revoca (ver login/refresh-guard). */
+  checkRefresh(session: SessionRef, context: RequestContext): Promise<'ok' | 'revoke'> {
+    return this.refreshGuard.checkRefresh(session, context);
   }
 
-  /**
-   * Un codigo de segundo factor fallo en un inicio de sesion ALTO. A los N fallos recientes: se bloquea la cuenta,
-   * queda auditado y se cuenta contra el escudo `account-takeover-attempt` (que bloquea la IP en `enforce`).
-   */
-  async stepUpFailed(user: Pick<DbSupport.User, 'id'>, context: RequestContext): Promise<void> {
-    const { maxFailures, windowMinutes, lockMinutes } = RISK_POLICY.stepUp;
-    await this.audit.log({ action: 'risk.stepup.failed', userId: user.id, ip: context.ip, userAgent: context.userAgent });
-
-    const failures = await this.prisma.auditLog.count({
-      where: { userId: user.id, action: 'risk.stepup.failed', createdAt: { gte: new Date(Date.now() - windowMinutes * MINUTE_MS) } },
-    });
-    if (failures < maxFailures) return;
-
-    await this.prisma.user.update({ where: { id: user.id }, data: { lockedUntil: new Date(Date.now() + lockMinutes * MINUTE_MS) } });
-    await this.audit.log({
-      action: 'risk.account.locked',
-      userId: user.id,
-      ip: context.ip,
-      userAgent: context.userAgent,
-      metadata: { failures, lockMinutes },
-    });
-    // Solo la IP: pasar el userId bloquearia a la VICTIMA, no al atacante.
-    await this.threats.report('account-takeover-attempt', { ip: context.ip });
+  /** Un codigo de segundo factor fallo en un inicio ALTO; a los N fallos se bloquea la cuenta (ver login/step-up). */
+  stepUpFailed(user: Pick<DbSupport.User, 'id'>, context: RequestContext): Promise<void> {
+    return this.stepUp.stepUpFailed(user, context);
   }
 
   /** Mapa del sistema para el panel admin: modo, puntos, umbrales y senales. */
-  describe() {
+  describe(): AccessRiskOverviewResource {
     return {
       mode: this.mode,
       thresholds: { mediumFrom: RISK_POLICY.mediumFrom, highFrom: RISK_POLICY.highFrom },
@@ -239,30 +135,5 @@ export class AccessRiskService implements OnModuleInit {
       stepUp: RISK_POLICY.stepUp,
       signals: SIGNALS.map(({ id, description }) => ({ id, description })),
     };
-  }
-
-  private metadata(verdict: RiskVerdict, context: RequestContext, extra: Record<string, unknown>) {
-    const { assessment, device, country } = verdict;
-    return {
-      level: assessment.level,
-      score: assessment.score,
-      mode: assessment.mode,
-      reasons: assessment.reasons,
-      country,
-      device: device?.label ?? deviceLabel(context.userAgent),
-      ...extra,
-    };
-  }
-
-  private logDeviceConfirmed(userId: string, deviceId: string, label: string, context: RequestContext) {
-    return this.audit.log({
-      action: 'risk.device.confirmed',
-      userId,
-      resource: 'TrustedDevice',
-      resourceId: deviceId,
-      ip: context.ip,
-      userAgent: context.userAgent,
-      metadata: { device: label },
-    });
   }
 }

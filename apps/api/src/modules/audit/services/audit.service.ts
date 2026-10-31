@@ -1,9 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
-import type { QueryAuditDto } from '../dto/query-audit.dto';
+import { PrismaService } from '@/common/prisma';
+import type { QueryAuditDto } from '../contracts/dto/query-audit.dto';
+import type { AuditLogListResource } from '../contracts/resources';
 import { AUDIT_FIELD_CIPHER, AUDIT_USER_DECODER, type AuditFieldCipher, type AuditUserDecoder } from '../types';
 import { sanitize } from '../utils/sanitize';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 export interface AuditEntry {
   action: string;
@@ -47,7 +48,7 @@ export class AuditService {
     }
   }
 
-  async list(query: QueryAuditDto) {
+  async list(query: QueryAuditDto): Promise<AuditLogListResource> {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 50, 100);
     const where: DbSupport.Prisma.AuditLogWhereInput = {

@@ -6,12 +6,16 @@ import { MyPropertiesController } from './controllers/private/publisher/my-prope
 import { PropertyImagesController } from './controllers/private/publisher/property-images.controller';
 import { PropertiesResolver } from './properties.resolver';
 import { PropertiesService } from './services/properties.service';
-import { PropertyAccessPolicy } from './services/property-access.policy';
-import { PropertyFavoritesService } from './services/property-favorites.service';
-import { PropertyImagesService } from './services/property-images.service';
-import { PropertyPolicyService } from './services/property-policy.service';
-import { PropertySearchService } from './services/property-search.service';
-import { PropertyWriteService } from './services/property-write.service';
+import { PropertyAccessPolicy } from './services/access/property-access.policy';
+import { PropertyFavoritesService } from './services/favorites/property-favorites.service';
+import { PropertyImagesService } from './services/images/property-images.service';
+import { PropertyPolicyService } from './services/access/property-policy.service';
+import { PropertyDetailService } from './services/catalog/property-detail.service';
+import { PropertyMapService } from './services/catalog/property-map.service';
+import { PropertyRentStatsService } from './services/catalog/property-rent-stats.service';
+import { PropertySearchService } from './services/catalog/property-search.service';
+import { PropertyMineService } from './services/management/property-mine.service';
+import { PropertyWriteService } from './services/management/property-write.service';
 
 @Module({
   imports: [SecurityModule],
@@ -20,7 +24,13 @@ import { PropertyWriteService } from './services/property-write.service';
   providers: [
     PropertiesService,
     PropertiesResolver,
+    // catalog/: lectura publica
     PropertySearchService,
+    PropertyMapService,
+    PropertyRentStatsService,
+    PropertyDetailService,
+    // management/: lo que hacen quienes publican
+    PropertyMineService,
     PropertyWriteService,
     PropertyImagesService,
     PropertyFavoritesService,

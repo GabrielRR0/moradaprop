@@ -1,6 +1,6 @@
-import { AppConfig } from '../../../config';
-import { loadEnv } from '../../../config/env';
-import { describeCase } from '../../../../test/support/describe-case';
+import { AppConfig } from '@/config';
+import { loadEnv } from '@/config/env';
+import { describeCase } from '@/../test/support/describe-case';
 import { HealthService } from '../services/health.service';
 
 describe('HealthService', () => {

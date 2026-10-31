@@ -60,3 +60,5 @@ Crea `signals/mi-senal.ts` (un `RiskSignal`: `evaluate(ctx)` devuelve `{points, 
 - Quien tenga la clave **y** el segundo factor entra: esto no reemplaza al 2FA, lo hace obligatorio donde importa.
 - Un malware que robe la cookie de sesión **y** la de dispositivo juntas no se detecta por dispositivo (sí por cambio de país al renovar).
 - Los puntos son un punto de partida: afínalos mirando `risk.assessed` en `monitor`.
+
+**Estructura:** `controllers/` (`private/user` y `private/admin`), `contracts/resources/`, `services/` (fachada + `assessment/`, `devices/`, `login/`, `events/`), más `signals/`, `utils/`, `policy.ts` y `types.ts`. Cada carpeta nueva tiene su README.

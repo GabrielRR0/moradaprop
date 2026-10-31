@@ -1,7 +1,9 @@
 import type { Response } from 'express';
-import { DEVICE_COOKIE } from '../../../common/security/decorators';
-import type { AppClient } from '../../../common/security/types';
-import type { GoogleLoginResult } from '../services/google-auth.service';
+import type { AppConfig } from '@/config';
+import { DEVICE_COOKIE } from '@/common/security/decorators';
+import type { AppClient } from '@/common/security/types';
+import type { GoogleLoginResult } from '../services/google/google-auth.service';
+import type { AuthSessionMobileResource, AuthSessionResource, LoginResponseResource } from '../contracts/resources';
 import type { AuthTokens, LoginResult } from './auth-context';
 
 export const REFRESH_COOKIE = 'refresh_token';
@@ -10,6 +12,12 @@ export interface CookieSettings {
   secure: boolean;
   maxAgeDays: number;
 }
+
+/** Ajustes de la cookie del refresh token, segun el entorno. */
+export const cookieSettings = (config: AppConfig): CookieSettings => ({
+  secure: config.app.isProduction,
+  maxAgeDays: config.auth.refreshTtlDays,
+});
 
 /**
  * Da forma a la respuesta de login:
@@ -21,7 +29,7 @@ export function respondWithTokens(
   client: AppClient | undefined,
   tokens: AuthTokens,
   cookie: CookieSettings,
-) {
+): AuthSessionResource | AuthSessionMobileResource {
   const { refreshToken, deviceToken, ...body } = tokens;
   if (client === 'mobile') return { ...body, refreshToken, ...(deviceToken ? { deviceToken } : {}) };
 
@@ -51,7 +59,7 @@ export function respondWithLogin(
   client: AppClient | undefined,
   result: LoginResult | GoogleLoginResult,
   cookie: CookieSettings,
-) {
+): LoginResponseResource {
   if ('linkRequired' in result) return result;
   if (result.twoFactorRequired) return result;
   return respondWithTokens(res, client, result.tokens, cookie);

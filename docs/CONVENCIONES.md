@@ -12,23 +12,86 @@ Reglas de arquitectura. Varias las hace cumplir ESLint (`pnpm lint`), las marcad
 
 ## 2. Backend (`apps/api/src/modules/<modulo>/`)
 
+Referencia viva: `modules/properties/` (cada carpeta tiene su README).
+
 ```
 <modulo>/
-  <modulo>.module.ts        # padre
-  <modulo>.controller.ts    # delgado: llama al service y responde lo que dice
-  <modulo>.resolver.ts      # solo si hay GraphQL; igual de delgado
-  dto/                      # toda la validación de entrada vive aquí
+  <modulo>.module.ts          # padre
+  index.ts                    # lo único que otros módulos pueden importar
+  <modulo>.resolver.ts        # solo si hay GraphQL; igual de delgado
+  controllers/                # las rutas, separadas por quién puede usarlas
+    public/                   #   sin sesión                      -> @PublicGroup() / @GuestGroup()
+    private/                  #   requiere sesión
+      user/                   #     cualquier usuario autenticado -> @AuthGroup()
+      publisher/              #     propietario, agencia y admin  -> @PublisherGroup()
+      admin/                  #     solo admin                    -> @AdminGroup()
+      <rol>/                  #     otros grupos por rol, con su carpeta     -> @AgencyGroup() en agency/
+  contracts/                  # todo lo que entra y sale del módulo, y nada más
+    dto/                      #   lo que ENTRA: valida body, query y params
+    resources/                #   lo que SALE: una interface por respuesta
   services/
-    <modulo>.service.ts     # fachada: delega en los hijos
-    <accion>.service.ts     # un archivo por acción (login, register, two-factor...)
-  jobs/                     # solo llaman a UN service
-  commands/                 # solo llaman a UN service
+    <modulo>.service.ts       # fachada: el controller y el resolver solo hablan con ella
+    <tema>/                   # una carpeta por tema (catalog, management, images, access...)
+      <modulo>-<caso>.service.ts   # un archivo por caso de uso
+  decorators/                 # decoradores compuestos, solo si algo se repite 3+ veces
+  utils/                      # funciones puras compartidas por varios services
+  jobs/                       # solo llaman a UN service
+  commands/                   # solo llaman a UN service
   tests/
 ```
 
-- Controller: **cero lógica**. Validación: **solo** en DTO. Lógica: **solo** en services.
+Las carpetas aparecen **solo si existen**: un módulo sin rutas de admin no tiene `admin/`; uno con 4 services o menos los deja planos en `services/`. Cada carpeta lleva su `README.md`.
+
+**Reglas generales**
+- Controller: **cero lógica**. Validación: **solo** en `contracts/dto/`. Lógica: **solo** en services.
 - Job o command = una llamada a un service.
 - Los DTO **nunca** aceptan `userId`, `role`, `ownerId`, `agencyId` ni campos internos: el usuario sale del token.
+- `contracts/` no importa de controllers ni de services; solo al revés.
+
+**Controllers**
+- Un controller = **un acceso + un recurso**. El decorador de grupo va en la clase, una sola vez; la carpeta debe coincidir con ese grupo (`public/` con `@PublicGroup()`).
+- Una excepción de rol en una sola ruta se pone en el método (sobrescribe a la clase) y lleva un comentario que diga por qué.
+- Los roles no se listan sueltos: se nombran en `common/security/groups` (`PublisherGroup`, `AdminGroup`...).
+- El tipo de retorno de cada ruta es su `Resource` (`Promise<PropertyListResource>`), para saber qué entrega sin abrir el service.
+- Rutas fijas (`mine`, `map`) antes que `:id`: el controller con `GET :id` va **último** en la lista `controllers` del módulo.
+- Si un conjunto de decoradores se repite 3+ veces o ensucia el método, pasa a un decorador compuesto en `decorators/` (`@UploadImages()`).
+
+**Contracts**
+- `dto/`: clases con class-validator, un archivo por caso (`create-x.dto.ts`, `mine-x.dto.ts`). Sin lógica de negocio.
+- `resources/`: **interfaces simples**, sin decoradores ni tipos rebuscados (nada de `Pick`/`Omit` encadenados). Un archivo por respuesta; si dos comparten campos, una `extends` la otra. Los comentarios explican los campos que no son obvios.
+- Los services y el mapper declaran lo que devuelven con esos tipos: si el código devuelve otra forma, no compila.
+
+**Services**
+- Una carpeta por **tema** (un sustantivo) y un archivo por **caso de uso**: `<modulo>-<caso>.service.ts`.
+- Las lecturas (sin efectos, cacheables) no se mezclan con las escrituras (auditan, usan transacciones).
+- **No se separa por verbo** (crear, editar, borrar): comparten permisos, auditoría y caché.
+- Un archivo de más de ~150 líneas se divide y cada pieza se nombra por lo que hace.
+- Lo que comparten varios services va en `utils/`, no se importa de un service a otro del mismo tema.
+- Los permisos (quién puede hacer qué) viven en `access/`. Otros módulos solo usan lo que exporta el `index.ts`.
+
+**Nombres de tipos: el sufijo dice el papel**
+
+| Sufijo | Papel | Ejemplo |
+|---|---|---|
+| `Dto` | lo que entra por HTTP | `CreatePropertyDto` |
+| `Resource` | lo que sale por HTTP | `PropertyCardResource` |
+| `Context` | datos de la petición actual que no vienen del body | `RequestContext`, `AuthUserContext` |
+| `Payload` | contenido de un token | `AccessTokenPayload` |
+| `Service` / `Policy` / `Vault` | clases con lógica | `PropertyPolicyService` |
+
+Un archivo por tipo, con el papel en el nombre (`create-property.dto.ts`, `property-card.resource.ts`, `auth-user-context.type.ts`). Los tipos compartidos de seguridad viven en `common/security/types/`.
+
+**Imports**
+- `@/` apunta a `src/` (en la API y en la web, cada una con el suyo). Lo cercano va relativo (`./` y `../`); lo que sale del módulo, o subiría 3 niveles o más, va con `@/`.
+
+**Checklist al crear o refactorizar un módulo**
+1. Listar las rutas y su acceso; guardar la lista de rutas `Mapped` del arranque para compararla después.
+2. Controllers por acceso, con el grupo en la clase y la carpeta que coincide.
+3. `contracts/dto` para lo que entra y un `Resource` por cada respuesta; tipos de retorno en controllers y services.
+4. Services por tema, con fachada; dividir lo que pase de ~150 líneas.
+5. Decoradores compuestos para lo que se repite; imports con `@/`.
+6. README en cada carpeta nueva.
+7. Verificar: `tsc`, `pnpm lint`, pruebas unitarias, el e2e del módulo y que la lista de rutas sea idéntica a la de antes.
 
 ### Rutas
 
@@ -85,6 +148,7 @@ describeCase('auth', {
 });
 ```
 
+- **Los Resources se comprueban contra la respuesta real**: en el e2e, cada ruta con un tipo de retorno `XResource` se valida automáticamente (campos obligatorios, tipos y que no sobre ningún dato). Toda ruta nueva necesita al menos una prueba e2e que la ejecute. Detalle en `apps/api/test/README.md`.
 - Correr: `pnpm test` · `pnpm test:api` · `pnpm test:web` · `pnpm test:module <modulo>` · `pnpm test:watch` · `pnpm test:e2e`.
 
 ## 6. Seguridad (resumen; **detalle completo en [SEGURIDAD.md](SEGURIDAD.md)**)
@@ -97,7 +161,7 @@ describeCase('auth', {
 
 - Prettier (`.prettierrc`): comillas simples, punto y coma, 100 columnas. `pnpm format`.
 - Código y nombres de archivos en inglés técnico o español sin tildes; textos para el usuario en español.
-- Imports: `@/` apunta a `src/` en la API y en la web (cada una con su propio `@/`). Lo cercano va relativo (`./` y `../`); lo que sale del módulo, o subiría 3 niveles o más, va con `@/`. Ejemplo: `import { PublicGroup } from '@/common/security/groups'`.
+- Imports: ver la regla de `@/` en la sección 2 (Backend).
 - Nombre de la plataforma: **nunca escrito a mano**. API: `config.app.name`. Web: `brand.name` (`src/config/brand.ts`).
 
 ## 8. Migraciones de base de datos

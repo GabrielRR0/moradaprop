@@ -1,5 +1,5 @@
-import { describeCase } from '../../../../../test/support/describe-case';
-import { FakeAuthenticator, type FakeAlgorithm, type Tweak } from '../../../../../test/support/fake-authenticator';
+import { describeCase } from '@/../test/support/describe-case';
+import { FakeAuthenticator, type FakeAlgorithm, type Tweak } from '@/../test/support/fake-authenticator';
 import { verifyAuthenticationResponse, verifyRegistrationResponse } from '../webauthn/verify';
 import { WebAuthnError, type RelyingParty } from '../webauthn/types';
 

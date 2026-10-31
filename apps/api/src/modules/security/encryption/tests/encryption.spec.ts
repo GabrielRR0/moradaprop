@@ -1,6 +1,6 @@
-import { describeCase } from '../../../../../test/support/describe-case';
-import { AppConfig } from '../../../../config';
-import { loadEnv } from '../../../../config/env';
+import { describeCase } from '@/../test/support/describe-case';
+import { AppConfig } from '@/config';
+import { loadEnv } from '@/config/env';
 import { BlindIndexService } from '../services/blind-index.service';
 import { FieldCipher } from '../services/field-cipher.service';
 import { KeyRingService } from '../services/key-ring.service';

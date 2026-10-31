@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createHash, hkdfSync } from 'node:crypto';
-import { AppConfig } from '../../../../config';
+import { AppConfig } from '@/config';
 
 export type KeyPurpose = 'enc' | 'idx';
 

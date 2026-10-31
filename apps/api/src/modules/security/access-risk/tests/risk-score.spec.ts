@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { RISK_POLICY } from '../policy';
 import { scoreSignals } from '../score';
 import type { RiskContext } from '../types';

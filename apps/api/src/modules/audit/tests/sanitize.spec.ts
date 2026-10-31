@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { sanitize } from '../utils/sanitize';
 
 describe('sanitize (auditoria)', () => {

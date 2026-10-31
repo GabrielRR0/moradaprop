@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { Reflector } from '@nestjs/core';
 import type { Observable } from 'rxjs';
 import { tap } from 'rxjs';
-import type { AppRequest } from '../../../common/security/types';
+import type { AppRequest } from '@/common/security/types';
 import { AUDIT_KEY, type AuditMetadata } from '../decorators/audit.decorator';
 import { AuditService } from '../services/audit.service';
 

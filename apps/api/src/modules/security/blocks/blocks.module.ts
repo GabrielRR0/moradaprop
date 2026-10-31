@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { GeoModule } from '../geo';
-import { BlocksController } from './blocks.controller';
+import { GeoModule } from '@/modules/security/geo';
+import { BlocksController } from './controllers/private/admin/blocks.controller';
 import { BlockGuard } from './guards/block.guard';
 import { BlockCheckService } from './services/block-check.service';
 import { BlockRuleService } from './services/block-rule.service';

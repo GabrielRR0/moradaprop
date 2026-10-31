@@ -30,3 +30,5 @@ Edita `requiredRoles` en `policy.ts` (y `immediateRoles` si no debe tener gracia
 - La marca `enroll` viaja en el token (15 min): si cambia el rol de una cuenta, el efecto llega con el siguiente token.
 - Perder el **último** factor (quitar la única passkey, desactivar el 2FA) devuelve a la cuenta al estado limitado de inmediato (su plazo ya venció).
 - Recuperar una cuenta que perdió todos sus factores sigue pasando por el restablecimiento de contraseña por correo.
+
+**Estructura:** `controllers/` (`private/user`), `contracts/resources/`, `services/` y `guards/`. Cada carpeta nueva tiene su README.

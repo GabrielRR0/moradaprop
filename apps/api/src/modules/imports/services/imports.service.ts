@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { AuthUserContext, RequestContext } from '../../../common/security/types';
-import { ImportQueryService } from './import-query.service';
-import { ImportTemplateService } from './import-template.service';
-import { ImportUploadService } from './import-upload.service';
+import type { AuthUserContext, RequestContext } from '@/common/security/types';
+import type { ImportJobListResource, ImportJobResource } from '../contracts/resources';
+import { ImportQueryService } from './history/import-query.service';
+import { ImportUploadService } from './intake/import-upload.service';
+import { ImportTemplateService } from './templates/import-template.service';
 
 /** Fachada del modulo. */
 @Injectable()
@@ -13,13 +14,13 @@ export class ImportsService {
     private readonly templates: ImportTemplateService,
   ) {}
 
-  upload(user: AuthUserContext, file: Express.Multer.File | undefined, ctx: RequestContext) {
+  upload(user: AuthUserContext, file: Express.Multer.File | undefined, ctx: RequestContext): Promise<ImportJobResource> {
     return this.uploader.upload(user, file, ctx);
   }
-  list(user: AuthUserContext, page?: number, limit?: number) {
+  list(user: AuthUserContext, page?: number, limit?: number): Promise<ImportJobListResource> {
     return this.queries.list(user, page, limit);
   }
-  detail(user: AuthUserContext, id: string) {
+  detail(user: AuthUserContext, id: string): Promise<ImportJobResource> {
     return this.queries.detail(user, id);
   }
   templateXlsx() {

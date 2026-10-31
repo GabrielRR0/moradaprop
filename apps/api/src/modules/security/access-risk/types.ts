@@ -63,6 +63,14 @@ export interface RiskVerdict {
 }
 
 /** Que hace el login despues de medir. */
+/** Sesion que se renueva (lo que el refresh necesita saber para compararla con quien llega). */
+export interface SessionRef {
+  id: string;
+  userId: string;
+  deviceId: string | null;
+  country: string | null;
+}
+
 export interface LoginTrust {
   deviceId: string | null;
   /** Secreto nuevo del dispositivo, solo si se registro uno en este inicio de sesion (el cliente lo guarda). */

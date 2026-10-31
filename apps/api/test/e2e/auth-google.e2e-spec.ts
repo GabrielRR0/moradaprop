@@ -160,4 +160,20 @@ describe('Auth: Google (e2e)', () => {
     },
     verificar: (estados) => expect(estados).toEqual([409, 200, 200]),
   });
+
+  describeCase('Google (e2e)', {
+    que: 'una cuenta con sesion vuelve a vincular su Google despues de desvincularlo',
+    espera: '200 "Cuenta de Google vinculada" y el acceso con ese Google vuelve a funcionar',
+    ejecutar: async () => {
+      const vincular = await t.web('post')('/api/auth/google/link').set('Authorization', `Bearer ${token}`).send({ idToken: 'tok-existente' });
+      const entrar = await google('tok-existente');
+      return { vincular, entrar };
+    },
+    verificar: ({ vincular, entrar }) => {
+      expect(vincular.status).toBe(200);
+      expect(vincular.body.message).toBe('Cuenta de Google vinculada');
+      expect(entrar.status).toBe(200);
+    },
+    describirObtenido: ({ vincular, entrar }) => `vincular ${vincular.status}, entrar con Google ${entrar.status}`,
+  });
 });

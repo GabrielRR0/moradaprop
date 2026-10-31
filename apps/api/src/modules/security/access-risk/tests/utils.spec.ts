@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { deviceLabel } from '../utils/device-label';
 import { networkOf } from '../utils/network';
 

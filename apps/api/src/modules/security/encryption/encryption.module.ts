@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { AUDIT_FIELD_CIPHER, AUDIT_USER_DECODER } from '../../audit';
+import { AUDIT_FIELD_CIPHER, AUDIT_USER_DECODER } from '@/modules/audit';
 import { BlindIndexService } from './services/blind-index.service';
 import { FieldCipher } from './services/field-cipher.service';
 import { KeyRingService } from './services/key-ring.service';

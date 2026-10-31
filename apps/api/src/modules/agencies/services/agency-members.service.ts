@@ -1,13 +1,14 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { AppConfig } from '../../../config';
-import { CryptoService } from '../../../common/crypto';
-import { MailSupport } from '../../../support/mail';
-import { PrismaService } from '../../../common/prisma';
-import type { RequestContext } from '../../../common/security/types';
-import { AuditService } from '../../audit';
-import { AgencyVault, UserVault } from '../../security';
+import { AppConfig } from '@/config';
+import { CryptoService } from '@/common/crypto';
+import { MailSupport } from '@/support/mail';
+import { PrismaService } from '@/common/prisma';
+import type { RequestContext } from '@/common/security/types';
+import { AuditService } from '@/modules/audit';
+import { AgencyVault, UserVault } from '@/modules/security';
+import type { InvitationAcceptedResource, InvitationSentResource } from '../contracts/resources';
 import { AgencyAccessService } from './agency-access.service';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 const INVITATION_DAYS = 7;
 const INVALID_INVITATION = 'Invitacion invalida o vencida';
@@ -26,7 +27,7 @@ export class AgencyMembersService {
   ) {}
 
   /** El administrador invita a un agente por correo. El enlace lleva un token de un solo uso. */
-  async invite(adminId: string, rawEmail: string, context: RequestContext) {
+  async invite(adminId: string, rawEmail: string, context: RequestContext): Promise<InvitationSentResource> {
     const admin = await this.access.requireAdmin(adminId);
     const email = rawEmail.trim().toLowerCase();
 
@@ -77,7 +78,7 @@ export class AgencyMembersService {
    * La persona invitada acepta con su sesion. Su correo verificado debe ser el invitado:
    * asi un token filtrado no sirve para otra cuenta.
    */
-  async accept(userId: string, token: string, context: RequestContext) {
+  async accept(userId: string, token: string, context: RequestContext): Promise<InvitationAcceptedResource> {
     const member = await this.prisma.agencyMember.findUnique({
       where: { invitationTokenHash: this.crypto.hashToken(token) },
     });

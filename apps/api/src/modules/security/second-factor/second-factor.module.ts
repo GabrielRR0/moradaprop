@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { PasskeysModule } from '../passkeys';
+import { PasskeysModule } from '@/modules/security/passkeys';
 import { SecondFactorGuard } from './guards/second-factor.guard';
-import { SecondFactorController } from './second-factor.controller';
+import { SecondFactorController } from './controllers/private/user/second-factor.controller';
 import { SecondFactorService } from './services/second-factor.service';
 
 @Module({

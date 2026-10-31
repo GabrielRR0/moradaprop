@@ -1,4 +1,4 @@
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 /** Quien debe tener passkey o 2FA, y cuanto tiempo tienen para activarlo. Un solo lugar para cambiarlo. */
 export const SECOND_FACTOR_POLICY = {

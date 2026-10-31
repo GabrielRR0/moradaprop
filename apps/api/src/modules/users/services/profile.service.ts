@@ -1,10 +1,11 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
-import type { RequestContext } from '../../../common/security/types';
-import { AuditService } from '../../audit';
-import { SocialAccountVault, UserVault } from '../../security';
-import type { UpdateProfileDto } from '../dto/update-profile.dto';
-import { DbSupport } from '../../../support/db';
+import { PrismaService } from '@/common/prisma';
+import type { RequestContext } from '@/common/security/types';
+import { AuditService } from '@/modules/audit';
+import { SocialAccountVault, UserVault } from '@/modules/security';
+import type { UpdateProfileDto } from '../contracts/dto/update-profile.dto';
+import type { UserProfileResource } from '../contracts/resources';
+import { DbSupport } from '@/support/db';
 
 @Injectable()
 export class ProfileService {
@@ -16,7 +17,7 @@ export class ProfileService {
   ) {}
 
   /** Perfil del usuario del token, con sus agencias y proveedores vinculados. Sin hashes ni secretos. */
-  async me(userId: string) {
+  async me(userId: string): Promise<UserProfileResource> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -44,7 +45,7 @@ export class ProfileService {
     return { ...rest, emailVerified: Boolean(emailVerifiedAt), hasPassword: Boolean(passwordHash) };
   }
 
-  async update(userId: string, dto: UpdateProfileDto, context: RequestContext) {
+  async update(userId: string, dto: UpdateProfileDto, context: RequestContext): Promise<UserProfileResource> {
     const current = this.vault.decode(await this.prisma.user.findUniqueOrThrow({ where: { id: userId } }));
     await this.prisma.user.update({
       where: { id: userId },
@@ -63,7 +64,7 @@ export class ProfileService {
   }
 
   /** Un cliente pasa a poder publicar propiedades como dueno directo. */
-  async becomeOwner(userId: string, context: RequestContext) {
+  async becomeOwner(userId: string, context: RequestContext): Promise<UserProfileResource> {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
     if (user.roles.includes(DbSupport.Role.OWNER)) throw new ConflictException('Ya eres dueno directo');
 

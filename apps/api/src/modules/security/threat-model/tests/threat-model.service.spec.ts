@@ -1,15 +1,15 @@
 import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
-import { describeCase } from '../../../../../test/support/describe-case';
-import type { AppConfig } from '../../../../config';
-import type { AuditService } from '../../../audit';
-import type { SecurityService } from '../../blocks';
+import { describeCase } from '@/../test/support/describe-case';
+import type { AppConfig } from '@/config';
+import type { AuditService } from '@/modules/audit';
+import type { SecurityService } from '@/modules/security/blocks';
 import { FILE_CHECKS } from '../file-checks';
 import { ThreatLedgerService } from '../services/threat-ledger.service';
 import { ThreatModelService } from '../services/threat-model.service';
 import { ThreatResponseService } from '../services/threat-response.service';
 import { SHIELDS } from '../shields';
 import type { FileCheck, ResponseFacts, ThreatMode } from '../types';
-import { DbSupport } from '../../../../support/db';
+import { DbSupport } from '@/support/db';
 
 const USER = '11111111-1111-4111-8111-111111111111';
 

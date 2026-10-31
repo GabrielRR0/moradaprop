@@ -1,25 +1,44 @@
 import { Module } from '@nestjs/common';
-import { GoogleIdentitySupport } from '../../support/google-identity';
-import { JwtSupport } from '../../support/jwt';
-import { SecurityModule } from '../security';
-import { AuthController } from './auth.controller';
-import { PasskeyLoginController } from './passkey-login.controller';
+import { GoogleIdentitySupport } from '@/support/google-identity';
+import { JwtSupport } from '@/support/jwt';
+import { SecurityModule } from '@/modules/security';
+import { GoogleLoginController } from './controllers/public/google-login.controller';
+import { LoginController } from './controllers/public/login.controller';
+import { PasskeyLoginController } from './controllers/public/passkey-login.controller';
+import { PasswordRecoveryController } from './controllers/public/password-recovery.controller';
+import { RegistrationController } from './controllers/public/registration.controller';
+import { GoogleAccountController } from './controllers/private/user/google-account.controller';
+import { SessionsController } from './controllers/private/user/sessions.controller';
+import { TwoFactorController } from './controllers/private/user/two-factor.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthService } from './services/auth.service';
-import { GoogleAuthService } from './services/google-auth.service';
-import { LoginService } from './services/login.service';
-import { PasskeyLoginService } from './services/passkey-login.service';
-import { PasswordResetService } from './services/password-reset.service';
-import { RegisterService } from './services/register.service';
-import { TokenService } from './services/token.service';
-import { TwoFactorService } from './services/two-factor.service';
-import { UserAccountService } from './services/user-account.service';
-import { VerificationCodeService } from './services/verification-code.service';
-import { VerifyEmailService } from './services/verify-email.service';
+import { GoogleAuthService } from './services/google/google-auth.service';
+import { LoginService } from './services/sign-in/login.service';
+import { PasskeyLoginService } from './services/sign-in/passkey-login.service';
+import { PasswordResetService } from './services/password/password-reset.service';
+import { RegisterService } from './services/registration/register.service';
+import { SessionService } from './services/sign-in/session.service';
+import { TokenService } from './services/sign-in/token.service';
+import { TwoFactorLoginService } from './services/two-factor/two-factor-login.service';
+import { TwoFactorSetupService } from './services/two-factor/two-factor-setup.service';
+import { TwoFactorVerifier } from './services/two-factor/two-factor-verifier.service';
+import { UserAccountService } from './services/account/user-account.service';
+import { VerificationCodeService } from './services/registration/verification-code.service';
+import { VerifyEmailService } from './services/registration/verify-email.service';
 
 @Module({
   imports: [JwtSupport.Module, SecurityModule],
-  controllers: [AuthController, PasskeyLoginController],
+  // Sin rutas con ":id" que choquen entre controllers: cada uno cuelga de su propio prefijo.
+  controllers: [
+    RegistrationController,
+    LoginController,
+    PasswordRecoveryController,
+    GoogleLoginController,
+    PasskeyLoginController,
+    SessionsController,
+    TwoFactorController,
+    GoogleAccountController,
+  ],
   providers: [
     AuthService,
     RegisterService,
@@ -27,7 +46,10 @@ import { VerifyEmailService } from './services/verify-email.service';
     LoginService,
     PasskeyLoginService,
     TokenService,
-    TwoFactorService,
+    SessionService,
+    TwoFactorSetupService,
+    TwoFactorLoginService,
+    TwoFactorVerifier,
     PasswordResetService,
     GoogleAuthService,
     GoogleIdentitySupport.Verifier,

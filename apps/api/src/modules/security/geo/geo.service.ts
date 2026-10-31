@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Request } from 'express';
-import { AppConfig } from '../../../config';
+import { AppConfig } from '@/config';
 import { GEO_LOCATOR, type GeoLocator } from './geo-locator';
 
 /** Codigos que el CDN usa para 'no se sabe' (XX) y 'red Tor' (T1): sirven para bloquear, no para decir donde esta alguien. */

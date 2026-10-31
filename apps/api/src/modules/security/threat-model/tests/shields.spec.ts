@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { FILE_CHECKS } from '../file-checks';
 import { ThreatLedgerService } from '../services/threat-ledger.service';
 import { SHIELDS } from '../shields';

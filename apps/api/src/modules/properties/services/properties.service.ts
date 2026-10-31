@@ -1,20 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import type { AuthUserContext, RequestContext } from '@/common/security/types';
+import { DbSupport } from '@/support/db';
 import type { CreatePropertyDto } from '../contracts/dto/create-property.dto';
 import type { MapPropertiesDto, SearchPropertiesDto } from '../contracts/dto/search-properties.dto';
 import type { UpdatePropertyDto } from '../contracts/dto/update-property.dto';
-import { PropertyFavoritesService } from './property-favorites.service';
-import { PropertyImagesService } from './property-images.service';
-import { PropertySearchService } from './property-search.service';
-import { PropertyWriteService } from './property-write.service';
-import { DbSupport } from '@/support/db';
 import type { PropertyDetailResource } from '../contracts/resources';
+import { PropertyDetailService } from './catalog/property-detail.service';
+import { PropertyMapService } from './catalog/property-map.service';
+import { PropertyRentStatsService } from './catalog/property-rent-stats.service';
+import { PropertySearchService } from './catalog/property-search.service';
+import { PropertyFavoritesService } from './favorites/property-favorites.service';
+import { PropertyImagesService } from './images/property-images.service';
+import { PropertyMineService } from './management/property-mine.service';
+import { PropertyWriteService } from './management/property-write.service';
 
 /** Fachada del modulo: controller y resolver solo hablan con este service. */
 @Injectable()
 export class PropertiesService {
   constructor(
     private readonly search: PropertySearchService,
+    private readonly map: PropertyMapService,
+    private readonly stats: PropertyRentStatsService,
+    private readonly details: PropertyDetailService,
+    private readonly mineList: PropertyMineService,
     private readonly writer: PropertyWriteService,
     private readonly images: PropertyImagesService,
     private readonly favorites: PropertyFavoritesService,
@@ -25,26 +33,26 @@ export class PropertiesService {
     return this.search.search(query);
   }
   mapProperties(query: MapPropertiesDto) {
-    return this.search.map(query);
+    return this.map.map(query);
   }
   rentStats() {
-    return this.search.rentStats();
+    return this.stats.rentStats();
   }
   detail(id: string, user: AuthUserContext | undefined) {
-    return this.search.detail(id, user);
+    return this.details.detail(id, user);
   }
   mine(user: AuthUserContext, page?: number, limit?: number) {
-    return this.search.mine(user, page, limit);
+    return this.mineList.mine(user, page, limit);
   }
 
   // Escritura
   async create(user: AuthUserContext, dto: CreatePropertyDto, ctx: RequestContext): Promise<PropertyDetailResource> {
     const property = await this.writer.create(user, dto, ctx);
-    return this.search.detail(property.id, user);
+    return this.details.detail(property.id, user);
   }
   async update(user: AuthUserContext, id: string, dto: UpdatePropertyDto, ctx: RequestContext): Promise<PropertyDetailResource> {
     await this.writer.update(user, id, dto, ctx);
-    return this.search.detail(id, user);
+    return this.details.detail(id, user);
   }
   async changeStatus(
     user: AuthUserContext,
@@ -53,7 +61,7 @@ export class PropertiesService {
     ctx: RequestContext,
   ): Promise<PropertyDetailResource> {
     await this.writer.changeStatus(user, id, status, ctx);
-    return this.search.detail(id, user);
+    return this.details.detail(id, user);
   }
   async assignAgent(
     user: AuthUserContext,
@@ -62,7 +70,7 @@ export class PropertiesService {
     ctx: RequestContext,
   ): Promise<PropertyDetailResource> {
     await this.writer.assignAgent(user, id, agentUserId, ctx);
-    return this.search.detail(id, user);
+    return this.details.detail(id, user);
   }
   remove(user: AuthUserContext, id: string, ctx: RequestContext) {
     return this.writer.remove(user, id, ctx);

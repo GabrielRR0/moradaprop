@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AuditService } from '../../../audit';
-import { SecurityService } from '../../blocks';
+import { AuditService } from '@/modules/audit';
+import { SecurityService } from '@/modules/security/blocks';
 import type { FileCheck, FileFacts, ThreatMode, ThreatShield, ThreatSubject } from '../types';
-import { DbSupport } from '../../../../support/db';
+import { DbSupport } from '@/support/db';
 
 const CREATED_BY = 'threat-model';
 

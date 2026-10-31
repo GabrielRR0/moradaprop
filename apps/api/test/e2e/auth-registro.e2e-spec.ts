@@ -332,4 +332,20 @@ describe('Auth: acceso, registro, verificacion y sesiones (e2e)', () => {
     },
     describirObtenido: (volcado) => `${volcado.length} caracteres de auditoria revisados`,
   });
+
+  describeCase('verificacion de correo (e2e)', {
+    que: 'reenviar el codigo responde igual exista o no la cuenta',
+    espera: '200 con el mismo mensaje para un correo registrado y para uno que no existe',
+    ejecutar: async () => {
+      const registrado = await t.web('post')('/api/auth/resend-code').send({ email: EMAIL });
+      const inexistente = await t.web('post')('/api/auth/resend-code').send({ email: 'nadie.registrado@correo.com' });
+      return { registrado, inexistente };
+    },
+    verificar: ({ registrado, inexistente }) => {
+      expect(registrado.status).toBe(200);
+      expect(inexistente.status).toBe(200);
+      expect(registrado.body).toEqual(inexistente.body);
+    },
+    describirObtenido: ({ registrado, inexistente }) => `registrado ${registrado.status}, inexistente ${inexistente.status}, mismo cuerpo: ${JSON.stringify(registrado.body) === JSON.stringify(inexistente.body)}`,
+  });
 });

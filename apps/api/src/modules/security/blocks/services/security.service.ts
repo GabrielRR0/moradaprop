@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { CreateBlockRuleDto } from '../dto/create-block-rule.dto';
+import type { CreateBlockRuleDto } from '../contracts/dto/create-block-rule.dto';
 import { BlockCheckService, type BlockContext } from './block-check.service';
 import { BlockRuleService } from './block-rule.service';
 

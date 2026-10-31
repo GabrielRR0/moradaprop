@@ -203,4 +203,20 @@ describe('Propiedades: busqueda, filtros y mapa (e2e)', () => {
     },
     describirObtenido: ({ lejos, cerca }) => `zoom 8: ${lejos.markers.length} marcadores (${lejos.total} propiedades); zoom 17: ${cerca.markers.length} pines`,
   });
+
+  describeCase('alquiler tipico (e2e)', {
+    que: 'rent-stats agrupa por estado con mediana, rango e histograma',
+    espera: '200 y, por estado, count, min, max, median, p25 <= median <= p75 y 12 tramos en el histograma',
+    ejecutar: async () => await t.web('get')('/api/properties/rent-stats'),
+    verificar: (res) => {
+      expect(res.status).toBe(200);
+      expect(res.body.states.length).toBeGreaterThan(0);
+      const estado = res.body.states[0];
+      expect(estado.bins).toHaveLength(12);
+      expect(estado.p25).toBeLessThanOrEqual(estado.median);
+      expect(estado.median).toBeLessThanOrEqual(estado.p75);
+      expect(estado.min).toBeLessThanOrEqual(estado.max);
+    },
+    describirObtenido: (res) => `${res.status}, ${res.body.states?.length ?? 0} estados`,
+  });
 });

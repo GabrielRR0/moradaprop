@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { AppRequest } from '../../../common/security/types';
+import type { AppRequest } from '@/common/security/types';
 import type { GeoService } from './geo.service';
 
 /**

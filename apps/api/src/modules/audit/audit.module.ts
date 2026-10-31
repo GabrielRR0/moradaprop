@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { AuditController } from './audit.controller';
+import { AuditController } from './controllers/private/admin/audit.controller';
 import { AuditInterceptor } from './interceptors/audit.interceptor';
 import { AuditService } from './services/audit.service';
 

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describeCase } from '../../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { parseAuthenticatorData } from '../webauthn/authenticator-data';
 import { fromBase64url, toBase64url } from '../webauthn/base64url';
 import { decodeCborExact } from '../webauthn/cbor';

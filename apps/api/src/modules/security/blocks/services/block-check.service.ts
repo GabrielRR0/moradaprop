@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../common/prisma';
+import { PrismaService } from '@/common/prisma';
 import { ipInCidr, normalizeIp } from '../utils/cidr';
-import { DbSupport } from '../../../../support/db';
+import { DbSupport } from '@/support/db';
 
 export interface BlockContext {
   ip?: string;

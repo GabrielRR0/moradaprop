@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { SpreadsheetSupport } from '../../../support/spreadsheet';
+import { SpreadsheetSupport } from '@/support/spreadsheet';
 import { parseCsv } from './csv';
 
 export const MAX_ROWS = 500;

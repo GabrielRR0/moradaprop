@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { detectDelimiter, parseCsv } from '../utils/csv';
 import { mapSheet, neutralizeFormula, normalizeHeader } from '../utils/row-mapper';
 

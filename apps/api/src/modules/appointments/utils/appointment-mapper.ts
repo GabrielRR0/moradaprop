@@ -1,5 +1,6 @@
-import type { StorageProvider } from '../../../common/storage';
-import { DbSupport } from '../../../support/db';
+import type { StorageProvider } from '@/common/storage';
+import { DbSupport } from '@/support/db';
+import type { AppointmentClientResource, AppointmentLeadResource } from '../contracts/resources';
 
 export const appointmentInclude = {
   property: {
@@ -17,7 +18,7 @@ export const appointmentInclude = {
 
 type Row = DbSupport.Prisma.AppointmentGetPayload<{ include: typeof appointmentInclude }>;
 
-const toBase = (row: Row, storage: StorageProvider) => ({
+const toBase = (row: Row, storage: StorageProvider): AppointmentClientResource => ({
   id: row.id,
   type: row.type,
   status: row.status,
@@ -37,10 +38,10 @@ const toBase = (row: Row, storage: StorageProvider) => ({
 });
 
 /** Lo que ve el CLIENTE: su solicitud y la respuesta, sin datos internos del dueno. */
-export const toClientView = (row: Row, storage: StorageProvider) => toBase(row, storage);
+export const toClientView = (row: Row, storage: StorageProvider): AppointmentClientResource => toBase(row, storage);
 
 /** Lo que ve QUIEN GESTIONA la propiedad: ademas, los datos de contacto del solicitante (el lead). */
-export const toLeadView = (row: Row, storage: StorageProvider) => ({
+export const toLeadView = (row: Row, storage: StorageProvider): AppointmentLeadResource => ({
   ...toBase(row, storage),
   contact: {
     name: row.contactName,

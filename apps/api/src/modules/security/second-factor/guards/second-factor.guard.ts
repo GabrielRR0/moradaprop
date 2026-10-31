@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ALLOW_WITHOUT_SECOND_FACTOR_KEY, IS_PUBLIC_KEY } from '../../../../common/security/decorators';
-import { requestOf } from '../../../../common/security/request-of';
+import { ALLOW_WITHOUT_SECOND_FACTOR_KEY, IS_PUBLIC_KEY } from '@/common/security/decorators';
+import { requestOf } from '@/common/security/request-of';
 import { SecondFactorService } from '../services/second-factor.service';
 
 /**

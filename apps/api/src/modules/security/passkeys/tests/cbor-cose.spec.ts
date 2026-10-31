@@ -1,6 +1,6 @@
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
-import { describeCase } from '../../../../../test/support/describe-case';
-import { cborEncode } from '../../../../../test/support/fake-authenticator';
+import { describeCase } from '@/../test/support/describe-case';
+import { cborEncode } from '@/../test/support/fake-authenticator';
 import { parseAuthenticatorData } from '../webauthn/authenticator-data';
 import { fromBase64url } from '../webauthn/base64url';
 import { decodeCbor, decodeCborExact } from '../webauthn/cbor';

@@ -1,5 +1,5 @@
-import { describeCase } from '../../../../../test/support/describe-case';
-import type { AppConfig } from '../../../../config';
+import { describeCase } from '@/../test/support/describe-case';
+import type { AppConfig } from '@/config';
 import { CdnHeaderLocator } from '../cdn-header.locator';
 import { GeoService } from '../geo.service';
 

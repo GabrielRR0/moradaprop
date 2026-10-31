@@ -165,6 +165,28 @@ describe('Auth: verificacion en dos pasos (e2e)', () => {
   });
 
   describeCase('2FA desactivar (e2e)', {
+    que: 'renovar los codigos de respaldo entrega 8 nuevos y los anteriores dejan de servir',
+    espera: '200 con 8 codigos nuevos; un codigo de la tanda anterior ya no funciona para el segundo paso',
+    ejecutar: async () => {
+      const anterior = backupCodes[4];
+      const res = await t
+        .web('post')('/api/auth/2fa/backup-codes')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ password: PASSWORD, code: backupCodes[3] });
+      const { challengeToken } = await iniciarLogin();
+      const conViejo = await t.web('post')('/api/auth/login/2fa').send({ challengeToken, code: anterior });
+      return { res, conViejo, anterior };
+    },
+    verificar: ({ res, conViejo }) => {
+      expect(res.status).toBe(200);
+      expect(res.body.backupCodes).toHaveLength(8);
+      expect(conViejo.status).toBe(401);
+      backupCodes = res.body.backupCodes;
+    },
+    describirObtenido: ({ res, conViejo }) => `${res.status}, ${res.body.backupCodes?.length ?? 0} codigos nuevos; un codigo viejo da ${conViejo.status}`,
+  });
+
+  describeCase('2FA desactivar (e2e)', {
     que: 'con contrasena y un codigo valido se desactiva y se borran los codigos de respaldo',
     espera: '200, usuario sin 2FA, sin secreto y sin codigos de respaldo; el login vuelve a ser directo',
     ejecutar: async () => {

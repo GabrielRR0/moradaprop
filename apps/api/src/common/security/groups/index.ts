@@ -36,5 +36,8 @@ export const RoleGroup = (...roles: DbSupport.Role[]) => applyDecorators(AuthGro
 /** Quienes publican y gestionan propiedades: propietario, agencia y admin. */
 export const PublisherGroup = () => RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN);
 
+/** Cuentas de agencia: administra su perfil y su equipo. */
+export const AgencyGroup = () => RoleGroup(DbSupport.Role.AGENCY);
+
 /** Panel de administracion: rol ADMIN y 2FA obligatorio. */
 export const AdminGroup = () => applyDecorators(RoleGroup(DbSupport.Role.ADMIN), RequireTwoFactor());

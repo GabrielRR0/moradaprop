@@ -1,4 +1,4 @@
-import type { AuthUserContext } from '../../../common/security/types';
+import type { AuthUserContext } from '@/common/security/types';
 
 /**
  * Regla de pertenencia de UN tipo de recurso (cita, propiedad, importacion...).

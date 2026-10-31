@@ -57,3 +57,5 @@ const session = await api.post('/auth/passkeys/login/verify', { credential: cred
 - `tests/webauthn-verify.spec.ts` y `cbor-cose.spec.ts`: registro y uso con los 3 algoritmos y **cada manipulación** (desafío, origen, sitio, UV, firma, datos alterados, otra clave, CBOR hostil, claves débiles...). Usan un **autenticador de software** (`test/support/fake-authenticator.ts`).
 - `tests/real-vectors.spec.ts`: **respuestas reales** de Firefox y llaves de seguridad (datos de prueba públicos de SimpleWebAuthn, MIT; solo se usan los datos). Verifican que leemos bien lo que mandan los autenticadores de verdad y que la firma real valida con nuestro código.
 - `test/e2e/passkeys.e2e-spec.ts`: de punta a punta (registro, entrar, replay, clon, admin solo con passkey, segundo paso, bloqueo, gestión y validación del cuerpo).
+
+**Estructura:** `controllers/` (`private/user`), `contracts/` (`dto/` y `resources/`), `services/` (fachada + `registration/`, `authentication/`, `credentials/`) y `webauthn/` (la verificación WebAuthn propia). Cada carpeta nueva tiene su README.

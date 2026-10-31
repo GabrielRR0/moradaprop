@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY } from '../../../common/security/decorators';
-import { requestOf } from '../../../common/security/request-of';
-import type { AppRequest } from '../../../common/security/types';
-import { SecurityService } from '../../security';
-import { TokenService } from '../services/token.service';
+import { IS_PUBLIC_KEY } from '@/common/security/decorators';
+import { requestOf } from '@/common/security/request-of';
+import type { AppRequest } from '@/common/security/types';
+import { SecurityService } from '@/modules/security';
+import { TokenService } from '../services/sign-in/token.service';
 
 /** Guard global: toda ruta exige token salvo las marcadas con @Public() (grupos Public/Guest). */
 @Injectable()

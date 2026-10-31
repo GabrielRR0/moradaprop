@@ -1,11 +1,12 @@
-import type { RequestContext } from '../../../common/security/types';
-import type { SecondFactorStatus } from '../../security';
-import { DbSupport } from '../../../support/db';
+import type { RequestContext } from '@/common/security/types';
+import type { SecondFactorStatus } from '@/modules/security';
+import { DbSupport } from '@/support/db';
+import type { AuthUserResource } from '../contracts/resources';
 
 export type { RequestContext };
 
 /** Usuario que se devuelve al cliente: nunca incluye hashes ni secretos. */
-export function toPublicUser(user: DbSupport.User) {
+export function toPublicUser(user: DbSupport.User): AuthUserResource {
   return {
     id: user.id,
     email: user.email,
@@ -19,7 +20,7 @@ export function toPublicUser(user: DbSupport.User) {
   };
 }
 
-export type PublicUser = ReturnType<typeof toPublicUser>;
+export type PublicUser = AuthUserResource;
 
 /** Resultado de un inicio de sesion completo. */
 export interface AuthTokens {

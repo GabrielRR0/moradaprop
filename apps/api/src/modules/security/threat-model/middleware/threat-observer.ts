@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import type { AppRequest } from '../../../../common/security/types';
+import type { AppRequest } from '@/common/security/types';
 import type { ThreatModelService } from '../services/threat-model.service';
 
 const logger = new Logger('ThreatObserver');

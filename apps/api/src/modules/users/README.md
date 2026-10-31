@@ -6,3 +6,5 @@ Perfil propio del usuario autenticado.
 - POST /api/users/me/become-owner: sumar el rol OWNER.
 
 El id del usuario sale siempre del token, nunca de la URL ni del body. Services: profile, change-password, fachada users.service.
+
+**Estructura:** `controllers/` (rutas por acceso: `private/user`), `contracts/` (`dto/` lo que entra, `resources/` lo que sale) y `services/` (fachada + perfil y contraseña). Cada carpeta tiene su README.

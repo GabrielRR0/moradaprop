@@ -1,10 +1,10 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { describeCase } from '../../../../../test/support/describe-case';
-import type { AuthUserContext } from '../../../../common/security/types';
-import type { AuditService } from '../../../audit';
+import { describeCase } from '@/../test/support/describe-case';
+import type { AuthUserContext } from '@/common/security/types';
+import type { AuditService } from '@/modules/audit';
 import { ACCESS_DENIED_ACTION, OwnershipService } from '../services/ownership.service';
 import type { ResourcePolicy } from '../types';
-import { DbSupport } from '../../../../support/db';
+import { DbSupport } from '@/support/db';
 
 interface Doc {
   id: string;

@@ -1,9 +1,10 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { PasswordSupport } from '../../../support/password';
-import { PrismaService } from '../../../common/prisma';
-import type { RequestContext } from '../../../common/security/types';
-import { AuditService } from '../../audit';
-import type { ChangePasswordDto } from '../dto/change-password.dto';
+import { PasswordSupport } from '@/support/password';
+import { PrismaService } from '@/common/prisma';
+import type { RequestContext } from '@/common/security/types';
+import { AuditService } from '@/modules/audit';
+import type { ChangePasswordDto } from '../contracts/dto/change-password.dto';
+import type { PasswordChangedResource } from '../contracts/resources';
 
 @Injectable()
 export class ChangePasswordService {
@@ -16,7 +17,7 @@ export class ChangePasswordService {
    * Cambia la contrasena y cierra las DEMAS sesiones (la actual se conserva).
    * Si la cuenta ya tenia contrasena, exige la actual; si era solo-Google, permite definirla.
    */
-  async change(userId: string, sessionId: string, dto: ChangePasswordDto, context: RequestContext) {
+  async change(userId: string, sessionId: string, dto: ChangePasswordDto, context: RequestContext): Promise<PasswordChangedResource> {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
 
     if (user.passwordHash) {

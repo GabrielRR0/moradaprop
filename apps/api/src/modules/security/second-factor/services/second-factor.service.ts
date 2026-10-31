@@ -1,10 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { AppConfig } from '../../../../config';
-import { PrismaService } from '../../../../common/prisma';
-import { PasskeyService } from '../../passkeys';
+import { AppConfig } from '@/config';
+import { PrismaService } from '@/common/prisma';
+import { PasskeyService } from '@/modules/security/passkeys';
 import { SECOND_FACTOR_POLICY } from '../policy';
 import type { SecondFactorMode, SecondFactorStatus } from '../types';
-import { DbSupport } from '../../../../support/db';
+import { DbSupport } from '@/support/db';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

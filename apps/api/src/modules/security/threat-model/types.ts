@@ -1,4 +1,4 @@
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 /** Categorias del modelo STRIDE (Microsoft). Cada mini modulo declara de cual es. */
 export type StrideLetter = 'S' | 'T' | 'R' | 'I' | 'D' | 'E';

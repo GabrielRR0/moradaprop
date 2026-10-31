@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
+import { PrismaService } from '@/common/prisma';
 
 /** Pertenencia a una agencia: de aqui salen todos los permisos del modulo. */
 @Injectable()

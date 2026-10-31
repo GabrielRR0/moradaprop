@@ -6,6 +6,7 @@ import { configureApp } from '../../src/bootstrap/configure-app';
 import { MailSupport } from '../../src/support/mail';
 import { TotpSupport } from '../../src/support/totp';
 import { PrismaService } from '../../src/common/prisma';
+import { ResourceContractInterceptor } from './resource-contract';
 
 export const WEB_HEADERS = { 'x-app-client': 'web', 'x-app-key': 'test-web-key' } as const;
 export const MOBILE_HEADERS = { 'x-app-client': 'mobile', 'x-app-key': 'test-mobile-key' } as const;
@@ -51,6 +52,8 @@ export async function createTestApp(): Promise<TestApp> {
 
   const app = moduleRef.createNestApplication();
   configureApp(app);
+  // Comprueba que cada respuesta cumple el Resource que declara su ruta (ver resource-contract.ts).
+  app.useGlobalInterceptors(new ResourceContractInterceptor());
   await app.init();
 
   const prisma = app.get(PrismaService);

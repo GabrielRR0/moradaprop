@@ -1,10 +1,10 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { isIP } from 'node:net';
-import { PrismaService } from '../../../../common/prisma';
-import type { CreateBlockRuleDto } from '../dto/create-block-rule.dto';
+import { PrismaService } from '@/common/prisma';
+import type { CreateBlockRuleDto } from '../contracts/dto/create-block-rule.dto';
 import { isValidCidr, normalizeIp } from '../utils/cidr';
 import { BlockCheckService } from './block-check.service';
-import { DbSupport } from '../../../../support/db';
+import { DbSupport } from '@/support/db';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
-import type { RequestContext } from '../../../common/security/types';
-import { AuditService } from '../../audit';
-import { SecurityService, UserVault } from '../../security';
-import type { ListUsersQueryDto, SetUserStatusDto } from '../dto/admin-users.dto';
-import { DbSupport } from '../../../support/db';
+import { PrismaService } from '@/common/prisma';
+import type { RequestContext } from '@/common/security/types';
+import { AuditService } from '@/modules/audit';
+import { SecurityService, UserVault } from '@/modules/security';
+import type { ListUsersQueryDto } from '../contracts/dto/list-users-query.dto';
+import type { SetUserStatusDto } from '../contracts/dto/set-user-status.dto';
+import type { AdminUserListResource, UserStatusChangedResource } from '../contracts/resources';
+import { DbSupport } from '@/support/db';
 
 @Injectable()
 export class AdminUsersService {
@@ -15,7 +17,7 @@ export class AdminUsersService {
     private readonly vault: UserVault,
   ) {}
 
-  async list(query: ListUsersQueryDto) {
+  async list(query: ListUsersQueryDto): Promise<AdminUserListResource> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: DbSupport.Prisma.UserWhereInput = {
@@ -47,7 +49,7 @@ export class AdminUsersService {
   }
 
   /** Suspende o reactiva una cuenta. Al suspender se cierran todas sus sesiones. */
-  async setStatus(adminId: string, userId: string, dto: SetUserStatusDto, context: RequestContext) {
+  async setStatus(adminId: string, userId: string, dto: SetUserStatusDto, context: RequestContext): Promise<UserStatusChangedResource> {
     if (adminId === userId) throw new BadRequestException('No puedes cambiar el estado de tu propia cuenta');
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });

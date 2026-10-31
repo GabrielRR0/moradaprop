@@ -6,7 +6,7 @@ import {
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { AppConfig } from '../../../../config';
+import { AppConfig } from '@/config';
 import { STRIDE_NAMES, type FileCheck, type FileFacts, type ResponseFacts, type ThreatMode, type ThreatShield, type ThreatSubject } from '../types';
 import { ThreatLedgerService } from './threat-ledger.service';
 import { ThreatResponseService } from './threat-response.service';

@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import type { AuthUserContext, RequestContext } from '../../../../common/security/types';
-import { AuditService } from '../../../audit';
+import type { AuthUserContext, RequestContext } from '@/common/security/types';
+import { AuditService } from '@/modules/audit';
 import type { ResourcePolicy } from '../types';
 
 /** Accion que se registra en auditoria cuando alguien pide un recurso que no es suyo. */

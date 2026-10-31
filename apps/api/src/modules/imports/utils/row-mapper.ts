@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { CreatePropertyDto } from '../../properties';
+import { CreatePropertyDto } from '@/modules/properties';
 
 type Cell = string | number | boolean | null;
 type FieldKind = 'text' | 'number' | 'boolean' | 'type' | 'currency';

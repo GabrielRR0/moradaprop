@@ -6,3 +6,5 @@ Mini módulo de `security`: bloqueos de acceso y su panel admin (`/api/admin/sec
 El país se lee de cabeceras de CDN (cf-ipcountry, etc.). Funciona igual en REST y GraphQL.
 
 Quien crea bloqueos automáticos es `threat-model` (con `createdBy = 'threat-model'` y vencimiento). Los que crea un admin a mano no vencen salvo que se indique, y un bloqueo permanente nunca se acorta solo.
+
+**Estructura:** `controllers/` (`private/admin`), `contracts/` (`dto/` y `resources/`), `services/`, `guards/` y `utils/`. Cada carpeta nueva tiene su README.

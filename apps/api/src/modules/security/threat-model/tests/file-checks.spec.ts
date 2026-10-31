@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { dangerousFilename } from '../file-checks/dangerous-filename';
 import { executableContent } from '../file-checks/executable-content';
 

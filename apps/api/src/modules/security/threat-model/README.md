@@ -41,3 +41,5 @@ Las revisiones de archivo rechazan en `monitor` y `enforce` (son precisas, no es
 - Los umbrales son un punto de partida: ajústalos en cada archivo de `shields/` según el tráfico real (para eso existe `monitor`).
 - Los bloqueos por IP afectan a todos los que comparten esa IP (oficinas, redes móviles). Por eso, con sesión se bloquea al usuario, no a la IP.
 - No hay antivirus por decisión del proyecto: la defensa es no confiar en el archivo (ver `file-checks/README.md`).
+
+**Estructura:** `controllers/` (`private/admin`), `contracts/resources/`, `services/`, `shields/`, `file-checks/` y `middleware/`. Cada carpeta nueva tiene su README.

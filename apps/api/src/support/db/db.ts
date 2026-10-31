@@ -5,12 +5,15 @@ export { Prisma, PrismaClient } from '@prisma/client';
 
 /** Enums del esquema (`schema.prisma`). */
 export {
+  AgencyMemberRole,
   AppointmentStatus,
   AppointmentType,
   BlockType,
   ContactChannel,
   Currency,
   FootprintKind,
+  ImportStatus,
+  InvitationStatus,
   PasskeyChallengeKind,
   PropertyStatus,
   PropertyType,
@@ -20,4 +23,4 @@ export {
 } from '@prisma/client';
 
 /** Modelos del esquema. */
-export type { AgencyMember, AgencyProfile, BlockRule, PasskeyCredential, Property, User } from '@prisma/client';
+export type { AgencyMember, AgencyProfile, BlockRule, ImportJob, PasskeyCredential, Property, User } from '@prisma/client';
