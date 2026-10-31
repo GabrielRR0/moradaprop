@@ -19,6 +19,14 @@ export class FakeMail {
     this.sent.push({ to, template });
   };
 
+  /** Si es true, `sendOrThrow` falla como lo haria un servidor de correo con una clave mala. */
+  failNext = false;
+
+  sendOrThrow = async (to: string, template: { name: string; code?: string; link?: string }) => {
+    if (this.failNext) throw new Error('Invalid login: 535 Authentication failed');
+    this.sent.push({ to, template });
+  };
+
   /** Token del enlace de la ultima invitacion de agencia enviada a ese correo. */
   lastInvitationToken(to: string): string {
     const found = [...this.sent].reverse().find((m) => m.to === to && m.template.name === 'agency-invitation');
@@ -39,7 +47,7 @@ export interface TestApp {
   prisma: PrismaService;
   mail: FakeMail;
   /** Peticion con las cabeceras de la app web ya puestas. */
-  web: (method: 'get' | 'post' | 'delete' | 'patch') => (url: string) => request.Test;
+  web: (method: 'get' | 'post' | 'put' | 'delete' | 'patch') => (url: string) => request.Test;
   close: () => Promise<void>;
 }
 
@@ -72,7 +80,7 @@ export async function createTestApp(): Promise<TestApp> {
 /** Vacia todas las tablas de negocio (la base de pruebas es solo para tests). */
 export async function resetDatabase(prisma: PrismaService) {
   await prisma.$executeRawUnsafe(
-    `TRUNCATE "AuditLog","BlockRule","ImportJob","Appointment","Favorite","PropertyImage","Property",
+    `TRUNCATE "PlatformSetting","AuditLog","BlockRule","ImportJob","Appointment","Favorite","PropertyImage","Property",
      "AgencyMember","AgencyProfile","TwoFactorBackupCode","VerificationCode","Session","SocialAccount","User" CASCADE`,
   );
 }

@@ -13,6 +13,7 @@ controllers/
     user/                          cualquier usuario con sesión   @AuthGroup()
       sessions.controller.ts           POST /logout · /logout-all · GET /sessions · DELETE /sessions/:id
       two-factor.controller.ts         POST /2fa/setup · /2fa/confirm · /2fa/disable · /2fa/backup-codes
+      reverify.controller.ts           POST /reverify/code · /reverify/passkey/options · /reverify/passkey
       google-account.controller.ts     POST /google/link · DELETE /google
 ```
 

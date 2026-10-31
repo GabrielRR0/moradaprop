@@ -23,6 +23,14 @@ Mini módulo de `security`: **passkey o 2FA obligatorio** para quien maneja dato
 
 Pásalo a `enforce` cuando el frontend ya tenga la pantalla "Protege tu cuenta" (ver `docs/FRONTEND-SEGURIDAD.md`); si no, los dueños y agencias quedarían limitados sin forma de salir.
 
+## Segundo factor reciente para acciones sensibles (`@RecentTwoFactor()`)
+Estar en una sesión con 2FA no basta para suspender una cuenta, bloquear una IP o cambiar una clave: esas rutas piden que el segundo factor se haya comprobado **hace menos de `recentMinutes` (5)** en `policy.ts`.
+1. Se marca la ruta con `@RecentTwoFactor()` (hoy: cambiar el estado de un usuario y crear o quitar bloqueos).
+2. `RecentTwoFactorGuard` (global) lee `Session.strongAuthAt` en la base. Si es más viejo, responde `403 RECENT_TWO_FACTOR_REQUIRED`.
+3. El cliente llama a `POST /api/auth/reverify/code` (app autenticadora o código de respaldo) o a `/reverify/passkey/options` + `/reverify/passkey`, y repite la acción.
+4. `strongAuthAt` se fija al iniciar sesión con segundo factor, al activarlo y al re-verificar. **El refresh la conserva**: renovar el token no renueva la verificación.
+El código por correo **no** vale aquí a propósito: quien toma el correo de un admin no debe poder confirmar acciones con él.
+
 ## Agregar o quitar un rol obligatorio
 Edita `requiredRoles` en `policy.ts` (y `immediateRoles` si no debe tener gracia). Nada más depende de la lista.
 

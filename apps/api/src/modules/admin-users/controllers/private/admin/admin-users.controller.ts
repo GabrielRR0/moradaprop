@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser, RequestInfo } from '@/common/security/decorators';
+import { CurrentUser, RecentTwoFactor, RequestInfo } from '@/common/security/decorators';
 import { AdminGroup } from '@/common/security/groups';
 import type { AuthUserContext, RequestContext } from '@/common/security/types';
 import { ListUsersQueryDto } from '@/modules/admin-users/contracts/dto/list-users-query.dto';
@@ -20,6 +20,8 @@ export class AdminUsersController {
     return this.adminUsersService.list(query);
   }
 
+  // Accion sensible: el admin debe haber confirmado su segundo factor hace pocos minutos.
+  @RecentTwoFactor()
   @Patch(':id/status')
   setStatus(
     @Param('id', ParseUUIDPipe) id: string,

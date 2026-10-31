@@ -5,6 +5,8 @@ export const securityConfig = (env: Env) => ({
   threatMode: env.threatMode,
   riskMode: env.riskMode,
   secondFactorMode: env.secondFactorMode,
+  /** Prefijo de las rutas de administracion (/api/<prefijo>/...). */
+  adminApiPrefix: env.adminApiPrefix,
   /** Passkeys (WebAuthn): el sitio al que quedan atadas y los origenes que se aceptan. */
   webauthn: {
     rpId: env.webauthnRpId,

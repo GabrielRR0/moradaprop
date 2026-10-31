@@ -68,7 +68,7 @@ describe('config', () => {
     },
     verificar: (mensaje) => {
       expect(mensaje).toContain('Configuracion insegura para produccion');
-      for (const nombre of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY', 'APP_CLIENT_KEY_WEB', 'CORS_ALLOWED_ORIGINS', 'WEBAUTHN_RP_ID']) {
+      for (const nombre of ['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY', 'APP_CLIENT_KEY_WEB', 'CORS_ALLOWED_ORIGINS', 'WEBAUTHN_RP_ID', 'ADMIN_API_PREFIX']) {
         expect(mensaje).toContain(nombre);
       }
     },
@@ -85,6 +85,7 @@ describe('config', () => {
         JWT_ACCESS_SECRET: 'q8Zr4mT1vXc7LpN2aYb5KdWe9HsUf3Jg6Rt0',
         JWT_REFRESH_SECRET: 'Hn5Vb2Xk8Mc4QwEz7Ty1PdLs9JrGa3Uf6Ob0',
         ENCRYPTION_KEY: 'Tz3Kp8Wd1Rn6Cv9Lx2Qs5Hj4Mb7Yf0Ga8Ue1Nk',
+        ADMIN_API_PREFIX: 'ctl-7f3k9x',
         APP_CLIENT_KEY_WEB: 'web-Kd82nXq91LmPz07Tb',
         APP_CLIENT_KEY_MOBILE: 'mob-Rt55wYc20HsVn38Qa',
         CORS_ALLOWED_ORIGINS: 'https://alquileres-ve.net',
@@ -100,4 +101,48 @@ describe('config', () => {
     ejecutar: () => loadEnv({ ...entornoValido, NODE_ENV: 'development', APP_CLIENT_KEY_WEB: 'dev-web-client-key' }),
     verificar: (env) => expect(env.nodeEnv).toBe('development'),
   });
+  describeCase('config', {
+    que: 'en produccion rechaza un prefijo de admin obvio o corto',
+    espera: 'error que nombra ADMIN_API_PREFIX para "admin" y para un nombre de menos de 8 caracteres',
+    ejecutar: () => {
+      const produccion = {
+        ...entornoValido,
+        NODE_ENV: 'production',
+        JWT_ACCESS_SECRET: 'q8Zr4mT1vXc7LpN2aYb5KdWe9HsUf3Jg6Rt0',
+        JWT_REFRESH_SECRET: 'Hn5Vb2Xk8Mc4QwEz7Ty1PdLs9JrGa3Uf6Ob0',
+        ENCRYPTION_KEY: 'Tz3Kp8Wd1Rn6Cv9Lx2Qs5Hj4Mb7Yf0Ga8Ue1Nk',
+        APP_CLIENT_KEY_WEB: 'web-Kd82nXq91LmPz07Tb',
+        APP_CLIENT_KEY_MOBILE: 'mob-Rt55wYc20HsVn38Qa',
+        CORS_ALLOWED_ORIGINS: 'https://alquileres-ve.net',
+        WEBAUTHN_RP_ID: 'alquileres-ve.net',
+        WEBAUTHN_ORIGINS: 'https://alquileres-ve.net',
+      };
+      const probar = (prefijo?: string) => {
+        try {
+          loadEnv({ ...produccion, ADMIN_API_PREFIX: prefijo });
+          return 'arranco';
+        } catch (error) {
+          return (error as Error).message.includes('ADMIN_API_PREFIX') ? 'rechazado' : 'otro error';
+        }
+      };
+      return { porDefecto: probar(undefined), admin: probar('admin'), corto: probar('ctl-7f'), propio: probar('ctl-7f3k9x') };
+    },
+    verificar: (r) => expect(r).toEqual({ porDefecto: 'rechazado', admin: 'rechazado', corto: 'rechazado', propio: 'arranco' }),
+    describirObtenido: (r) => JSON.stringify(r),
+  });
+
+  describeCase('config', {
+    que: 'el prefijo de admin solo acepta minusculas, numeros y guiones',
+    espera: 'rechaza mayusculas, barras y espacios',
+    ejecutar: () => ['Admin', 'a/b', 'mi panel', 'ab'].map((valor) => {
+      try {
+        loadEnv({ ...entornoValido, ADMIN_API_PREFIX: valor });
+        return 'acepto';
+      } catch {
+        return 'rechazo';
+      }
+    }),
+    verificar: (r) => expect(r).toEqual(['rechazo', 'rechazo', 'rechazo', 'rechazo']),
+  });
+
 });

@@ -51,6 +51,14 @@ export const envSchema = z.object({
   RISK_MODE: z.enum(['off', 'monitor', 'enforce']).default('monitor'),
   /** Segundo factor obligatorio para admin, duenos y agencias: 'off' no mide; 'monitor' mide y avisa; 'enforce' ademas bloquea hasta que activen passkey o 2FA */
   SECOND_FACTOR_MODE: z.enum(['off', 'monitor', 'enforce']).default('monitor'),
+  /**
+   * Prefijo de las rutas de administracion: /api/<prefijo>/users, /audit, /security, /settings. Por defecto "admin" (solo
+   * desarrollo): en produccion debe ser un nombre propio y poco obvio (ver production-guard.ts).
+   */
+  ADMIN_API_PREFIX: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9-]{2,39}$/, 'usa 3 a 40 caracteres: minusculas, numeros y guiones')
+    .default('admin'),
   /** Passkeys (WebAuthn): dominio del sitio (sin https://) al que quedan atadas las passkeys. En produccion, el dominio real */
   WEBAUTHN_RP_ID: z.string().min(1).default('localhost'),
   /** Passkeys: origenes exactos desde los que se aceptan (la web), separados por coma. En produccion, https://tu-dominio */

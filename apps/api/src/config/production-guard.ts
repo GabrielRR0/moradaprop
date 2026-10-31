@@ -6,6 +6,10 @@ type RawEnv = z.infer<typeof envSchema>;
 /** Secretos que deben ser largos en produccion. */
 const MIN_SECRET_LENGTH = 32;
 
+/** El prefijo del panel de admin no puede ser de los que prueba cualquier escaner. */
+const MIN_ADMIN_PREFIX_LENGTH = 8;
+const OBVIOUS_ADMIN_PREFIXES = new Set(['admin', 'administrator', 'administracion', 'panel', 'manage', 'manager', 'backoffice', 'dashboard', 'control', 'staff', 'private', 'root']);
+
 /** Una clave "de ejemplo": viene escrita en el repositorio, asi que cualquiera la conoce. */
 const looksLikeDevValue = (value: string) => /change-?me|^dev-|^test-|example|secret-0123/i.test(value);
 
@@ -45,6 +49,10 @@ export function productionProblems(env: RawEnv): string[] {
   }
   if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
     problems.push('JWT_ACCESS_SECRET y JWT_REFRESH_SECRET deben ser distintos');
+  }
+
+  if (OBVIOUS_ADMIN_PREFIXES.has(env.ADMIN_API_PREFIX) || env.ADMIN_API_PREFIX.length < MIN_ADMIN_PREFIX_LENGTH) {
+    problems.push(`ADMIN_API_PREFIX es muy obvio; usa un nombre propio de al menos ${MIN_ADMIN_PREFIX_LENGTH} caracteres (ej. "ctl-7f3k9x")`);
   }
 
   const clientKeys: Array<[string, string]> = [

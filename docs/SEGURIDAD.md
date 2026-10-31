@@ -117,6 +117,8 @@ Las claves de desarrollo están en el repositorio (`docker-compose.yml`, `.env.e
 - [ ] `NODE_ENV=production`.
 - [ ] Secretos generados aleatoriamente (mínimo 32 caracteres): `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (distintos entre sí), `ENCRYPTION_KEY`.
 - [ ] `ENCRYPTION_KEY` respaldada en un gestor de secretos. **Si se pierde o cambia, todos los 2FA activos dejan de funcionar** (el secreto no se puede descifrar).
+- [ ] `ADMIN_API_PREFIX` con un nombre propio y poco obvio (mínimo 8 caracteres, ej. `ctl-7f3k9x`); el servidor no arranca con `admin` u otro obvio. La web de administración debe usar el mismo prefijo. Ver `docs/API.md`.
+- [ ] Correo: guarda la API key de Resend desde el panel (`PUT /settings/mail.resendApiKey`); queda cifrada con `ENCRYPTION_KEYS`. Sin ella, el correo usa las variables `MAIL_*`. Prueba con `POST /settings/mail/test`.
 - [ ] `APP_CLIENT_KEY_*` propias y `CORS_ALLOWED_ORIGINS` con el dominio real.
 - [ ] `TRUST_PROXY=true` **solo si** el API está detrás de un proxy/CDN de confianza. Con `true` sin proxy, cualquiera falsifica su IP con `X-Forwarded-For` y evade bloqueos y límites. Con `false` detrás de un proxy, todos los usuarios parecen tener la IP del proxy y se limitan entre sí.
 - [ ] `RISK_MODE=enforce` (empieza unos días en `monitor`, revisa `GET /api/admin/audit?action=risk.` y afina `access-risk/policy.ts`). **Para que el país funcione:** el servidor detrás de un CDN (Cloudflare, Vercel…) con `TRUST_PROXY=true` y aceptando solo tráfico del CDN; si no, el país es desconocido y solo se miden red, dispositivo y fallos.

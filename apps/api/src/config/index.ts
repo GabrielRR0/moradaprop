@@ -2,4 +2,5 @@
 export { AppConfig } from './app-config';
 export { ConfigModule } from './config.module';
 export { loadEnv } from './env';
+export { adminApiPrefix } from './admin-api-prefix';
 export type { Env } from './env';

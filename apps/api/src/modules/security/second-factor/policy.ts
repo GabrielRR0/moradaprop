@@ -11,4 +11,6 @@ export const SECOND_FACTOR_POLICY = {
    * emite su proximo token. Las cuentas NUEVAS de dueño o agencia nacen sin plazo (se les exige desde el primer ingreso).
    */
   graceDays: 7,
+  /** Minutos que vale una verificacion del segundo factor para las acciones sensibles (@RecentTwoFactor). */
+  recentMinutes: 5,
 } as const;

@@ -42,6 +42,7 @@ export class SessionService {
         ip: context.ip,
         userAgent: context.userAgent?.slice(0, 300),
         twoFactorVerified,
+        strongAuthAt: twoFactorVerified ? new Date() : null,
         deviceId: trust?.deviceId ?? null,
         country: trust?.country ?? context.country ?? null,
         expiresAt: this.refreshExpiry(),
@@ -101,6 +102,8 @@ export class SessionService {
           ip: context.ip,
           userAgent: context.userAgent?.slice(0, 300),
           twoFactorVerified: session.twoFactorVerified,
+          // La verificacion no se renueva sola: el refresh conserva la hora original.
+          strongAuthAt: session.strongAuthAt,
           deviceId: session.deviceId,
           country: context.country ?? session.country,
           expiresAt: this.refreshExpiry(),
@@ -116,8 +119,15 @@ export class SessionService {
 
   /** Marca la sesion como verificada con 2FA y devuelve un access token actualizado. */
   async markTwoFactorVerified(user: DbSupport.User, sessionId: string): Promise<string> {
-    await this.prisma.session.update({ where: { id: sessionId }, data: { twoFactorVerified: true } });
+    await this.prisma.session.update({ where: { id: sessionId }, data: { twoFactorVerified: true, strongAuthAt: new Date() } });
     return this.tokens.signAccess(user, sessionId, true);
+  }
+
+  /** El segundo factor se comprobo ahora (codigo o passkey): las acciones sensibles se habilitan por unos minutos. */
+  async markStrongAuth(sessionId: string): Promise<Date> {
+    const strongAuthAt = new Date();
+    await this.prisma.session.update({ where: { id: sessionId }, data: { strongAuthAt } });
+    return strongAuthAt;
   }
 
   async revoke(rawToken: string): Promise<void> {

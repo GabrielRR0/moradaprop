@@ -373,6 +373,23 @@ POST /auth/2fa/confirm   { code: "123456" }        -> { backupCodes: [8 códigos
 
 ---
 
+### 8.1 Acciones sensibles del admin: confirmar otra vez
+
+Algunas rutas de admin (suspender o reactivar una cuenta, crear o quitar un bloqueo) piden que el segundo factor se haya comprobado **hace menos de 5 minutos**. Si no, responden `403` con `code: 'RECENT_TWO_FACTOR_REQUIRED'`.
+
+```ts
+// Cliente HTTP: ante ese código, pedir el factor, y repetir la misma petición una vez.
+if (e instanceof ApiError && e.code === 'RECENT_TWO_FACTOR_REQUIRED') {
+  await confirmIdentity();   // abre el panel "Confirma que eres tú"
+  return retry();
+}
+```
+
+- **Con app autenticadora o código de respaldo:** `POST /api/auth/reverify/code` con `{ code }`.
+- **Con passkey:** `POST /api/auth/reverify/passkey/options` (sin cuerpo) → `navigator.credentials.get()` → `POST /api/auth/reverify/passkey` con `{ credential }` (misma forma que en el login con passkey).
+- Respuesta: `{ validUntil }` (ISO). Un código incorrecto da `401 "Codigo invalido"`.
+- **No ofrezcas el código por correo** en este panel: el API no lo acepta.
+
 ## 9. Advertencias y avisos de seguridad
 
 El servidor **no envía correos** de seguridad: los avisos se muestran dentro de la app.
@@ -452,6 +469,7 @@ Cómo identificarlos: primero `code` (si existe), después `status`.
 | 403 | `SECOND_FACTOR_REQUIRED` | login, Google | Explicar que active un factor desde su dispositivo habitual |
 | 403 | `TRUSTED_DEVICE_REQUIRED` | passkeys y 2fa (alta y baja) | "Hazlo desde tu dispositivo habitual" |
 | 403 | `SECOND_FACTOR_ENROLLMENT_REQUIRED` | **cualquier ruta** | Redirigir a "Protege tu cuenta" |
+| 403 | `RECENT_TWO_FACTOR_REQUIRED` | acciones sensibles de admin | Panel "Confirma que eres tú" (§8.1) y repetir la acción |
 | 403 | `TWO_FACTOR_REQUIRED` | Rutas de admin | Pedir que active/verifique su 2º factor |
 | 403 | — `"Cuenta bloqueada temporalmente…"` | login, login/2fa | Esperar; (la passkey sí entra) |
 | 403 | — `"Acceso restringido"` | Cualquiera | Mensaje genérico, sin detalles |

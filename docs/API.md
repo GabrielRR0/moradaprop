@@ -109,13 +109,17 @@ Confirmar un **apartado** pasa la propiedad a `RESERVADA`; si el cliente lo canc
 | `POST /` | Subir la planilla (campo `file`, multipart). Máx. 5 MB y 500 filas |
 | `GET /` · `GET /:id` | Historial y detalle con errores por fila |
 
-## Administración — `/api/admin` (🛡)
+## Administración — `/api/<ADMIN_API_PREFIX>` (🛡)
+
+El prefijo sale de la variable `ADMIN_API_PREFIX` (en desarrollo `admin`; en producción un nombre propio y poco obvio, mínimo 8 caracteres: el servidor no arranca con uno obvio). Las rutas de abajo se escriben con `/admin` por ser el valor de desarrollo. Las marcadas ⏱ piden **2FA reciente** (últimos 5 min): si no, `403 RECENT_TWO_FACTOR_REQUIRED` y se llama a `POST /api/auth/reverify/code` o a `/reverify/passkey` (ver [FRONTEND-SEGURIDAD.md](FRONTEND-SEGURIDAD.md) §8.1).
 
 | Ruta | Para qué |
 |---|---|
-| `GET/POST /security` · `DELETE /security/:id` | Bloqueos (IP, CIDR, país, usuario, correo, dominio) |
+| `GET /security` · `POST /security` ⏱ · `DELETE /security/:id` ⏱ | Bloqueos (IP, CIDR, país, usuario, correo, dominio) |
+| `GET /settings` · `PUT /settings/:key` ⏱ · `DELETE /settings/:key` ⏱ | Ajustes de la plataforma (API key de Resend, remitente). Los secretos se guardan cifrados y salen enmascarados (`re_••••ail9`) |
+| `POST /settings/mail/test` | Envía un correo de prueba al propio admin con la configuración actual; responde `{ ok, to, error }` |
 | `GET /audit` | Auditoría con filtros (`userId`, `action`, `resource`, `page`) |
-| `GET /users` · `PATCH /users/:id/status` | Listar usuarios; suspender (corta el acceso al instante y cierra sesiones) o reactivar |
+| `GET /users` · `PATCH /users/:id/status` ⏱ | Listar usuarios; suspender (corta el acceso al instante y cierra sesiones) o reactivar |
 
 ## Salud
 

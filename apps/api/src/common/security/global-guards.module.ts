@@ -4,7 +4,7 @@ import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppConfig } from '@/config';
 import { AuthModule, JwtAuthGuard } from '@/modules/auth';
-import { BlockGuard, SecondFactorGuard, SecurityModule } from '@/modules/security';
+import { BlockGuard, RecentTwoFactorGuard, SecondFactorGuard, SecurityModule } from '@/modules/security';
 import { AppThrottlerGuard } from './app-throttler.guard';
 import { AppOriginGuard } from './guards/app-origin.guard';
 import { RolesGuard } from './guards/roles.guard';
@@ -17,6 +17,7 @@ import { RolesGuard } from './guards/roles.guard';
  *   4. JwtAuthGuard   - exige token salvo en rutas @Public
  *   5. RolesGuard     - @Roles y @RequireTwoFactor
  *   6. SecondFactorGuard - quien debe activar passkey o 2FA y no lo hizo, solo usa las rutas de enrolamiento
+ *   7. RecentTwoFactorGuard - @RecentTwoFactor(): el segundo factor debe haberse comprobado hace pocos minutos
  *
  * Agregar un middleware nuevo: crear su guard y sumarlo aqui en la posicion que corresponda.
  */
@@ -40,6 +41,7 @@ import { RolesGuard } from './guards/roles.guard';
     { provide: APP_GUARD, useExisting: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useExisting: SecondFactorGuard },
+    { provide: APP_GUARD, useExisting: RecentTwoFactorGuard },
   ],
 })
 export class GlobalGuardsModule {}

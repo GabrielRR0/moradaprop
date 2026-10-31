@@ -9,6 +9,7 @@ import { PasswordRecoveryController } from './controllers/public/password-recove
 import { RegistrationController } from './controllers/public/registration.controller';
 import { GoogleAccountController } from './controllers/private/user/google-account.controller';
 import { SessionsController } from './controllers/private/user/sessions.controller';
+import { ReverifyController } from './controllers/private/user/reverify.controller';
 import { TwoFactorController } from './controllers/private/user/two-factor.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthService } from './services/auth.service';
@@ -19,6 +20,7 @@ import { PasswordResetService } from './services/password/password-reset.service
 import { RegisterService } from './services/registration/register.service';
 import { SessionService } from './services/sign-in/session.service';
 import { TokenService } from './services/sign-in/token.service';
+import { ReverifyService } from './services/two-factor/reverify.service';
 import { TwoFactorLoginService } from './services/two-factor/two-factor-login.service';
 import { TwoFactorSetupService } from './services/two-factor/two-factor-setup.service';
 import { TwoFactorVerifier } from './services/two-factor/two-factor-verifier.service';
@@ -37,6 +39,7 @@ import { VerifyEmailService } from './services/registration/verify-email.service
     PasskeyLoginController,
     SessionsController,
     TwoFactorController,
+    ReverifyController,
     GoogleAccountController,
   ],
   providers: [
@@ -50,6 +53,7 @@ import { VerifyEmailService } from './services/registration/verify-email.service
     TwoFactorSetupService,
     TwoFactorLoginService,
     TwoFactorVerifier,
+    ReverifyService,
     PasswordResetService,
     GoogleAuthService,
     GoogleIdentitySupport.Verifier,

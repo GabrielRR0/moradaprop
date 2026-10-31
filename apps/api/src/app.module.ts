@@ -18,6 +18,7 @@ import { HealthModule } from './modules/health/health.module';
 import { ImportsModule } from './modules/imports';
 import { PropertiesModule } from './modules/properties';
 import { SecurityModule } from './modules/security';
+import { SettingsModule } from './modules/settings';
 import { UsersModule } from './modules/users';
 import { appRoutes } from './routes';
 
@@ -38,6 +39,7 @@ import { appRoutes } from './routes';
     AuthModule,
     UsersModule,
     AdminUsersModule,
+    SettingsModule,
     PropertiesModule,
     AgenciesModule,
     AppointmentsModule,

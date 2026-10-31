@@ -1,11 +1,8 @@
-import { existsSync } from 'node:fs';
+import './bootstrap/load-env'; // primero: las rutas leen el entorno al importarse
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configureApp } from './bootstrap/configure-app';
 import { AppConfig } from './config';
-
-// Fuera de Docker las variables salen de apps/api/.env (no pisa las que ya vengan del entorno).
-if (existsSync('.env')) process.loadEnvFile('.env');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

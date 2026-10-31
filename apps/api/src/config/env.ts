@@ -52,6 +52,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
     threatMode: raw.THREAT_MODE,
     riskMode: raw.RISK_MODE,
     secondFactorMode: raw.SECOND_FACTOR_MODE,
+    adminApiPrefix: raw.ADMIN_API_PREFIX,
     webauthnRpId: raw.WEBAUTHN_RP_ID,
     webauthnOrigins: raw.WEBAUTHN_ORIGINS,
     corsAllowedOrigins: raw.CORS_ALLOWED_ORIGINS,

@@ -29,7 +29,7 @@ export {
 } from './passkeys';
 
 // second-factor: passkey o 2FA obligatorio para admin, duenos y agencias
-export { SecondFactorService, SecondFactorGuard, secondFactorRoutes, type SecondFactorMode, type SecondFactorStatus } from './second-factor';
+export { SecondFactorService, SecondFactorGuard, RecentTwoFactorGuard, SECOND_FACTOR_POLICY, secondFactorRoutes, type SecondFactorMode, type SecondFactorStatus } from './second-factor';
 
 // threat-model: escudos STRIDE y revision de archivos
 export { ThreatModelService, threatObserver, type FileCheck, type FileFacts, type ThreatShield, type ThreatSubject } from './threat-model';

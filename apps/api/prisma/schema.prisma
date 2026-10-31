@@ -188,6 +188,8 @@ model Session {
   lastUsedAt        DateTime  @default(now())
   /// true si en esta sesion se completo el 2FA (el refresh lo conserva)
   twoFactorVerified Boolean   @default(false)
+  /// ultima vez que esta sesion paso un factor fuerte (codigo 2FA o passkey); las acciones sensibles piden que sea reciente. El refresh lo conserva
+  strongAuthAt      DateTime?
   /// dispositivo desde el que se abrio la sesion (security/access-risk); null en sesiones anteriores
   deviceId          String?
   /// pais de confianza (2 letras) al abrir o renovar la sesion; null si no se sabia
@@ -564,4 +566,15 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([action, createdAt])
   @@index([resource, resourceId])
+}
+
+/// Ajustes de la plataforma que el admin puede cambiar sin tocar variables de entorno (modulo settings).
+/// Solo existen las claves del registro del codigo; los secretos (ej. la API key de Resend) se guardan cifrados.
+model PlatformSetting {
+  key       String   @id
+  /// texto en claro, o cifrado ("v1....") si `secret` es true
+  value     String
+  secret    Boolean  @default(false)
+  updatedBy String?
+  updatedAt DateTime @updatedAt
 }

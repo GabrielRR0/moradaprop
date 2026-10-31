@@ -18,6 +18,7 @@ services/
   two-factor/
     two-factor-setup.service.ts    activar y desactivar el 2FA y renovar los códigos de respaldo
     two-factor-login.service.ts    segundo paso del login: código por correo y completar el inicio de sesión
+    reverify.service.ts            volver a comprobar el segundo factor con la sesión abierta (acciones sensibles)
     two-factor-verifier.service.ts comprueba los códigos (app autenticadora, respaldo, correo) y crea los de respaldo
   google/
     google-auth.service.ts         entrar con Google, vincular y desvincular

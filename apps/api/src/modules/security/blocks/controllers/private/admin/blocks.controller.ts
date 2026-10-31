@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from '@/common/security/decorators';
+import { CurrentUser, RecentTwoFactor } from '@/common/security/decorators';
 import { AdminGroup } from '@/common/security/groups';
 import type { AuthUserContext } from '@/common/security/types';
 import { Audit } from '@/modules/audit';
@@ -20,6 +20,7 @@ export class BlocksController {
     return this.securityService.listRules();
   }
 
+  @RecentTwoFactor()
   @Audit('security.block.create', 'BlockRule')
   @Post()
   create(@Body() dto: CreateBlockRuleDto, @CurrentUser() user: AuthUserContext): Promise<BlockRuleResource> {
@@ -27,6 +28,7 @@ export class BlocksController {
   }
 
   /** Devuelve la regla que se quito. */
+  @RecentTwoFactor()
   @Audit('security.block.delete', 'BlockRule')
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<BlockRuleResource> {

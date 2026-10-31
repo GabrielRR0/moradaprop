@@ -6,6 +6,7 @@ import { DbSupport } from '@/support/db';
 export const IS_PUBLIC_KEY = 'isPublic';
 export const ROLES_KEY = 'roles';
 export const REQUIRE_TWO_FACTOR_KEY = 'requireTwoFactor';
+export const RECENT_TWO_FACTOR_KEY = 'recentTwoFactor';
 export const SKIP_APP_CHECK_KEY = 'skipAppCheck';
 export const ALLOW_WITHOUT_SECOND_FACTOR_KEY = 'allowWithoutSecondFactor';
 
@@ -15,6 +16,11 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 export const Roles = (...roles: DbSupport.Role[]) => SetMetadata(ROLES_KEY, roles);
 /** La ruta exige 2FA activo y verificado en la sesion. */
 export const RequireTwoFactor = () => SetMetadata(REQUIRE_TWO_FACTOR_KEY, true);
+/**
+ * Accion sensible: ademas de la sesion con 2FA, exige que el segundo factor se haya comprobado hace pocos minutos
+ * (SECOND_FACTOR_POLICY.recentMinutes). Si no, responde 403 RECENT_TWO_FACTOR_REQUIRED y el cliente llama a /auth/reverify.
+ */
+export const RecentTwoFactor = () => SetMetadata(RECENT_TWO_FACTOR_KEY, true);
 /**
  * La ruta se puede usar aunque la cuenta deba activar passkey o 2FA y aun no lo haya hecho (las de enrolamiento: ver el
  * perfil, activar un factor, cerrar sesion). Todas las demas se bloquean con SECOND_FACTOR_ENROLLMENT_REQUIRED.

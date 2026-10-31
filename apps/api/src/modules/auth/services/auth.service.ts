@@ -5,16 +5,20 @@ import type { ResetPasswordDto } from '../contracts/dto/reset-password.dto';
 import type {
   BackupCodesResource,
   MessageResource,
+  ReverifyResource,
   SessionResource,
   TwoFactorEnabledResource,
   TwoFactorSetupResource,
 } from '../contracts/resources';
+import type { AuthUserContext } from '@/common/security/types';
+import type { AuthenticationCredentialDto, PasskeyAuthenticationOptionsResource } from '@/modules/security';
 import type { AuthTokens, LoginResult, RequestContext } from '../utils/auth-context';
 import { GoogleAuthService, type GoogleLoginResult } from './google/google-auth.service';
 import { LoginService } from './sign-in/login.service';
 import { PasswordResetService } from './password/password-reset.service';
 import { RegisterService } from './registration/register.service';
 import { SessionService } from './sign-in/session.service';
+import { ReverifyService } from './two-factor/reverify.service';
 import { TwoFactorLoginService } from './two-factor/two-factor-login.service';
 import { TwoFactorSetupService } from './two-factor/two-factor-setup.service';
 import { VerifyEmailService } from './registration/verify-email.service';
@@ -27,6 +31,7 @@ export class AuthService {
     private readonly verifyEmailService: VerifyEmailService,
     private readonly loginService: LoginService,
     private readonly sessionService: SessionService,
+    private readonly reverifyService: ReverifyService,
     private readonly twoFactorLoginService: TwoFactorLoginService,
     private readonly twoFactorSetupService: TwoFactorSetupService,
     private readonly passwordReset: PasswordResetService,
@@ -70,6 +75,17 @@ export class AuthService {
   }
   resetPassword(dto: ResetPasswordDto, context: RequestContext): Promise<MessageResource> {
     return this.passwordReset.reset(dto, context);
+  }
+
+  // Volver a comprobar el segundo factor (acciones sensibles)
+  reverifyWithCode(user: AuthUserContext, code: string, context: RequestContext): Promise<ReverifyResource> {
+    return this.reverifyService.withCode(user, code, context);
+  }
+  reverifyPasskeyOptions(user: AuthUserContext): Promise<PasskeyAuthenticationOptionsResource> {
+    return this.reverifyService.passkeyOptions(user);
+  }
+  reverifyWithPasskey(user: AuthUserContext, credential: AuthenticationCredentialDto, context: RequestContext): Promise<ReverifyResource> {
+    return this.reverifyService.withPasskey(user, credential, context);
   }
 
   // 2FA

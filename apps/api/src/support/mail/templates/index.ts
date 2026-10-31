@@ -2,6 +2,7 @@ export type MailTemplate =
   | { name: 'verify-email'; code: string; minutes: number }
   | { name: 'reset-password'; code: string; minutes: number }
   | { name: 'two-factor-code'; code: string; minutes: number }
+  | { name: 'test-email' }
   | { name: 'link-google'; code: string; minutes: number }
   | { name: 'agency-invitation'; agencyName: string; link: string }
   | { name: 'appointment-new'; propertyTitle: string; kind: string; clientName: string; link: string }
@@ -40,6 +41,8 @@ export function renderTemplate(template: MailTemplate, appName: string) {
       return build(appName, 'Restablece tu contrasena', codeBlock(template.code, template.minutes), template.code);
     case 'two-factor-code':
       return build(appName, 'Codigo de verificacion', codeBlock(template.code, template.minutes), template.code);
+    case 'test-email':
+      return build(appName, 'Correo de prueba', '<p>La configuracion de correo funciona.</p>', 'La configuracion de correo funciona');
     case 'link-google':
       return build(
         appName,
