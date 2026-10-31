@@ -1,8 +1,9 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
-import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
+import { PrismaService } from '@/common/prisma';
+import { STORAGE_PROVIDER, type StorageProvider } from '@/common/storage';
 import { cardInclude, toCard } from '../utils/property-mapper';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
+import type { FavoriteResource, PropertyCardResource } from '../contracts/resources';
 
 @Injectable()
 export class PropertyFavoritesService {
@@ -11,7 +12,7 @@ export class PropertyFavoritesService {
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
-  async add(userId: string, propertyId: string) {
+  async add(userId: string, propertyId: string): Promise<FavoriteResource> {
     const property = await this.prisma.property.findFirst({
       where: { id: propertyId, status: { not: DbSupport.PropertyStatus.PAUSADA } },
       select: { id: true },
@@ -26,12 +27,12 @@ export class PropertyFavoritesService {
     return { favorite: true };
   }
 
-  async remove(userId: string, propertyId: string) {
+  async remove(userId: string, propertyId: string): Promise<FavoriteResource> {
     await this.prisma.favorite.deleteMany({ where: { userId, propertyId } });
     return { favorite: false };
   }
 
-  async list(userId: string) {
+  async list(userId: string): Promise<PropertyCardResource[]> {
     const favorites = await this.prisma.favorite.findMany({
       where: { userId, property: { status: { not: DbSupport.PropertyStatus.PAUSADA } } },
       orderBy: { createdAt: 'desc' },

@@ -1,5 +1,5 @@
 import { Field, Float, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 registerEnumType(DbSupport.PropertyType, { name: 'PropertyType' });
 registerEnumType(DbSupport.PropertyStatus, { name: 'PropertyStatus' });

@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
-import { ImagesSupport } from '../../../support/images';
-import type { AuthUser, RequestContext } from '../../../common/security/types';
-import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
-import { AuditService } from '../../audit';
-import { ThreatModelService } from '../../security';
+import { PrismaService } from '@/common/prisma';
+import { ImagesSupport } from '@/support/images';
+import type { AuthUserContext, RequestContext } from '@/common/security/types';
+import { STORAGE_PROVIDER, type StorageProvider } from '@/common/storage';
+import { AuditService } from '@/modules/audit';
+import { ThreatModelService } from '@/modules/security';
+import type { CoverResource, ImagesUploadedResource } from '../contracts/resources';
 import { PropertyWriteService } from './property-write.service';
 
 export const MAX_IMAGES_PER_PROPERTY = 20;
@@ -27,7 +28,12 @@ export class PropertyImagesService {
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
-  async upload(user: AuthUser, propertyId: string, files: Express.Multer.File[], context: RequestContext) {
+  async upload(
+    user: AuthUserContext,
+    propertyId: string,
+    files: Express.Multer.File[],
+    context: RequestContext,
+  ): Promise<ImagesUploadedResource> {
     await this.writer.findManaged(user, propertyId, context);
     if (!files?.length) throw new BadRequestException('Envia al menos una imagen en el campo "files"');
     await this.threats.inspectFiles(
@@ -84,7 +90,7 @@ export class PropertyImagesService {
     return { uploaded: files.length, total: existing + files.length };
   }
 
-  async remove(user: AuthUser, propertyId: string, imageId: string, context: RequestContext) {
+  async remove(user: AuthUserContext, propertyId: string, imageId: string, context: RequestContext) {
     await this.writer.findManaged(user, propertyId);
     const image = await this.prisma.propertyImage.findFirst({ where: { id: imageId, propertyId } });
     if (!image) throw new NotFoundException('Imagen no encontrada');
@@ -108,7 +114,7 @@ export class PropertyImagesService {
     });
   }
 
-  async setCover(user: AuthUser, propertyId: string, imageId: string) {
+  async setCover(user: AuthUserContext, propertyId: string, imageId: string): Promise<CoverResource> {
     await this.writer.findManaged(user, propertyId);
     const image = await this.prisma.propertyImage.findFirst({ where: { id: imageId, propertyId } });
     if (!image) throw new NotFoundException('Imagen no encontrada');

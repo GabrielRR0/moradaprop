@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { clusterPoints, POINTS_FROM_ZOOM, type MapPoint } from '../utils/clusters';
 
 const punto = (i: number, lat: number, lng: number): MapPoint => ({

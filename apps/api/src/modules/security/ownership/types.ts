@@ -1,4 +1,4 @@
-import type { AuthUser } from '../../../common/security/types';
+import type { AuthUserContext } from '../../../common/security/types';
 
 /**
  * Regla de pertenencia de UN tipo de recurso (cita, propiedad, importacion...).
@@ -18,5 +18,5 @@ export interface ResourcePolicy<T> {
   /** Carga el recurso por id, SIN filtrar por usuario. */
   find(id: string): Promise<T | null>;
   /** ¿Puede este usuario hacer `action` sobre este recurso? Una accion desconocida debe devolver false. */
-  can(user: AuthUser, entity: T, action: string): boolean | Promise<boolean>;
+  can(user: AuthUserContext, entity: T, action: string): boolean | Promise<boolean>;
 }

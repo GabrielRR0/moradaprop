@@ -1,5 +1,6 @@
-import type { StorageProvider } from '../../../common/storage';
-import { DbSupport } from '../../../support/db';
+import type { StorageProvider } from '@/common/storage';
+import { DbSupport } from '@/support/db';
+import type { PropertyCardResource, PropertyDetailResource, PropertyImageResource } from '../contracts/resources';
 
 /** Una sola imagen (la portada) para tarjetas y listados. */
 export const cardInclude = {
@@ -17,7 +18,7 @@ type CardRow = DbSupport.Prisma.PropertyGetPayload<{ include: typeof cardInclude
 type DetailRow = DbSupport.Prisma.PropertyGetPayload<{ include: typeof detailInclude }>;
 type ImageRow = CardRow['images'][number];
 
-const toImage = (image: ImageRow, storage: StorageProvider) => ({
+const toImage = (image: ImageRow, storage: StorageProvider): PropertyImageResource => ({
   id: image.id,
   isCover: image.isCover,
   position: image.position,
@@ -27,7 +28,7 @@ const toImage = (image: ImageRow, storage: StorageProvider) => ({
 });
 
 /** Campos comunes de tarjeta. Nunca incluye ownerUserId, assignedAgentId ni claves de storage. */
-export function toCard(property: CardRow, storage: StorageProvider) {
+export function toCard(property: CardRow, storage: StorageProvider): PropertyCardResource {
   return {
     id: property.id,
     title: property.title,
@@ -55,7 +56,11 @@ export function toCard(property: CardRow, storage: StorageProvider) {
   };
 }
 
-export function toDetail(property: DetailRow, storage: StorageProvider, extras: { isFavorite: boolean; canManage: boolean }) {
+export function toDetail(
+  property: DetailRow,
+  storage: StorageProvider,
+  extras: { isFavorite: boolean; canManage: boolean },
+): PropertyDetailResource {
   return {
     ...toCard({ ...property, images: property.images.slice(0, 1) }, storage),
     description: property.description,

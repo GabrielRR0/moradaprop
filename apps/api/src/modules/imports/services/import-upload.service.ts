@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { detectSpreadsheet, isSafeZip } from '../../../common/files';
 import { PrismaService } from '../../../common/prisma';
-import type { AuthUser, RequestContext } from '../../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
 import { PropertyPolicyService } from '../../properties';
@@ -26,7 +26,7 @@ export class ImportUploadService {
    * Valida el archivo (tamano, tipo REAL por magic bytes, sin macros ni zip bombs), lo guarda en el bucket
    * PRIVADO y procesa la importacion. La agencia sale de la cuenta del token.
    */
-  async upload(user: AuthUser, file: Express.Multer.File | undefined, context: RequestContext) {
+  async upload(user: AuthUserContext, file: Express.Multer.File | undefined, context: RequestContext) {
     if (!file) throw new BadRequestException('Envia la planilla en el campo "file"');
     if (file.size > MAX_IMPORT_BYTES) throw new BadRequestException('La planilla supera el maximo de 5 MB');
 

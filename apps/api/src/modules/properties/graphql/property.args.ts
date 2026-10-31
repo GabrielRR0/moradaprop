@@ -1,7 +1,7 @@
 import { ArgsType, Field, Float, Int, registerEnumType } from '@nestjs/graphql';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
-import { MAX_PAGE, PropertySort } from '../dto/search-properties.dto';
-import { DbSupport } from '../../../support/db';
+import { MAX_PAGE, PropertySort } from '../contracts/dto/search-properties.dto';
+import { DbSupport } from '@/support/db';
 
 registerEnumType(PropertySort, { name: 'PropertySort' });
 

@@ -18,7 +18,7 @@ import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { RoleGroup } from '../../common/security/groups';
 import { limitPerMinute, RATE_LIMITS } from '../../common/security/rate-limits';
-import type { AuthUser, RequestContext } from '../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../common/security/types';
 import { ImportsService } from './services/imports.service';
 import { MAX_IMPORT_BYTES } from './services/import-upload.service';
 import { DbSupport } from '../../support/db';
@@ -65,17 +65,17 @@ export class ImportsController {
     }),
   )
   @Post()
-  upload(@UploadedFile() file: Express.Multer.File | undefined, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  upload(@UploadedFile() file: Express.Multer.File | undefined, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.importsService.upload(user, file, ctx);
   }
 
   @Get()
-  list(@CurrentUser() user: AuthUser, @Query('page') page?: string, @Query('limit') limit?: string) {
+  list(@CurrentUser() user: AuthUserContext, @Query('page') page?: string, @Query('limit') limit?: string) {
     return this.importsService.list(user, Math.max(Number(page) || 1, 1), Math.min(Number(limit) || 20, 50));
   }
 
   @Get(':id')
-  detail(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
+  detail(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUserContext) {
     return this.importsService.detail(user, id);
   }
 }

@@ -17,7 +17,7 @@ Reglas de arquitectura. Varias las hace cumplir ESLint (`pnpm lint`), las marcad
   <modulo>.module.ts        # padre
   <modulo>.controller.ts    # delgado: llama al service y responde lo que dice
   <modulo>.resolver.ts      # solo si hay GraphQL; igual de delgado
-  dto/                      # = FormRequest: toda la validación vive aquí
+  dto/                      # toda la validación de entrada vive aquí
   services/
     <modulo>.service.ts     # fachada: delega en los hijos
     <accion>.service.ts     # un archivo por acción (login, register, two-factor...)
@@ -97,6 +97,7 @@ describeCase('auth', {
 
 - Prettier (`.prettierrc`): comillas simples, punto y coma, 100 columnas. `pnpm format`.
 - Código y nombres de archivos en inglés técnico o español sin tildes; textos para el usuario en español.
+- Imports: `@/` apunta a `src/` en la API y en la web (cada una con su propio `@/`). Lo cercano va relativo (`./` y `../`); lo que sale del módulo, o subiría 3 niveles o más, va con `@/`. Ejemplo: `import { PublicGroup } from '@/common/security/groups'`.
 - Nombre de la plataforma: **nunca escrito a mano**. API: `config.app.name`. Web: `brand.name` (`src/config/brand.ts`).
 
 ## 8. Migraciones de base de datos

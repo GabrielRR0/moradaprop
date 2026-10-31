@@ -1,6 +1,6 @@
 import { createParamDecorator, SetMetadata, type ExecutionContext } from '@nestjs/common';
 import { requestOf } from '../request-of';
-import type { AppRequest, AuthUser, RequestContext } from '../types';
+import type { AppRequest, AuthUserContext, RequestContext } from '../types';
 import { DbSupport } from '../../../support/db';
 
 export const IS_PUBLIC_KEY = 'isPublic';
@@ -24,8 +24,8 @@ export const AllowWithoutSecondFactor = () => SetMetadata(ALLOW_WITHOUT_SECOND_F
 export const SkipAppCheck = () => SetMetadata(SKIP_APP_CHECK_KEY, true);
 
 /** Usuario del token. Usalo en vez de recibir `userId` por body o URL. */
-export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): AuthUser => {
-  return (requestOf(ctx) as AppRequest).user as AuthUser;
+export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): AuthUserContext => {
+  return (requestOf(ctx) as AppRequest).user as AuthUserContext;
 });
 
 /** IP del cliente (respeta `trust proxy` de Express). */

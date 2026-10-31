@@ -10,9 +10,9 @@
     "test:module": "node scripts/run-tests.js --module",
     "test:watch": "node scripts/run-tests.js --watch",
     "test:e2e": "jest --config jest.e2e.config.js",
-    "prisma:migrate": "ts-node scripts/db.ts deploy",
-    "prisma:seed": "ts-node prisma/seed.ts",
-    "db": "ts-node scripts/db.ts",
+    "prisma:migrate": "ts-node -r tsconfig-paths/register scripts/db.ts deploy",
+    "prisma:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
+    "db": "ts-node -r tsconfig-paths/register scripts/db.ts",
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
@@ -67,6 +67,7 @@
     "supertest": "^7.3.1",
     "ts-jest": "^29.4.15",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "4.2.0",
     "typescript": "^5.9.3"
   }
 }

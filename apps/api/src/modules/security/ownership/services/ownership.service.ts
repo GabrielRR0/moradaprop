@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import type { AuthUser, RequestContext } from '../../../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../../../common/security/types';
 import { AuditService } from '../../../audit';
 import type { ResourcePolicy } from '../types';
 
@@ -21,7 +21,7 @@ export class OwnershipService {
    */
   async require<T>(
     policy: ResourcePolicy<T>,
-    user: AuthUser,
+    user: AuthUserContext,
     id: string,
     action: string,
     context?: Partial<RequestContext>,

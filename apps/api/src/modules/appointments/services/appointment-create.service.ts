@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Inject, Inj
 import { AppConfig } from '../../../config';
 import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
-import type { AuthUser, RequestContext } from '../../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
 import { AppointmentVault, UserVault } from '../../security';
@@ -27,7 +27,7 @@ export class AppointmentCreateService {
   ) {}
 
   /** El solicitante sale del token. Crea el lead y avisa por correo a quien gestiona la propiedad. */
-  async create(user: AuthUser, dto: CreateAppointmentDto, context: RequestContext) {
+  async create(user: AuthUserContext, dto: CreateAppointmentDto, context: RequestContext) {
     const property = await this.prisma.property.findUnique({
       where: { id: dto.propertyId },
       include: { owner: { select: { email: true } }, assignedAgent: { select: { email: true } } },

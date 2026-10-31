@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../common/prisma';
-import type { AuthUser } from '../../../common/security/types';
-import { DbSupport } from '../../../support/db';
+import { PrismaService } from '@/common/prisma';
+import type { AuthUserContext } from '@/common/security/types';
+import { DbSupport } from '@/support/db';
 
 export interface PropertyOwnership {
   ownerUserId: string;
@@ -9,7 +9,7 @@ export interface PropertyOwnership {
   assignedAgentId: string | null;
 }
 
-/** Quien puede hacer que con una propiedad (equivale a las Policies de Laravel). */
+/** Quien puede hacer que con una propiedad. */
 @Injectable()
 export class PropertyPolicyService {
   constructor(private readonly prisma: PrismaService) {}
@@ -26,7 +26,7 @@ export class PropertyPolicyService {
    * Administrador de plataforma, dueno directo, admin de la agencia dueña,
    * o el agente asignado a esa propiedad.
    */
-  async canManage(user: AuthUser | undefined, property: PropertyOwnership): Promise<boolean> {
+  async canManage(user: AuthUserContext | undefined, property: PropertyOwnership): Promise<boolean> {
     if (!user) return false;
     if (user.roles.includes(DbSupport.Role.ADMIN) || property.ownerUserId === user.id) return true;
     if (!property.agencyId) return false;
@@ -37,7 +37,7 @@ export class PropertyPolicyService {
   }
 
   /** Filtro Prisma de "las propiedades que este usuario puede gestionar" (para listados de gestion). */
-  async managedFilter(user: AuthUser): Promise<DbSupport.Prisma.PropertyWhereInput> {
+  async managedFilter(user: AuthUserContext): Promise<DbSupport.Prisma.PropertyWhereInput> {
     if (user.roles.includes(DbSupport.Role.ADMIN)) return {};
     const member = await this.membership(user.id);
     const or: DbSupport.Prisma.PropertyWhereInput[] = [{ ownerUserId: user.id }];
@@ -47,7 +47,7 @@ export class PropertyPolicyService {
   }
 
   /** Solo el administrador de la agencia asigna agentes (o un admin de plataforma). */
-  async assertCanAssign(user: AuthUser, property: PropertyOwnership): Promise<void> {
+  async assertCanAssign(user: AuthUserContext, property: PropertyOwnership): Promise<void> {
     if (user.roles.includes(DbSupport.Role.ADMIN)) return;
     const member = property.agencyId ? await this.membership(user.id, property.agencyId) : null;
     if (member?.role !== 'AGENCY_ADMIN') {

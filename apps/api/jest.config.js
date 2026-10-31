@@ -4,6 +4,7 @@ module.exports = {
   testEnvironment: 'node',
   moduleFileExtensions: ['js', 'json', 'ts'],
   testRegex: 'src/.*\\.spec\\.ts$',
+  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
   transform: { '^.+\\.ts$': ['ts-jest', { diagnostics: { ignoreCodes: [151001] } }] },
   setupFiles: ['<rootDir>/test/support/set-test-env.ts'],
   reporters: ['<rootDir>/test/reporters/spanish-reporter.js'],

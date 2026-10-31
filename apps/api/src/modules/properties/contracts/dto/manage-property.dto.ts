@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsUUID } from 'class-validator';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 export class ChangeStatusDto {
   @ApiProperty({ enum: DbSupport.PropertyStatus })

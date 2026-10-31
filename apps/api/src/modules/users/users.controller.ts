@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AllowWithoutSecondFactor, CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup } from '../../common/security/groups';
-import type { AuthUser, RequestContext } from '../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../common/security/types';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UsersService } from './services/users.service';
@@ -16,24 +16,24 @@ export class UsersController {
 
   @Get('me')
   @AllowWithoutSecondFactor()
-  me(@CurrentUser() user: AuthUser) {
+  me(@CurrentUser() user: AuthUserContext) {
     return this.usersService.me(user.id);
   }
 
   @Patch('me')
-  update(@Body() dto: UpdateProfileDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  update(@Body() dto: UpdateProfileDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.usersService.updateProfile(user.id, dto, ctx);
   }
 
   @HttpCode(200)
   @Post('me/password')
-  changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  changePassword(@Body() dto: ChangePasswordDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.usersService.changePasswordFor(user.id, user.sessionId, dto, ctx);
   }
 
   @HttpCode(200)
   @Post('me/become-owner')
-  becomeOwner(@CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  becomeOwner(@CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.usersService.becomeOwner(user.id, ctx);
   }
 }

@@ -6,7 +6,7 @@ import { limitPerMinute, RATE_LIMITS } from '../rate-limits';
 import { DbSupport } from '../../../support/db';
 
 /**
- * GRUPOS DE RUTAS (equivalente a los grupos de middleware de Laravel).
+ * GRUPOS DE RUTAS: cada grupo junta los decoradores de acceso y de limite de uso.
  *
  * Para agregar un middleware a un grupo, editas SOLO este archivo:
  * suma el decorador a la lista de `applyDecorators` del grupo.
@@ -32,6 +32,9 @@ export const TwoFactorGroup = () => applyDecorators(AuthGroup(), RequireTwoFacto
 
 /** Exige token y alguno de los roles indicados. */
 export const RoleGroup = (...roles: DbSupport.Role[]) => applyDecorators(AuthGroup(), Roles(...roles));
+
+/** Quienes publican y gestionan propiedades: propietario, agencia y admin. */
+export const PublisherGroup = () => RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN);
 
 /** Panel de administracion: rol ADMIN y 2FA obligatorio. */
 export const AdminGroup = () => applyDecorators(RoleGroup(DbSupport.Role.ADMIN), RequireTwoFactor());

@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AppConfig } from '../../../config';
 import { MailSupport } from '../../../support/mail';
 import { PrismaService } from '../../../common/prisma';
-import type { AuthUser, RequestContext } from '../../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../../common/security/types';
 import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
 import { AuditService } from '../../audit';
 import { AppointmentVault, OwnershipService, UserVault } from '../../security';
@@ -29,12 +29,12 @@ export class AppointmentManageService {
 
   // ---------------- Lo que ve el cliente ----------------
 
-  async mine(user: AuthUser, query: ListAppointmentsDto) {
+  async mine(user: AuthUserContext, query: ListAppointmentsDto) {
     return this.page({ clientId: user.id, status: query.status, propertyId: query.propertyId }, query, toClientView);
   }
 
   /** El cliente cancela su solicitud. Si cancela un apartado confirmado, la propiedad vuelve a publicarse. */
-  async cancel(user: AuthUser, id: string, context: RequestContext) {
+  async cancel(user: AuthUserContext, id: string, context: RequestContext) {
     const appointment = await this.ownership.require(this.access, user, id, 'cancel', context);
     if (!['PENDIENTE', 'CONFIRMADA'].includes(appointment.status)) {
       throw new BadRequestException('Esta solicitud ya no se puede cancelar');
@@ -58,7 +58,7 @@ export class AppointmentManageService {
   // ---------------- Lo que ve quien gestiona ----------------
 
   /** Leads de las propiedades que el usuario gestiona (dueno, agencia o agente asignado). */
-  async received(user: AuthUser, query: ListAppointmentsDto) {
+  async received(user: AuthUserContext, query: ListAppointmentsDto) {
     const managed = await this.policy.managedFilter(user);
     return this.page({ property: managed, status: query.status, propertyId: query.propertyId }, query, toLeadView);
   }
@@ -67,7 +67,7 @@ export class AppointmentManageService {
    * Responde un lead. Confirmar un APARTADO marca la propiedad como RESERVADA
    * (sigue visible con la insignia "En Proceso de Reserva").
    */
-  async respond(user: AuthUser, id: string, dto: RespondAppointmentDto, context: RequestContext) {
+  async respond(user: AuthUserContext, id: string, dto: RespondAppointmentDto, context: RequestContext) {
     const appointment = await this.ownership.require(this.access, user, id, 'respond', context);
     if (appointment.status !== 'PENDIENTE') throw new BadRequestException('Esta solicitud ya fue respondida');
 
@@ -95,7 +95,7 @@ export class AppointmentManageService {
   }
 
   /** Marca la visita como realizada. */
-  async complete(user: AuthUser, id: string, context: RequestContext) {
+  async complete(user: AuthUserContext, id: string, context: RequestContext) {
     const appointment = await this.ownership.require(this.access, user, id, 'complete', context);
     if (appointment.status !== 'CONFIRMADA') throw new BadRequestException('Solo se completan solicitudes confirmadas');
 
@@ -141,7 +141,7 @@ export class AppointmentManageService {
     });
   }
 
-  private log(action: string, user: AuthUser, id: string, context: RequestContext, metadata?: unknown) {
+  private log(action: string, user: AuthUserContext, id: string, context: RequestContext, metadata?: unknown) {
     return this.audit.log({ action, userId: user.id, resource: 'Appointment', resourceId: id, ip: context.ip, userAgent: context.userAgent, metadata });
   }
 }

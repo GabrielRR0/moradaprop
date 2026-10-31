@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Query } from '@nest
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AdminGroup } from '../../common/security/groups';
-import type { AuthUser, RequestContext } from '../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../common/security/types';
 import { ListUsersQueryDto, SetUserStatusDto } from './dto/admin-users.dto';
 import { AdminUsersService } from './services/admin-users.service';
 
@@ -21,7 +21,7 @@ export class AdminUsersController {
   setStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetUserStatusDto,
-    @CurrentUser() admin: AuthUser,
+    @CurrentUser() admin: AuthUserContext,
     @RequestInfo() ctx: RequestContext,
   ) {
     return this.adminUsersService.setStatus(admin.id, id, dto, ctx);

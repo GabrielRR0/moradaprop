@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../common/prisma';
-import type { AuthUser } from '../../../common/security/types';
+import type { AuthUserContext } from '../../../common/security/types';
 import { PropertyPolicyService } from '../../properties';
 
 const summary = {
@@ -21,7 +21,7 @@ export class ImportQueryService {
   ) {}
 
   /** Importaciones de MI agencia (la agencia sale de la cuenta, no de la URL). */
-  async list(user: AuthUser, page = 1, limit = 20) {
+  async list(user: AuthUserContext, page = 1, limit = 20) {
     const where = await this.scope(user);
     const [items, total] = await this.prisma.$transaction([
       this.prisma.importJob.findMany({ where, select: summary, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
@@ -31,7 +31,7 @@ export class ImportQueryService {
   }
 
   /** Detalle con los errores fila por fila. Una importacion de otra agencia no existe para ti. */
-  async detail(user: AuthUser, id: string) {
+  async detail(user: AuthUserContext, id: string) {
     const job = await this.prisma.importJob.findFirst({
       where: { id, ...(await this.scope(user)) },
       select: { ...summary, errors: true },
@@ -40,7 +40,7 @@ export class ImportQueryService {
     return job;
   }
 
-  private async scope(user: AuthUser) {
+  private async scope(user: AuthUserContext) {
     const member = await this.policy.membership(user.id);
     // Un agente solo ve las que hizo el mismo; el administrador, todas las de la agencia.
     return member?.role === 'AGENCY_ADMIN' ? { agencyId: member.agencyId } : { userId: user.id };

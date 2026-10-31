@@ -1,4 +1,4 @@
-// Esquema de base de datos. Equivale a las migraciones + modelos de Laravel.
+// Esquema de base de datos: tablas, relaciones y enums (Prisma genera las migraciones y el cliente).
 // Los enums se mantienen iguales a packages/shared/src/enums.
 // PostGIS: se activa despues (ver README, "simple primero"); por ahora lat/lng normales.
 

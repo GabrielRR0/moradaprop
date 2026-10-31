@@ -4,7 +4,7 @@ import type { Request, Response } from 'express';
 import { AppConfig } from '../../config';
 import { AllowWithoutSecondFactor, Client, CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup, GuestGroup } from '../../common/security/groups';
-import type { AppClient, AuthUser } from '../../common/security/types';
+import type { AppClient, AuthUserContext } from '../../common/security/types';
 import { EmailCodeDto, EmailDto } from './dto/email-code.dto';
 import { GoogleLinkConfirmDto, GoogleTokenDto } from './dto/google.dto';
 import { LoginDto } from './dto/login.dto';
@@ -136,7 +136,7 @@ export class AuthController {
   @AllowWithoutSecondFactor()
   @HttpCode(204)
   @Post('logout-all')
-  async logoutAll(@CurrentUser() user: AuthUser, @Res({ passthrough: true }) res: Response) {
+  async logoutAll(@CurrentUser() user: AuthUserContext, @Res({ passthrough: true }) res: Response) {
     await this.authService.logoutAll(user.id);
     clearRefreshCookie(res, this.cookie.secure);
   }
@@ -144,7 +144,7 @@ export class AuthController {
   @AuthGroup()
   @AllowWithoutSecondFactor()
   @Get('sessions')
-  sessions(@CurrentUser() user: AuthUser) {
+  sessions(@CurrentUser() user: AuthUserContext) {
     return this.authService.sessions(user.id, user.sessionId);
   }
 
@@ -152,7 +152,7 @@ export class AuthController {
   @AllowWithoutSecondFactor()
   @HttpCode(204)
   @Delete('sessions/:id')
-  async revokeSession(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+  async revokeSession(@CurrentUser() user: AuthUserContext, @Param('id', ParseUUIDPipe) id: string) {
     await this.authService.revokeSession(user.id, id);
   }
 
@@ -178,7 +178,7 @@ export class AuthController {
   @AllowWithoutSecondFactor()
   @HttpCode(200)
   @Post('2fa/setup')
-  twoFactorSetup(@CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  twoFactorSetup(@CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.authService.twoFactorSetup(user.id, ctx);
   }
 
@@ -186,21 +186,21 @@ export class AuthController {
   @AllowWithoutSecondFactor()
   @HttpCode(200)
   @Post('2fa/confirm')
-  twoFactorConfirm(@Body() dto: TwoFactorConfirmDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  twoFactorConfirm(@Body() dto: TwoFactorConfirmDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.authService.twoFactorConfirm(user.id, user.sessionId, dto.code, ctx);
   }
 
   @AuthGroup()
   @HttpCode(200)
   @Post('2fa/disable')
-  twoFactorDisable(@Body() dto: TwoFactorDisableDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  twoFactorDisable(@Body() dto: TwoFactorDisableDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.authService.twoFactorDisable(user.id, user.sessionId, dto.password, dto.code, ctx);
   }
 
   @AuthGroup()
   @HttpCode(200)
   @Post('2fa/backup-codes')
-  twoFactorBackupCodes(@Body() dto: TwoFactorDisableDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  twoFactorBackupCodes(@Body() dto: TwoFactorDisableDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.authService.twoFactorBackupCodes(user.id, dto.password, dto.code, ctx);
   }
 
@@ -234,13 +234,13 @@ export class AuthController {
   @AuthGroup()
   @HttpCode(200)
   @Post('google/link')
-  googleLink(@Body() dto: GoogleTokenDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  googleLink(@Body() dto: GoogleTokenDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.authService.googleLink(user.id, dto.idToken, ctx);
   }
 
   @AuthGroup()
   @Delete('google')
-  googleUnlink(@CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  googleUnlink(@CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.authService.googleUnlink(user.id, ctx);
   }
 }

@@ -1,22 +1,23 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CacheSupport } from '../../../support/cache';
-import { PrismaService } from '../../../common/prisma';
-import type { AuthUser } from '../../../common/security/types';
-import { UserVault } from '../../security';
-import { STORAGE_PROVIDER, type StorageProvider } from '../../../common/storage';
+import { CacheSupport } from '@/support/cache';
+import { PrismaService } from '@/common/prisma';
+import type { AuthUserContext } from '@/common/security/types';
+import { UserVault } from '@/modules/security';
+import { STORAGE_PROVIDER, type StorageProvider } from '@/common/storage';
 import {
   PropertySort,
   type MapPropertiesDto,
   type PropertyFiltersDto,
   type SearchPropertiesDto,
-} from '../dto/search-properties.dto';
+} from '../contracts/dto/search-properties.dto';
 import { snapBox } from '../utils/bounding-box';
 import { cacheKey } from '../utils/cache-key';
 import { clusterPoints, POINTS_FROM_ZOOM, type MapPoint } from '../utils/clusters';
 import { cardInclude, detailInclude, toCard, toDetail } from '../utils/property-mapper';
 import { computeRentStats } from '../utils/rent-stats';
 import { PropertyPolicyService } from './property-policy.service';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
+import type { PropertyDetailResource, PropertyListResource, PropertyMapResource, RentStatsResource } from '../contracts/resources';
 
 /** Estados que aparecen en busquedas publicas: la reservada sigue visible con su insignia. */
 const PUBLIC_SEARCH_STATUSES: DbSupport.PropertyStatus[] = [DbSupport.PropertyStatus.PUBLICADA, DbSupport.PropertyStatus.RESERVADA];
@@ -37,7 +38,7 @@ export class PropertySearchService {
   ) {}
 
   /** Busqueda publica. Es igual para todos los usuarios, por eso se puede cachear unos segundos. */
-  search(query: SearchPropertiesDto) {
+  search(query: SearchPropertiesDto): Promise<PropertyListResource> {
     return this.cache.remember(cacheKey('search', query), () => this.searchInDatabase(query), CacheSupport.POLICIES.search);
   }
 
@@ -45,11 +46,11 @@ export class PropertySearchService {
    * Alquiler típico por estado con TODAS las propiedades publicadas en USD (vivienda: apartamento, casa,
    * townhouse y habitación). Se calcula aquí y se cachea unos minutos porque cambia lento.
    */
-  rentStats() {
+  rentStats(): Promise<RentStatsResource> {
     return this.cache.remember('properties:rent-stats', () => this.rentStatsInDatabase(), CacheSupport.POLICIES.rentStats);
   }
 
-  private async rentStatsInDatabase() {
+  private async rentStatsInDatabase(): Promise<RentStatsResource> {
     const rows = await this.prisma.property.findMany({
       where: {
         status: { in: PUBLIC_SEARCH_STATUSES },
@@ -61,7 +62,7 @@ export class PropertySearchService {
     return { states: computeRentStats(rows.map((row) => ({ state: row.state, priceAmount: Number(row.priceAmount) }))) };
   }
 
-  private async searchInDatabase(query: SearchPropertiesDto) {
+  private async searchInDatabase(query: SearchPropertiesDto): Promise<PropertyListResource> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where = this.buildWhere(query);
@@ -83,13 +84,13 @@ export class PropertySearchService {
    * Pines del mapa: agrupados por zona segun el zoom, o sueltos al acercarse.
    * El cuadro se ajusta a una cuadricula para que usuarios que miran la misma zona compartan cache.
    */
-  map(query: MapPropertiesDto) {
+  map(query: MapPropertiesDto): Promise<PropertyMapResource> {
     const zoom = query.zoom ?? 10;
     const filters = { ...snapBox(query, zoom), zoom };
     return this.cache.remember(cacheKey('map', filters), () => this.mapInDatabase(filters, zoom), CacheSupport.POLICIES.map);
   }
 
-  private async mapInDatabase(filters: MapPropertiesDto, zoom: number) {
+  private async mapInDatabase(filters: MapPropertiesDto, zoom: number): Promise<PropertyMapResource> {
     // De cerca se muestran pines sueltos (pocos); de lejos se agrupan y se leen mas filas.
     const limit = zoom >= POINTS_FROM_ZOOM ? MAP_CLOSE_LIMIT : MAP_POINT_LIMIT;
     const rows = await this.prisma.property.findMany({
@@ -102,7 +103,7 @@ export class PropertySearchService {
   }
 
   /** Ficha completa. La pausada solo la ven quienes la gestionan (para el resto no existe). */
-  async detail(id: string, user: AuthUser | undefined) {
+  async detail(id: string, user: AuthUserContext | undefined): Promise<PropertyDetailResource> {
     const row = await this.prisma.property.findUnique({ where: { id }, include: detailInclude });
     if (!row) throw new NotFoundException('Propiedad no encontrada');
 
@@ -118,7 +119,7 @@ export class PropertySearchService {
   }
 
   /** Propiedades que el usuario gestiona, en cualquier estado. */
-  async mine(user: AuthUser, page = 1, limit = 20) {
+  async mine(user: AuthUserContext, page = 1, limit = 20): Promise<PropertyListResource> {
     const where = await this.policy.managedFilter(user);
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.property.findMany({

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../common/prisma';
-import type { AuthUser } from '../../../common/security/types';
+import type { AuthUserContext } from '../../../common/security/types';
 import type { ResourcePolicy } from '../../security';
 import { PropertyPolicyService } from '../../properties';
 import { DbSupport } from '../../../support/db';
@@ -27,7 +27,7 @@ export class AppointmentPolicy implements ResourcePolicy<AppointmentWithProperty
     return this.prisma.appointment.findUnique({ where: { id }, include: { property: true } });
   }
 
-  can(user: AuthUser, appointment: AppointmentWithProperty, action: string) {
+  can(user: AuthUserContext, appointment: AppointmentWithProperty, action: string) {
     switch (action) {
       case 'cancel':
         return appointment.clientId === user.id;

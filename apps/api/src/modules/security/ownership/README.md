@@ -21,7 +21,7 @@ export class InvoicePolicy implements ResourcePolicy<Invoice> {
   constructor(private readonly prisma: PrismaService) {}
 
   find(id: string) { return this.prisma.invoice.findUnique({ where: { id } }); }
-  can(user: AuthUser, invoice: Invoice, action: string) {
+  can(user: AuthUserContext, invoice: Invoice, action: string) {
     return action === 'read' && invoice.userId === user.id;   // acción desconocida = false
   }
 }

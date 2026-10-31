@@ -1,13 +1,13 @@
 import { ParseUUIDPipe } from '@nestjs/common';
 import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
-import { CurrentUser } from '../../common/security/decorators';
-import { PublicGroup, RoleGroup } from '../../common/security/groups';
-import type { AuthUser } from '../../common/security/types';
+import { CurrentUser } from '@/common/security/decorators';
+import { PublicGroup, RoleGroup } from '@/common/security/groups';
+import type { AuthUserContext } from '@/common/security/types';
 import { toGraphqlMarker } from './graphql/map-marker.mapper';
 import { MapPropertiesArgs, SearchPropertiesArgs } from './graphql/property.args';
 import { PropertyDetailType, PropertyMapType, PropertyPageType } from './graphql/property.types';
 import { PropertiesService } from './services/properties.service';
-import { DbSupport } from '../../support/db';
+import { DbSupport } from '@/support/db';
 
 /**
  * GraphQL solo para LECTURA (busqueda, ficha, mapa, mis propiedades): donde conviene pedir justo los
@@ -26,7 +26,7 @@ export class PropertiesResolver {
 
   @PublicGroup()
   @Query(() => PropertyDetailType, { name: 'property', description: 'Ficha completa de una propiedad' })
-  detail(@Args('id', { type: () => ID }, ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser | undefined) {
+  detail(@Args('id', { type: () => ID }, ParseUUIDPipe) id: string, @CurrentUser() user: AuthUserContext | undefined) {
     return this.propertiesService.detail(id, user);
   }
 
@@ -40,7 +40,7 @@ export class PropertiesResolver {
   @RoleGroup(DbSupport.Role.OWNER, DbSupport.Role.AGENCY, DbSupport.Role.ADMIN)
   @Query(() => PropertyPageType, { name: 'myProperties', description: 'Propiedades que gestiono, en cualquier estado' })
   mine(
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: AuthUserContext,
     @Args('page', { type: () => Int, nullable: true }) page?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
   ) {

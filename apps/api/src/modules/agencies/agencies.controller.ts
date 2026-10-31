@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, P
 import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser, RequestInfo } from '../../common/security/decorators';
 import { AuthGroup, RoleGroup } from '../../common/security/groups';
-import type { AuthUser, RequestContext } from '../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../common/security/types';
 import { AcceptInvitationDto, InviteAgentDto, UpdateAgencyDto } from './dto/agencies.dto';
 import { AgenciesService } from './services/agencies.service';
 import { DbSupport } from '../../support/db';
@@ -15,19 +15,19 @@ export class AgenciesController {
 
   @RoleGroup(DbSupport.Role.AGENCY)
   @Get('me')
-  me(@CurrentUser() user: AuthUser) {
+  me(@CurrentUser() user: AuthUserContext) {
     return this.agenciesService.me(user.id);
   }
 
   @RoleGroup(DbSupport.Role.AGENCY)
   @Patch('me')
-  update(@Body() dto: UpdateAgencyDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  update(@Body() dto: UpdateAgencyDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.agenciesService.update(user.id, dto, ctx);
   }
 
   @RoleGroup(DbSupport.Role.AGENCY)
   @Post('me/members/invite')
-  invite(@Body() dto: InviteAgentDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  invite(@Body() dto: InviteAgentDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.agenciesService.invite(user.id, dto.email, ctx);
   }
 
@@ -36,7 +36,7 @@ export class AgenciesController {
   @Delete('me/members/:memberId')
   async removeMember(
     @Param('memberId', ParseUUIDPipe) memberId: string,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: AuthUserContext,
     @RequestInfo() ctx: RequestContext,
   ) {
     await this.agenciesService.removeMember(user.id, memberId, ctx);
@@ -46,7 +46,7 @@ export class AgenciesController {
   @AuthGroup()
   @HttpCode(200)
   @Post('invitations/accept')
-  accept(@Body() dto: AcceptInvitationDto, @CurrentUser() user: AuthUser, @RequestInfo() ctx: RequestContext) {
+  accept(@Body() dto: AcceptInvitationDto, @CurrentUser() user: AuthUserContext, @RequestInfo() ctx: RequestContext) {
     return this.agenciesService.acceptInvitation(user.id, dto.token, ctx);
   }
 }

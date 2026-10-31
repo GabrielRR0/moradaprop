@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '@/../test/support/describe-case';
 import { snapBox } from '../utils/bounding-box';
 import { cacheKey } from '../utils/cache-key';
 

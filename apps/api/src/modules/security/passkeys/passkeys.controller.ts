@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, P
 import { ApiTags } from '@nestjs/swagger';
 import { AllowWithoutSecondFactor, CurrentUser, RequestInfo } from '../../../common/security/decorators';
 import { AuthGroup } from '../../../common/security/groups';
-import type { AuthUser, RequestContext } from '../../../common/security/types';
+import type { AuthUserContext, RequestContext } from '../../../common/security/types';
 import { FinishRegistrationDto, RegisterOptionsDto, RenamePasskeyDto } from './dto/passkey.dto';
 import { PasskeyEnrollmentService } from './services/passkey-enrollment.service';
 
@@ -17,31 +17,31 @@ export class PasskeysController {
   @Post('register/options')
   @AllowWithoutSecondFactor()
   @HttpCode(200)
-  registerOptions(@CurrentUser() user: AuthUser, @Body() dto: RegisterOptionsDto, @RequestInfo() ctx: RequestContext) {
+  registerOptions(@CurrentUser() user: AuthUserContext, @Body() dto: RegisterOptionsDto, @RequestInfo() ctx: RequestContext) {
     return this.enrollment.start(user.id, dto.password, ctx);
   }
 
   /** Paso 2: guarda la passkey que creo el dispositivo. */
   @Post('register/verify')
   @AllowWithoutSecondFactor()
-  registerVerify(@CurrentUser() user: AuthUser, @Body() dto: FinishRegistrationDto, @RequestInfo() ctx: RequestContext) {
+  registerVerify(@CurrentUser() user: AuthUserContext, @Body() dto: FinishRegistrationDto, @RequestInfo() ctx: RequestContext) {
     return this.enrollment.finish(user.id, dto, ctx);
   }
 
   @Get()
   @AllowWithoutSecondFactor()
-  list(@CurrentUser() user: AuthUser) {
+  list(@CurrentUser() user: AuthUserContext) {
     return this.enrollment.list(user.id);
   }
 
   @Patch(':id')
-  rename(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RenamePasskeyDto) {
+  rename(@CurrentUser() user: AuthUserContext, @Param('id', ParseUUIDPipe) id: string, @Body() dto: RenamePasskeyDto) {
     return this.enrollment.rename(user.id, id, dto.label);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @RequestInfo() ctx: RequestContext) {
+  remove(@CurrentUser() user: AuthUserContext, @Param('id', ParseUUIDPipe) id: string, @RequestInfo() ctx: RequestContext) {
     return this.enrollment.remove(user.id, id, ctx);
   }
 }

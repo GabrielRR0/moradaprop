@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Audit } from '../../audit';
 import { AdminGroup } from '../../../common/security/groups';
 import { CurrentUser } from '../../../common/security/decorators';
-import type { AuthUser } from '../../../common/security/types';
+import type { AuthUserContext } from '../../../common/security/types';
 import { CreateBlockRuleDto } from './dto/create-block-rule.dto';
 import { SecurityService } from './services/security.service';
 
@@ -20,7 +20,7 @@ export class BlocksController {
 
   @Post()
   @Audit('security.block.create', 'BlockRule')
-  create(@Body() dto: CreateBlockRuleDto, @CurrentUser() user: AuthUser) {
+  create(@Body() dto: CreateBlockRuleDto, @CurrentUser() user: AuthUserContext) {
     return this.securityService.createRule(dto, user.id);
   }
 

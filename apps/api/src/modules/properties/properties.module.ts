@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
-import { SecurityModule } from '../security';
-import { PropertiesController } from './properties.controller';
+import { SecurityModule } from '@/modules/security';
+import { PropertiesController } from './controllers/public/properties.controller';
+import { PropertyFavoritesController } from './controllers/private/user/property-favorites.controller';
+import { MyPropertiesController } from './controllers/private/publisher/my-properties.controller';
+import { PropertyImagesController } from './controllers/private/publisher/property-images.controller';
 import { PropertiesResolver } from './properties.resolver';
 import { PropertiesService } from './services/properties.service';
 import { PropertyAccessPolicy } from './services/property-access.policy';
@@ -12,7 +15,8 @@ import { PropertyWriteService } from './services/property-write.service';
 
 @Module({
   imports: [SecurityModule],
-  controllers: [PropertiesController],
+  // El orden importa: las rutas fijas (mine, favorites) se registran antes que GET ":id" del controller publico.
+  controllers: [MyPropertiesController, PropertyImagesController, PropertyFavoritesController, PropertiesController],
   providers: [
     PropertiesService,
     PropertiesResolver,
