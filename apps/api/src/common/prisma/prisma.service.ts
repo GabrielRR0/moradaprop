@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { DbSupport } from '../../support/db';
+import { DbSupport } from '@/support/db';
 
 /** Unica instancia del cliente de base de datos (como la conexion de Eloquent). */
 @Injectable()

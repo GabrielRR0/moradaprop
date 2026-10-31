@@ -8,7 +8,7 @@ import {
   randomInt,
   timingSafeEqual,
 } from 'node:crypto';
-import { AppConfig } from '../../config';
+import { AppConfig } from '@/config';
 
 @Injectable()
 export class CryptoService {

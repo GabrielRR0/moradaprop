@@ -1,4 +1,4 @@
-import { AppConfig } from '../../config';
+import { AppConfig } from '@/config';
 import type { StorageBucket, StorageProvider } from './storage-provider';
 
 const BUCKETS: Record<StorageBucket, string> = {

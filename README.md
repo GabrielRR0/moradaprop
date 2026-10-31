@@ -116,25 +116,32 @@ Cada lógica tiene su carpeta y un **archivo padre** que importa a los hijos. Na
 
 ### Backend: `apps/api/src/modules/<modulo>/`
 
+> **Este es el sistema de trabajo del backend y debe reutilizarse tal cual en cualquier backend nuevo.** La guía completa para montarlo desde cero está en [docs/BACKEND-MODULAR.md](docs/BACKEND-MODULAR.md); las reglas detalladas, en [docs/CONVENCIONES.md](docs/CONVENCIONES.md); y la referencia viva es el módulo `apps/api/src/modules/properties` (cada carpeta tiene su README).
+
 ```
-auth/
-  auth.module.ts          # padre: registra todo
-  auth.controller.ts      # delgado: solo llama al service y responde lo que dice
-  auth.resolver.ts        # solo si hay GraphQL; igual de delgado
-  dto/                    # validación de entrada: login.dto, register.dto, two-factor.dto, reset.dto ...
+properties/
+  properties.module.ts        # padre: registra todo
+  index.ts                    # lo único que otros módulos pueden importar
+  controllers/                # las rutas, separadas por QUIÉN puede usarlas
+    public/                     sin sesión                      @PublicGroup()
+    private/
+      user/                     cualquier usuario autenticado   @AuthGroup()
+      publisher/                propietario, agencia y admin    @PublisherGroup()
+      admin/                    solo admin                      @AdminGroup()
+  contracts/
+    dto/                        lo que ENTRA (validación)
+    resources/                  lo que SALE (una interface por respuesta)
   services/
-    auth.service.ts       # fachada: delega en los hijos
-    login.service.ts
-    register.service.ts
-    two-factor.service.ts
-    reset-password.service.ts
-  jobs/                   # colas BullMQ: cada job SOLO llama a un service
-  commands/               # nest-commander: cada comando SOLO llama a un service
-  tests/
+    properties.service.ts       # fachada: los controllers solo hablan con ella
+    catalog/ management/ images/ favorites/ access/   # un tema por carpeta, un archivo por caso de uso
+  decorators/ utils/ tests/
 ```
 
-- Controller **nunca** tiene lógica. La validación vive **solo** en DTO. La lógica vive **solo** en services.
-- Un job o command = una llamada a un service.
+- **Controller** sin lógica: recibe, llama a la fachada y devuelve su `Resource`. El grupo de acceso va en la clase y la carpeta debe coincidir (lo comprueba una prueba).
+- **Validación** solo en `contracts/dto/`. **Lógica** solo en `services/`. **Respuestas** descritas en `contracts/resources/`, y los e2e comprueban que lo que sale las cumple.
+- **Services** por tema y caso de uso (no por verbo); más de ~150 líneas se divide, y la fachada mantiene su API.
+- **Imports:** `@/` = `src/` y `@test/` = `test/`; sin `../../..` (lo hace cumplir el lint).
+- Un job o command = una llamada a un service. Cada carpeta lleva su `README.md`.
 - **Rutas agrupadas**: `routes/index` → `routes/api.routes` → `routes/<modulo>.routes`, agrupadas con prefijos (RouterModule de Nest).
 
 ### Frontend: `apps/web/src/modules/<modulo>/`

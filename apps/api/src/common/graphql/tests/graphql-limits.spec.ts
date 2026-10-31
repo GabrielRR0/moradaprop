@@ -1,5 +1,5 @@
 import { buildSchema, parse, validate } from 'graphql';
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '@test/support/describe-case';
 import { depthRule, GRAPHQL_MAX_DEPTH } from '../graphql-limits';
 
 // Esquema recursivo minimo: permite anidar sin fin, como pasaria con un tipo que se referencia a si mismo.

@@ -4,7 +4,8 @@ module.exports = {
   testEnvironment: 'node',
   moduleFileExtensions: ['js', 'json', 'ts'],
   testRegex: 'test/e2e/.*\\.e2e-spec\\.ts$',
-  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
+  // Los mismos alias que tsconfig.json: "@/" = src/ y "@test/" = test/.
+  moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1', '^@test/(.*)$': '<rootDir>/test/$1' },
   transform: { '^.+\\.ts$': ['ts-jest', { diagnostics: { ignoreCodes: [151001] } }] },
   setupFiles: ['<rootDir>/test/support/set-test-env.ts'],
   globalSetup: '<rootDir>/test/support/global-setup.js',

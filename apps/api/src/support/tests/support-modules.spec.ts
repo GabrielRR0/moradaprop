@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { describeCase } from '../../../test/support/describe-case';
+import { describeCase } from '@test/support/describe-case';
 
 const SUPPORT_DIR = join(__dirname, '..');
 

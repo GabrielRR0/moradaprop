@@ -82,7 +82,9 @@ Las carpetas aparecen **solo si existen**: un módulo sin rutas de admin no tien
 Un archivo por tipo, con el papel en el nombre (`create-property.dto.ts`, `property-card.resource.ts`, `auth-user-context.type.ts`). Los tipos compartidos de seguridad viven en `common/security/types/`.
 
 **Imports**
-- `@/` apunta a `src/` (en la API y en la web, cada una con el suyo). Lo cercano va relativo (`./` y `../`); lo que sale del módulo, o subiría 3 niveles o más, va con `@/`.
+- `@/` apunta a `src/` (en la API y en la web, cada una con el suyo) y, solo en la API, `@test/` apunta a `test/`. Lo cercano va relativo (`./` y `../`); lo que sale del módulo, o subiría 3 niveles o más, va con el alias. 🔒 El lint rechaza cualquier `../../../` en la API.
+
+**Qué hace cumplir el código:** el lint (imports profundos, módulos, paquetes de terceros), `common/security/tests/controller-layout.spec.ts` (carpeta del controller = grupo de acceso) y `test/support/resource-contract.ts` (la respuesta real cumple el Resource). Guía para repetir todo este sistema en otro proyecto: [BACKEND-MODULAR.md](BACKEND-MODULAR.md).
 
 **Checklist al crear o refactorizar un módulo**
 1. Listar las rutas y su acceso; guardar la lista de rutas `Mapped` del arranque para compararla después.

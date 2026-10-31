@@ -8,6 +8,14 @@ const WEB_WRAPPED = [
   ['@tanstack/react-query', 'support/query'],
   ['maplibre-gl', 'support/maplibre'],
 ];
+// API: lo que sube 3 niveles o mas se importa con el alias "@/" (src/) o "@test/" (test/). Ver docs/CONVENCIONES.md, "Imports".
+const DEEP_RELATIVE_IMPORTS = [
+  {
+    group: ['../../../**'],
+    message: 'Import relativo demasiado profundo: usa el alias "@/" (src/) o "@test/" (test/). Ver docs/CONVENCIONES.md, "Imports".',
+  },
+];
+
 const webMessage = (name, wrapper) =>
   `No importes "${name}" directo: usa el wrapper ${wrapper} (docs/CONVENCIONES.md, "Paquetes de terceros").`;
 
@@ -74,9 +82,15 @@ export default tseslint.config(
             name,
             message: `No importes "${name}" directo: usa el wrapper ${wrapper} (docs/CONVENCIONES.md, "Paquetes de terceros").`,
           })),
+          patterns: DEEP_RELATIVE_IMPORTS,
         },
       ],
     },
+  },
+  {
+    // support/ puede importar los paquetes que envuelve, pero tambien usa los alias en vez de imports profundos.
+    files: ['apps/api/src/support/**/*.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: DEEP_RELATIVE_IMPORTS }] },
   },
   {
     // Lo mismo en la web: solo a traves de apps/web/src/support/<modulo>.

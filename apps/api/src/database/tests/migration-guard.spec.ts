@@ -1,4 +1,4 @@
-import { describeCase } from '../../../test/support/describe-case';
+import { describeCase } from '@test/support/describe-case';
 import { blockReason, isLocalDatabase } from '../migration-guard';
 
 const LOCAL = 'postgresql://alquiler:alquiler@db:5432/alquiler';

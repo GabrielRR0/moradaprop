@@ -4,9 +4,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
-import { LocalStorageProvider, STORAGE_PROVIDER } from '../common/storage';
-import { AppConfig } from '../config';
-import { GeoService, geoLocate, ThreatModelService, threatObserver } from '../modules/security';
+import { LocalStorageProvider, STORAGE_PROVIDER } from '@/common/storage';
+import { AppConfig } from '@/config';
+import { GeoService, geoLocate, ThreatModelService, threatObserver } from '@/modules/security';
 
 /** Configuracion comun de la app (la usan main.ts y los tests e2e). */
 export function configureApp(app: INestApplication) {

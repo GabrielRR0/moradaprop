@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createTransport, type Transporter } from 'nodemailer';
-import { AppConfig } from '../../config';
+import { AppConfig } from '@/config';
 import { renderTemplate, type MailTemplate } from './templates';
 
 /** Unica puerta de salida de correos. Se puede cambiar de proveedor sin tocar los modulos. */

@@ -1,7 +1,7 @@
 import { createParamDecorator, SetMetadata, type ExecutionContext } from '@nestjs/common';
 import { requestOf } from '../request-of';
 import type { AppRequest, AuthUserContext, RequestContext } from '../types';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const ROLES_KEY = 'roles';

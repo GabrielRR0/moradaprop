@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { Reflector } from '@nestjs/core';
 import { REQUIRE_TWO_FACTOR_KEY, ROLES_KEY } from '../decorators';
 import { requestOf } from '../request-of';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 /** Aplica @Roles(...) y @RequireTwoFactor() sobre el usuario ya autenticado. */
 @Injectable()

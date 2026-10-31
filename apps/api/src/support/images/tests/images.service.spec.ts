@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '@test/support/describe-case';
 import { ImagesService } from '../images.service';
 
 const service = new ImagesService();

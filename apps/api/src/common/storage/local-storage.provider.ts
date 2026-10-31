@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, normalize, resolve, sep } from 'node:path';
-import { AppConfig } from '../../config';
+import { AppConfig } from '@/config';
 import type { StorageBucket, StorageProvider } from './storage-provider';
 
 /** Guarda en disco (desarrollo). public/ se sirve en /uploads; private/ nunca. */

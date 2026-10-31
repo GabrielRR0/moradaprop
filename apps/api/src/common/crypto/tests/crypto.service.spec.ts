@@ -1,6 +1,6 @@
-import { describeCase } from '../../../../test/support/describe-case';
-import { AppConfig } from '../../../config';
-import { loadEnv } from '../../../config/env';
+import { describeCase } from '@test/support/describe-case';
+import { AppConfig } from '@/config';
+import { loadEnv } from '@/config/env';
 import { CryptoService } from '../crypto.service';
 
 const crypto = new CryptoService(new AppConfig(loadEnv()));

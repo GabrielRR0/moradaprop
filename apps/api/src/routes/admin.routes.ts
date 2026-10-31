@@ -1,7 +1,7 @@
 import type { Routes } from '@nestjs/core';
-import { AdminUsersModule } from '../modules/admin-users';
-import { AuditModule } from '../modules/audit';
-import { securityRoutes } from '../modules/security';
+import { AdminUsersModule } from '@/modules/admin-users';
+import { AuditModule } from '@/modules/audit';
+import { securityRoutes } from '@/modules/security';
 
 /** Grupo /api/admin: todo exige rol ADMIN con 2FA (AdminGroup en cada controller). */
 export const adminRoutes: Routes = [

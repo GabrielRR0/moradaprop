@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { AppConfig } from '../../config';
+import { AppConfig } from '@/config';
 import { LocalStorageProvider } from './local-storage.provider';
 import { STORAGE_PROVIDER, type StorageProvider } from './storage-provider';
 import { SupabaseStorageProvider } from './supabase-storage.provider';

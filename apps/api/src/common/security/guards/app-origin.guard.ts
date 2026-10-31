@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AppConfig } from '../../../config';
+import { AppConfig } from '@/config';
 import { CryptoService } from '../../crypto';
 import { SKIP_APP_CHECK_KEY } from '../decorators';
 import { requestOf } from '../request-of';

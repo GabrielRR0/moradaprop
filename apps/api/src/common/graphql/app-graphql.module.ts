@@ -1,7 +1,7 @@
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { AppConfig } from '../../config';
+import { AppConfig } from '@/config';
 import { depthRule } from './graphql-limits';
 
 /**

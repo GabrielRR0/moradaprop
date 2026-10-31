@@ -3,7 +3,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public, RequireTwoFactor, Roles } from '../decorators';
 import { limitPerMinute, RATE_LIMITS } from '../rate-limits';
-import { DbSupport } from '../../../support/db';
+import { DbSupport } from '@/support/db';
 
 /**
  * GRUPOS DE RUTAS: cada grupo junta los decoradores de acceso y de limite de uso.

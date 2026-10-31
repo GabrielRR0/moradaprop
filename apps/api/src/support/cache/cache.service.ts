@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
-import { AppConfig } from '../../config';
+import { AppConfig } from '@/config';
 import type { CachePolicy } from './cache-policies';
 
 const MAX_MEMORY_ENTRIES = 500;

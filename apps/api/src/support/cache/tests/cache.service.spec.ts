@@ -1,6 +1,6 @@
-import { describeCase } from '../../../../test/support/describe-case';
-import { AppConfig } from '../../../config';
-import { loadEnv } from '../../../config/env';
+import { describeCase } from '@test/support/describe-case';
+import { AppConfig } from '@/config';
+import { loadEnv } from '@/config/env';
 import { CacheService } from '../cache.service';
 
 /** Cache en memoria con el TTL indicado (0 = desactivada). */

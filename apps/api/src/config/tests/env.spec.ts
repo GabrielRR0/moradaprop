@@ -1,5 +1,5 @@
 import { loadEnv } from '../env';
-import { describeCase } from '../../../test/support/describe-case';
+import { describeCase } from '@test/support/describe-case';
 
 const entornoValido = {
   DATABASE_URL: 'postgresql://u:p@localhost:5432/db',

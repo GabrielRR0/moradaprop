@@ -1,4 +1,4 @@
-import { describeCase } from '../../../../test/support/describe-case';
+import { describeCase } from '@test/support/describe-case';
 import { isSafeZip, summarizeZip } from '../zip-guard';
 
 /** Zip minimo y falso: solo el directorio central, declarando tamanos sin datos reales. */
