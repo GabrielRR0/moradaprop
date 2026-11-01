@@ -16,6 +16,8 @@ export interface PropertyCard {
   type: string;
   status: PropertyStatus;
   inReservation: boolean;
+  /** false = reservada del todo: ya no recibe consultas ni citas (si el API no lo dice, se asume que si). */
+  acceptsVisits?: boolean;
   priceAmount: number;
   currency: Currency;
   bedrooms: number;
@@ -49,6 +51,10 @@ export interface PropertyDetail extends PropertyCard {
   furnished: boolean;
   petsAllowed: boolean;
   images: PropertyImage[];
+  /** Ya hay una visita acordada (no se dice el dia). */
+  hasScheduledVisit?: boolean;
+  /** WhatsApp del anunciante; el API solo lo entrega con sesion. */
+  whatsapp?: string | null;
   /** Solo si hay sesion. */
   isFavorite?: boolean;
   canManage?: boolean;

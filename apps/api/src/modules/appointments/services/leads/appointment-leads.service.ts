@@ -9,6 +9,7 @@ import { MailSupport } from '@/support/mail';
 import type { ListAppointmentsDto } from '../../contracts/dto/list-appointments.dto';
 import type { RespondAppointmentDto } from '../../contracts/dto/respond-appointment.dto';
 import type { AppointmentLeadListResource, AppointmentLeadResource } from '../../contracts/resources';
+import { OPEN_STATUSES } from '../../utils/conversation';
 import { AppointmentPolicy } from '../access/appointment.policy';
 import { AppointmentReaderService } from '../reader/appointment-reader.service';
 
@@ -40,7 +41,7 @@ export class AppointmentLeadsService {
    */
   async respond(user: AuthUserContext, id: string, dto: RespondAppointmentDto, context: RequestContext): Promise<AppointmentLeadResource> {
     const appointment = await this.ownership.require(this.access, user, id, 'respond', context);
-    if (appointment.status !== 'PENDIENTE') throw new BadRequestException('Esta solicitud ya fue respondida');
+    if (!['PENDIENTE', 'ABIERTA'].includes(appointment.status)) throw new BadRequestException('Esta solicitud ya fue respondida');
 
     const confirm = dto.action === 'CONFIRM';
     await this.prisma.$transaction(async (tx) => {
@@ -75,6 +76,16 @@ export class AppointmentLeadsService {
     return this.reader.asLead(id);
   }
 
+  /** Cierra la conversacion (sin importar en que punto estaba): ya no se puede escribir en ella. */
+  async close(user: AuthUserContext, id: string, context: RequestContext): Promise<AppointmentLeadResource> {
+    const appointment = await this.ownership.require(this.access, user, id, 'close', context);
+    if (!OPEN_STATUSES.includes(appointment.status)) throw new BadRequestException('Esta solicitud ya esta cerrada');
+
+    await this.prisma.appointment.update({ where: { id }, data: { status: 'COMPLETADA', managerSeenAt: new Date(), lastMessageAt: new Date() } });
+    await this.log('appointments.closed', user, id, context);
+    return this.reader.asLead(id);
+  }
+
   private async notifyClient(id: string, accepted: boolean, note?: string) {
     const row = await this.prisma.appointment.findUnique({ where: { id }, include: { client: true, property: true } });
     if (!row) return;
@@ -84,7 +95,7 @@ export class AppointmentLeadsService {
       kind: row.type === 'VISITA' ? 'visita' : 'apartado',
       accepted,
       note,
-      link: `${this.config.app.frontendUrl}/appointments/${id}`,
+      link: `${this.config.app.frontendUrl}/mensajes/${id}`,
     });
   }
 

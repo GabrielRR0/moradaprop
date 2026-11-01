@@ -10,7 +10,7 @@ export { AccessRiskService, accessRiskRoutes, type LoginTrust, type RiskLevel, t
 export { SecurityService, BlockGuard } from './blocks';
 
 // encryption: cifrado de campos en reposo e indice ciego
-export { FieldCipher, BlindIndexService, UserVault, SocialAccountVault, SessionVault, AppointmentVault, AgencyVault, type BlindNormalizer, type EncryptedField, type UserPersonalData } from './encryption';
+export { FieldCipher, BlindIndexService, UserVault, SocialAccountVault, SessionVault, AppointmentVault, AppointmentMessageVault, ReplyTemplateVault, AgencyVault, type BlindNormalizer, type EncryptedField, type UserPersonalData } from './encryption';
 
 // geo: pais de cada peticion (CDN)
 export { GeoService, geoLocate } from './geo';

@@ -92,14 +92,35 @@ Sin ellas responde `403 Cliente no autorizado`. Más sobre el porqué en [SEGURI
 
 | Ruta | Acceso | Para qué |
 |---|---|---|
-| `POST /` | 🔑 | Solicitar una visita (con fecha) o un apartado |
-| `GET /mine` | 🔑 | Mis solicitudes |
+| `POST /` | 🔑 | Escribirle al anunciante: `type` = `INTERES` · `PREGUNTA` · `VISITA` · `RESERVA` y `message`. No se pide fecha |
+| `GET /mine` | 🔑 | Mis solicitudes (con último mensaje y si hay algo nuevo) |
 | `PATCH /:id/cancel` | 🔑 | Cancelar la mía |
+| `GET /:id` | 🔑 + parte | La conversación (la abren el cliente y quien gestiona; la marca como vista) |
+| `POST /:id/messages` | 🔑 + parte | Escribir un mensaje (`body`). Si responde quien gestiona, la solicitud pasa a `ABIERTA` |
+| `PATCH /:id/messages/:messageId` | 🔑 + autor | Editar un mensaje propio de texto, **hasta 3 minutos** después de enviarlo (`400` si ya pasó; `403` si es de otra persona). Cada mensaje trae `editableUntil` y la conversación `serverTime` |
+| `PATCH /:id/slots/:slotId/accept` | 🔑 + cliente | Aceptar una de las fechas propuestas: queda la visita `CONFIRMADA` |
 | `GET /received` | 👤 OWNER/AGENCY/ADMIN | Leads de mis propiedades (con datos de contacto) |
+| `POST /:id/slots` | 👤 + gestor | Proponer de 1 a 5 fechas (`slots` en ISO, `note` opcional) |
+| `PATCH /:id/close` | 👤 + gestor | Cerrar la conversación |
 | `PATCH /:id/respond` | 👤 + gestor | Confirmar o rechazar (`CONFIRM` / `REJECT`) |
 | `PATCH /:id/complete` | 👤 + gestor | Marcar la visita como realizada |
 
 Confirmar un **apartado** pasa la propiedad a `RESERVADA`; si el cliente lo cancela, vuelve a `PUBLICADA`.
+
+La conversación **no es en tiempo real** (se pide al abrirla; hay aviso por correo). Quien gestiona deja la propiedad con `PATCH /api/properties/:id/status`: `PUBLICADA`; `RESERVADA` + `acceptsVisits: true` (reservada, aún se piden citas) o `RESERVADA` + `acceptsVisits: false` (reservada del todo: ya no recibe solicitudes). La ficha pública trae `hasScheduledVisit` (sin el día) y, solo con sesión, el `whatsapp` del anunciante.
+
+## Textos reutilizables — `/api/reply-templates` (👤 OWNER/AGENCY/ADMIN)
+
+Borradores para responder mensajes con un toque. Son **privados** de quien los escribe o **compartidos** con el equipo de su inmobiliaria. Título y texto van cifrados.
+
+| Ruta | Para qué |
+|---|---|
+| `GET /` | Los míos y los compartidos por mi equipo (`canShare` dice si puedo compartir) |
+| `POST /` | Guardar uno: `title`, `body` y `shared` (compartir exige pertenecer a una inmobiliaria) |
+| `PATCH /:id` | Editar o cambiar si se comparte. Lo hace su autor o el administrador de la inmobiliaria |
+| `DELETE /:id` | Borrarlo (mismos permisos) |
+
+Límites: 50 privados por persona y 100 compartidos por inmobiliaria; título hasta 80 y texto hasta 1000 caracteres. Un privado ajeno responde `404` (ni el administrador lo ve).
 
 ## Importación masiva — `/api/imports` (👤 AGENCY)
 

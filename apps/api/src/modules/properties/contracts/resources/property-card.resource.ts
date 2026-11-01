@@ -9,6 +9,8 @@ export interface PropertyCardResource {
   status: DbSupport.PropertyStatus;
   /** True si está reservada: sigue visible pero se marca "En proceso de reserva". */
   inReservation: boolean;
+  /** false = reservada del todo: ya no recibe citas ni mensajes. */
+  acceptsVisits: boolean;
   priceAmount: number;
   currency: DbSupport.Currency;
   bedrooms: number;

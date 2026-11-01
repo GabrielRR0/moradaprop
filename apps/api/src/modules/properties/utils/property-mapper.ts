@@ -10,8 +10,9 @@ export const cardInclude = {
 /** Galeria completa + quien la publica. */
 export const detailInclude = {
   images: { orderBy: [{ isCover: 'desc' }, { position: 'asc' }] },
-  agency: { select: { id: true, name: true, logoUrl: true } },
-  owner: { select: { id: true, name: true, avatarUrl: true } },
+  agency: { select: { id: true, name: true, logoUrl: true, phone: true, whatsapp: true } },
+  owner: { select: { id: true, name: true, avatarUrl: true, phone: true } },
+  assignedAgent: { select: { phone: true } },
 } satisfies DbSupport.Prisma.PropertyInclude;
 
 type CardRow = DbSupport.Prisma.PropertyGetPayload<{ include: typeof cardInclude }>;
@@ -36,6 +37,7 @@ export function toCard(property: CardRow, storage: StorageProvider): PropertyCar
     status: property.status,
     // "En Proceso de Reserva": la propiedad reservada no desaparece, se marca.
     inReservation: property.status === 'RESERVADA',
+    acceptsVisits: property.acceptsVisits,
     priceAmount: Number(property.priceAmount),
     currency: property.currency,
     bedrooms: property.bedrooms,
@@ -59,7 +61,7 @@ export function toCard(property: CardRow, storage: StorageProvider): PropertyCar
 export function toDetail(
   property: DetailRow,
   storage: StorageProvider,
-  extras: { isFavorite: boolean; canManage: boolean },
+  extras: { isFavorite: boolean; canManage: boolean; hasScheduledVisit: boolean; whatsapp: string | null },
 ): PropertyDetailResource {
   return {
     ...toCard({ ...property, images: property.images.slice(0, 1) }, storage),
@@ -72,6 +74,8 @@ export function toDetail(
       ? { type: 'agency' as const, id: property.agency.id, name: property.agency.name, logoUrl: property.agency.logoUrl }
       : { type: 'owner' as const, id: property.owner.id, name: property.owner.name, logoUrl: property.owner.avatarUrl },
     isFavorite: extras.isFavorite,
+    hasScheduledVisit: extras.hasScheduledVisit,
+    whatsapp: extras.whatsapp,
     canManage: extras.canManage,
     createdAt: property.createdAt,
     updatedAt: property.updatedAt,

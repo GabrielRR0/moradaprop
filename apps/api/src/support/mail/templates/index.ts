@@ -6,6 +6,7 @@ export type MailTemplate =
   | { name: 'link-google'; code: string; minutes: number }
   | { name: 'agency-invitation'; agencyName: string; link: string }
   | { name: 'appointment-new'; propertyTitle: string; kind: string; clientName: string; link: string }
+  | { name: 'appointment-message'; propertyTitle: string; event: 'message' | 'proposal' | 'accepted'; link: string }
   | { name: 'appointment-response'; propertyTitle: string; kind: string; accepted: boolean; note?: string; link: string };
 
 /** Escapa HTML: titulos y nombres vienen de usuarios y no deben inyectar etiquetas en el correo. */
@@ -54,7 +55,7 @@ export function renderTemplate(template: MailTemplate, appName: string) {
       return build(
         appName,
         'Nueva solicitud en tu propiedad',
-        `<p><b>${esc(template.clientName)}</b> envio una solicitud de <b>${esc(template.kind)}</b> para <b>${esc(template.propertyTitle)}</b>.</p><p><a href="${template.link}">Ver solicitud</a></p>`,
+        `<p><b>${esc(template.clientName)}</b> te escribio sobre <b>${esc(template.propertyTitle)}</b> (<b>${esc(template.kind)}</b>).</p><p><a href="${template.link}">Abrir la conversacion</a></p>`,
         template.link,
       );
     case 'appointment-response':
@@ -64,6 +65,15 @@ export function renderTemplate(template: MailTemplate, appName: string) {
         `<p>Tu solicitud de <b>${esc(template.kind)}</b> para <b>${esc(template.propertyTitle)}</b> fue ${template.accepted ? 'aceptada' : 'rechazada'}.</p>${template.note ? `<p>Mensaje: ${esc(template.note)}</p>` : ''}<p><a href="${template.link}">Ver detalle</a></p>`,
         template.link,
       );
+    case 'appointment-message': {
+      const title = { message: 'Tienes un mensaje nuevo', proposal: 'Te propusieron fechas para la visita', accepted: 'Aceptaron una fecha de visita' }[template.event];
+      return build(
+        appName,
+        title,
+        `<p>Hay novedades en la conversacion sobre <b>${esc(template.propertyTitle)}</b>.</p><p><a href="${template.link}">Abrir la conversacion</a></p>`,
+        template.link,
+      );
+    }
     case 'agency-invitation':
       return build(
         appName,

@@ -14,4 +14,8 @@ El color de marca y los neutros viven como variables CSS en `app/globals.css`; `
 
 **Seguridad:** `api.ts` es el cliente HTTP único del API (cabeceras `x-app-*`, access token solo en memoria, **un solo refresh a la vez**, un reintento, aviso `SECOND_FACTOR_ENROLLMENT_REQUIRED`; `ApiError` trae `status` y `code`). `api-types.ts` tiene los tipos de las respuestas de seguridad y `password.ts` los requisitos de contraseña que valida el API.
 
+**Mensajes:** `appointments/` tiene los tipos, `appointmentService` (todas las llamadas de `/api/appointments`) y los textos y fechas en español de las solicitudes y su conversación. Lo usan la ficha (donde se escribe) y `inbox` (donde se conversa).
+
+**Respuestas guardadas:** `reply-templates/` tiene los tipos, `replyTemplateService` y `fillTemplate` (completa `{nombre}` y `{propiedad}` al usar un texto). Lo usa `inbox`.
+
 **Propiedades:** `properties/` es el servicio compartido de propiedades: `propertyService` (búsqueda, mapa y ficha desde el API, con datos de ejemplo opcionales), filtros <-> URL, tipos, `format` (precios, textos) y `useFavorites` (favoritos reales de la cuenta). Lo usan mapa, inicio y ficha.

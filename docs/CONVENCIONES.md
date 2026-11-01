@@ -8,7 +8,7 @@ Reglas de arquitectura. Varias las hace cumplir ESLint (`pnpm lint`), las marcad
 - 🔒 **De otro módulo solo se importa su archivo padre** (`<modulo>.module.ts` o `index.ts`), nunca archivos internos. Regla local: `eslint-rules/module-boundaries.mjs`.
 - 🔒 **Mini módulos:** una carpeta dentro de un módulo con su propio `<nombre>.module.ts` (ej. `modules/security/ownership/`) es **privada de su módulo padre**: desde fuera solo se importa el `index.ts` del padre, y entre hermanos solo por el `index.ts` del otro. Así toda una familia (como la seguridad) vive en un módulo y cada pieza se puede agregar o quitar sin tocar las demás.
 - 🔒 **Máximo 600 líneas por archivo.** Si crece, se parte en mini archivos dentro del módulo.
-- Componentes con poca lógica; la lógica va en `hooks/` y `services/` del módulo.
+- Componentes con poca lógica; la lógica va en `hooks/` del módulo (y en `services/` si el módulo llama al API por su cuenta, como `auth`). Lo que comparten varios módulos va en `apps/web/src/lib/<tema>/`.
 
 ## 2. Backend (`apps/api/src/modules/<modulo>/`)
 
@@ -110,21 +110,24 @@ Para agregar un módulo: crear su `routes/<modulo>.routes.ts`, importarlo en `ap
 ```
 <modulo>/
   index.ts          # padre: único punto de entrada del módulo
-  components/       # poca lógica
-  hooks/            # lógica de UI
-  services/         # llamadas al API (+ index.ts)
-  schemas/          # Zod
-  types/
+  README.md
+  components/       # <Pagina>.tsx y una carpeta <Pantalla>/ por pantalla (poca lógica)
+  hooks/            # use<Pantalla>.ts: la lógica de cada pantalla
+  services/         # solo si el módulo tiene llamadas propias al API (hoy: auth y security)
+  tests/ utils/ …   # solo si existen
 ```
 
-- Las páginas de `app/` solo importan desde `@/modules/<modulo>`.
+- Las carpetas aparecen **solo si existen** (`design` solo tiene `components/`). No hay `schemas/` ni `types/`: los tipos viven junto a lo que describen.
+- Las páginas de `app/` solo importan desde `@/modules/<modulo>`. Entre módulos solo se importa el `index.ts` del otro (ej. `useSession` de `@/modules/auth`).
+- **Datos compartidos entre módulos** van en `apps/web/src/lib/<tema>/` (hoy `properties`, `appointments` y `reply-templates`): tipos, llamadas al API y formato. La llamada HTTP siempre pasa por `lib/api.ts`.
+- **Paquetes de terceros** solo vía `apps/web/src/support/` (ver §10).
 
 ## 3b. Cómo está organizado el frontend de pantallas
 
 - Una pantalla = carpeta `<Pantalla>/` con el componente, sus partes con nombre (ej. `HomeIntro`, `HomeListings`) y su `.css`; la lógica va en `hooks/use<Pantalla>.ts`. Guía completa: `docs/GUIA-FRONTEND.md`.
 - Iconos: siempre `<Icon name="..." />` (`components/icons`). Barra lateral y de pestañas de la inmobiliaria: `AgencySidebar` y `AgencyTabBar`.
 - Escritorio y móvil se alternan con `<Responsive>` (o `<ClientResponsive>` si la pantalla pesa, como el mapa); el tema (color de marca y modo noche) vive en `app/globals.css`.
-- Los hooks traen datos de ejemplo y `// @ts-nocheck`; al conectar el API se reescriben tipados y se mueven a `services/` (el módulo `map` ya está así).
+- Conectados a la API: `home`, `map`, `properties`, `inbox`, `auth` y `security` (datos con TanStack Query vía `QuerySupport`, llamadas en `lib/` o `services/`). Con datos de ejemplo todavía: `dashboard-agency`, `publish` y `admin`, cuyos hooks traen los datos dentro; al conectarlos se reescriben igual que los anteriores.
 - El diseño de origen está en `docs/diseno/`; el conversor (`scripts/diseno-a-react`) quedó retirado.
 
 ## 4. Variables de entorno

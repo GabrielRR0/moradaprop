@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '@/common/prisma';
 import { STORAGE_PROVIDER, type StorageProvider } from '@/common/storage';
-import { AppointmentVault, UserVault } from '@/modules/security';
+import { AppointmentMessageVault, AppointmentVault, UserVault } from '@/modules/security';
 import { DbSupport } from '@/support/db';
 import type { ListAppointmentsDto } from '../../contracts/dto/list-appointments.dto';
 import type {
@@ -22,6 +22,7 @@ export class AppointmentReaderService {
     private readonly prisma: PrismaService,
     private readonly vault: UserVault,
     private readonly appointmentVault: AppointmentVault,
+    private readonly messageVault: AppointmentMessageVault,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
   ) {}
 
@@ -51,7 +52,7 @@ export class AppointmentReaderService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const [rows, total] = await this.prisma.$transaction([
-      this.prisma.appointment.findMany({ where, include: appointmentInclude, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.appointment.findMany({ where, include: appointmentInclude, orderBy: { lastMessageAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       this.prisma.appointment.count({ where }),
     ]);
     return { items: rows.map((row) => toView(this.decode(row), this.storage)), total, page, limit };
@@ -63,6 +64,10 @@ export class AppointmentReaderService {
   }
 
   private decode(row: AppointmentRow): AppointmentRow {
-    return { ...this.appointmentVault.decode(row), client: this.vault.decode(row.client) };
+    return {
+      ...this.appointmentVault.decode(row),
+      client: this.vault.decode(row.client),
+      messages: row.messages.map((message) => this.messageVault.decode(message)),
+    };
   }
 }

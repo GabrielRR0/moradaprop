@@ -342,6 +342,30 @@ export const ICON_PATHS = {
       <path d="M11 18h2" />
     </>
   ),
+  send: (
+    <>
+      <path d="M22 2L11 13" />
+      <path d="M22 2l-7 20-4-9-9-4z" />
+    </>
+  ),
+  message: (
+    <>
+      <path d="M21 12a8 8 0 01-11.8 7L3 21l1.9-5.5A8 8 0 1121 12z" />
+      <path d="M8.500 11h7M8.500 14.500h4" />
+    </>
+  ),
+  help: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.600 9.500a2.500 2.500 0 114 2c-.9.6-1.600 1.100-1.600 2.200M12 17.200h.01" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.500 2" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof ICON_PATHS;

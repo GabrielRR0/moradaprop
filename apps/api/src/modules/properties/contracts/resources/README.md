@@ -4,8 +4,8 @@ Lo que **sale** del módulo. Así como `../dto/` dice qué entra, aquí cada arc
 | Archivo | Respuesta | La usan |
 |---|---|---|
 | property-image.resource.ts | una foto con sus 3 tamaños | tarjeta y ficha |
-| property-card.resource.ts | tarjeta de listado | búsqueda, mine, favoritos |
-| property-detail.resource.ts | ficha completa | detalle, crear, editar, estado, agente |
+| property-card.resource.ts | tarjeta de listado (incluye `acceptsVisits`: false = reservada del todo) | búsqueda, mine, favoritos |
+| property-detail.resource.ts | ficha completa; suma `hasScheduledVisit` (hay una visita acordada, sin decir el día) y `whatsapp` (solo con sesión) | detalle, crear, editar, estado, agente |
 | property-list.resource.ts | página de tarjetas (`items`, `total`, `page`, `limit`) | búsqueda, mine |
 | property-map.resource.ts | pines y clusters del mapa | mapa |
 | rent-stats.resource.ts | alquiler típico por estado | rent-stats |

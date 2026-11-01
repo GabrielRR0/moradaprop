@@ -49,14 +49,13 @@ describe('Citas y apartados (e2e)', () => {
   });
 
   describeCase('solicitar cita (e2e)', {
-    que: 'valida la fecha de la visita: obligatoria, futura y dentro de 90 dias',
-    espera: '400 sin fecha, 400 con fecha pasada, 400 a 200 dias',
+    que: 'la fecha de la visita ya no es obligatoria (el dueno propone fechas), pero si viene debe ser futura y dentro de 90 dias',
+    espera: '400 con fecha pasada, 400 a 200 dias',
     ejecutar: async () => [
-      (await c1('post')('/api/appointments').send({ propertyId: propiedadId, type: 'VISITA' })).status,
       (await c1('post')('/api/appointments').send({ propertyId: propiedadId, type: 'VISITA', scheduledAt: enDias(-1) })).status,
       (await c1('post')('/api/appointments').send({ propertyId: propiedadId, type: 'VISITA', scheduledAt: enDias(200) })).status,
     ],
-    verificar: (estados) => expect(estados).toEqual([400, 400, 400]),
+    verificar: (estados) => expect(estados).toEqual([400, 400]),
   });
 
   describeCase('solicitar cita (e2e)', {

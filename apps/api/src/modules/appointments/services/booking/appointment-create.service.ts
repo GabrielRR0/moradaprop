@@ -1,18 +1,20 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { AppConfig } from '@/config';
 import { MailSupport } from '@/support/mail';
 import { PrismaService } from '@/common/prisma';
 import type { AuthUserContext, RequestContext } from '@/common/security/types';
-import { STORAGE_PROVIDER, type StorageProvider } from '@/common/storage';
 import { AuditService } from '@/modules/audit';
-import { AppointmentVault, UserVault } from '@/modules/security';
+import { AppointmentMessageVault, AppointmentVault, UserVault } from '@/modules/security';
 import { PropertyPolicyService } from '@/modules/properties';
 import type { CreateAppointmentDto } from '../../contracts/dto/create-appointment.dto';
 import type { AppointmentClientResource } from '../../contracts/resources';
-import { appointmentInclude, toClientView } from '../../utils/appointment-mapper';
+import { assertVisitDate } from '../../utils/conversation';
+import { AppointmentReaderService } from '../reader/appointment-reader.service';
 
-const MAX_DAYS_AHEAD = 90;
 const MAX_PENDING_PER_USER = 10;
+/** Como se nombra cada tipo en el correo al anunciante. */
+const KIND_LABEL: Record<CreateAppointmentDto['type'], string> = { VISITA: 'visita', RESERVA: 'apartado', INTERES: 'interes', PREGUNTA: 'pregunta' };
 
 @Injectable()
 export class AppointmentCreateService {
@@ -24,7 +26,8 @@ export class AppointmentCreateService {
     private readonly config: AppConfig,
     private readonly vault: UserVault,
     private readonly appointmentVault: AppointmentVault,
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    private readonly messageVault: AppointmentMessageVault,
+    private readonly reader: AppointmentReaderService,
   ) {}
 
   /** El solicitante sale del token. Crea el lead y avisa por correo a quien gestiona la propiedad. */
@@ -35,11 +38,14 @@ export class AppointmentCreateService {
     });
     if (!property) throw new NotFoundException('Propiedad no encontrada');
 
-    // Una reserva solo se pide sobre una propiedad libre; una visita tambien sobre la reservada.
+    // Una reserva solo se pide sobre una propiedad libre; lo demas tambien sobre la reservada.
     const allowed = dto.type === 'RESERVA' ? ['PUBLICADA'] : ['PUBLICADA', 'RESERVADA'];
     if (!allowed.includes(property.status)) {
       throw new BadRequestException('Esta propiedad no admite esa solicitud en este momento');
     }
+    // Reservada del todo: quien la gestiona ya no quiere recibir mas citas.
+    if (!property.acceptsVisits) throw new BadRequestException('Esta propiedad esta reservada y ya no recibe solicitudes');
+    if (dto.type === 'PREGUNTA' && !dto.message) throw new BadRequestException('Escribe tu pregunta');
     if (await this.policy.canManage(user, property)) {
       throw new ForbiddenException('No puedes solicitar una cita en tu propia propiedad');
     }
@@ -65,8 +71,10 @@ export class AppointmentCreateService {
         contactName,
         contactPhone,
         preferredChannel: channel,
+        clientSeenAt: new Date(),
+        // El primer mensaje abre la conversacion.
+        ...(dto.message ? { messages: { create: this.messageVault.encode({ id: randomUUID(), authorId: user.id, body: dto.message }) } } : {}),
       }),
-      include: appointmentInclude,
     });
 
     // Aviso a quien gestiona la propiedad (dueno y/o agente asignado).
@@ -76,9 +84,9 @@ export class AppointmentCreateService {
         this.mail.send(email, {
           name: 'appointment-new',
           propertyTitle: property.title,
-          kind: dto.type === 'VISITA' ? 'visita' : 'apartado',
+          kind: KIND_LABEL[dto.type],
           clientName: contactName,
-          link: `${this.config.app.frontendUrl}/dashboard/appointments/${created.id}`,
+          link: `${this.config.app.frontendUrl}/mensajes/${created.id}`,
         }),
       ),
     );
@@ -91,24 +99,22 @@ export class AppointmentCreateService {
       userAgent: context.userAgent,
       metadata: { propertyId: property.id, type: dto.type },
     });
-    return toClientView(this.appointmentVault.decode(created), this.storage);
+    // Se vuelve a leer ya descifrado (contacto y mensajes viajan cifrados en la base).
+    return this.reader.asClient(created.id);
   }
 
-  /** VISITA exige una fecha futura (maximo 90 dias); RESERVA no lleva fecha. */
+  /** La fecha es opcional (el cliente ya no la elige: el anunciante propone fechas y el cliente acepta una); si viene, debe ser valida. */
   private parseSchedule(dto: CreateAppointmentDto): Date | undefined {
-    if (dto.type === 'RESERVA') return undefined;
-    if (!dto.scheduledAt) throw new BadRequestException('Indica la fecha y hora de la visita');
+    if (!dto.scheduledAt || dto.type !== 'VISITA') return undefined;
     const date = new Date(dto.scheduledAt);
-    const limit = Date.now() + MAX_DAYS_AHEAD * 24 * 60 * 60 * 1000;
-    if (date.getTime() <= Date.now()) throw new BadRequestException('La fecha de la visita debe ser futura');
-    if (date.getTime() > limit) throw new BadRequestException(`La visita debe ser dentro de los proximos ${MAX_DAYS_AHEAD} dias`);
+    assertVisitDate(date);
     return date;
   }
 
-  /** Evita duplicados (misma propiedad y tipo) y el abuso de solicitudes pendientes. */
+  /** Evita duplicados (misma propiedad y tipo) y el abuso de solicitudes sin cerrar. */
   private async assertNoSpam(userId: string, propertyId: string, type: CreateAppointmentDto['type']) {
     const pending = await this.prisma.appointment.findMany({
-      where: { clientId: userId, status: 'PENDIENTE' },
+      where: { clientId: userId, status: { in: ['PENDIENTE', 'ABIERTA'] } },
       select: { propertyId: true, type: true },
     });
     if (pending.some((p) => p.propertyId === propertyId && p.type === type)) {

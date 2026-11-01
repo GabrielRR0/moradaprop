@@ -79,16 +79,38 @@ enum Currency {
 }
 
 enum AppointmentType {
+  /// quiere ver la propiedad; el dueno propone fechas y el cliente acepta una
   VISITA
   RESERVA
+  /// solo avisa que le interesa
+  INTERES
+  /// una duda antes de decidir
+  PREGUNTA
 }
 
 enum AppointmentStatus {
   PENDIENTE
+  /// el dueno ya respondio: hay conversacion
+  ABIERTA
   CONFIRMADA
   RECHAZADA
   CANCELADA
   COMPLETADA
+}
+
+/// Que es un mensaje de la conversacion de una solicitud
+enum MessageKind {
+  TEXTO
+  /// el dueno ofrece fechas de visita (lleva AppointmentSlot)
+  PROPUESTA
+  /// aviso del sistema: el cliente acepto una fecha
+  ACUERDO
+}
+
+enum SlotStatus {
+  PROPUESTA
+  ACEPTADA
+  DESCARTADA
 }
 
 enum ContactChannel {
@@ -108,35 +130,35 @@ enum ImportStatus {
 // ---------------------------------------------------------------
 
 model User {
-  id                String     @id @default(uuid())
+  id                       String     @id @default(uuid())
   /// cifrado (security/encryption); se busca por emailHash
-  email             String
+  email                    String
   /// HMAC del correo normalizado: login y unicidad sin guardar el correo en claro
-  emailHash         String     @unique
+  emailHash                String     @unique
   /// HMAC de prefijos de nombre y correo: buscador del admin sin texto en claro
-  searchTokens      String[]   @default([])
+  searchTokens             String[]   @default([])
   /// null cuando la cuenta se creo solo con Google
-  passwordHash      String?
+  passwordHash             String?
   /// cifrado
-  name              String
+  name                     String
   /// cifrado
-  phone             String?
-  avatarUrl         String?
-  roles             Role[]     @default([CLIENT])
-  status            UserStatus @default(ACTIVE)
-  emailVerifiedAt   DateTime?
-  twoFactorEnabled  Boolean    @default(false)
+  phone                    String?
+  avatarUrl                String?
+  roles                    Role[]     @default([CLIENT])
+  status                   UserStatus @default(ACTIVE)
+  emailVerifiedAt          DateTime?
+  twoFactorEnabled         Boolean    @default(false)
   /// secreto TOTP cifrado (nunca en claro)
-  twoFactorSecret   String?
+  twoFactorSecret          String?
   /// ultimo paso TOTP aceptado: impide reutilizar el mismo codigo (anti-replay)
-  twoFactorLastStep Int?
+  twoFactorLastStep        Int?
   /// desde cuando debe tener passkey o 2FA (admin, duenos y agencias); null = aun no empezo el plazo (security/second-factor)
   secondFactorRequiredFrom DateTime?
-  failedLogins      Int        @default(0)
-  lockedUntil       DateTime?
-  lastLoginAt       DateTime?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  failedLogins             Int        @default(0)
+  lockedUntil              DateTime?
+  lastLoginAt              DateTime?
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
 
   socialAccounts     SocialAccount[]
   sessions           Session[]
@@ -147,6 +169,7 @@ model User {
   assignedProperties Property[]            @relation("PropertyAgent")
   favorites          Favorite[]
   appointments       Appointment[]         @relation("AppointmentClient")
+  replyTemplates     ReplyTemplate[]       @relation("ReplyTemplateOwner")
   auditLogs          AuditLog[]
   imports            ImportJob[]
   trustedDevices     TrustedDevice[]
@@ -355,9 +378,10 @@ model AgencyProfile {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  members    AgencyMember[]
-  properties Property[]
-  imports    ImportJob[]
+  members        AgencyMember[]
+  properties     Property[]
+  imports        ImportJob[]
+  replyTemplates ReplyTemplate[]
 }
 
 model AgencyMember {
@@ -395,12 +419,14 @@ model Property {
   priceAmount Decimal  @db.Decimal(12, 2)
   currency    Currency @default(USD)
 
-  bedrooms     Int      @default(0)
-  bathrooms    Int      @default(0)
-  parkingSpots Int      @default(0)
-  areaM2       Decimal? @db.Decimal(10, 2)
-  furnished    Boolean  @default(false)
-  petsAllowed  Boolean  @default(false)
+  bedrooms      Int      @default(0)
+  bathrooms     Int      @default(0)
+  parkingSpots  Int      @default(0)
+  areaM2        Decimal? @db.Decimal(10, 2)
+  furnished     Boolean  @default(false)
+  petsAllowed   Boolean  @default(false)
+  /// false = reservada del todo: ya no se piden citas ni visitas
+  acceptsVisits Boolean  @default(true)
 
   // Ubicacion
   state        String
@@ -493,14 +519,75 @@ model Appointment {
   /// cifrado
   responseNote     String?
   respondedAt      DateTime?
+  /// ultimo mensaje de la conversacion: ordena la bandeja por actividad
+  lastMessageAt    DateTime          @default(now())
+  /// ultima vez que el cliente abrio la conversacion (para el aviso de mensaje nuevo)
+  clientSeenAt     DateTime?
+  /// ultima vez que quien gestiona la abrio
+  managerSeenAt    DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
-  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  client   User     @relation("AppointmentClient", fields: [clientId], references: [id])
+  property Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  client   User                 @relation("AppointmentClient", fields: [clientId], references: [id])
+  messages AppointmentMessage[]
+  slots    AppointmentSlot[]
 
   @@index([propertyId, status])
   @@index([clientId])
+}
+
+/// Un mensaje de la conversacion de una solicitud (cliente <-> quien gestiona la propiedad)
+model AppointmentMessage {
+  id            String      @id @default(uuid())
+  appointmentId String
+  authorId      String
+  kind          MessageKind @default(TEXTO)
+  /// cifrado
+  body          String
+  createdAt     DateTime    @default(now())
+  /// null = nunca se edito
+  editedAt      DateTime?
+
+  appointment Appointment       @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  slots       AppointmentSlot[]
+
+  @@index([appointmentId, createdAt])
+}
+
+/// Una fecha que el dueno ofrece para la visita; el cliente acepta una y las demas se descartan
+model AppointmentSlot {
+  id            String     @id @default(uuid())
+  appointmentId String
+  messageId     String
+  startsAt      DateTime
+  status        SlotStatus @default(PROPUESTA)
+
+  appointment Appointment        @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  message     AppointmentMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, status])
+  @@index([messageId])
+}
+
+/// Texto reutilizable para responder mensajes: privado (solo su autor) o compartido con todo el equipo de la inmobiliaria
+model ReplyTemplate {
+  id          String   @id @default(uuid())
+  ownerUserId String
+  /// null = privado; con valor, lo ve todo el equipo de esa inmobiliaria
+  agencyId    String?
+  /// cifrado y ligado a su fila
+  title       String
+  /// cifrado y ligado a su fila
+  body        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner  User           @relation("ReplyTemplateOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  agency AgencyProfile? @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@index([ownerUserId])
+  @@index([agencyId])
 }
 
 // ---------------------------------------------------------------

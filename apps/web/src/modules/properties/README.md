@@ -1,6 +1,6 @@
 # Módulo `properties`
 
-Ficha de propiedad para el cliente: galería, datos, servicios, mapa de zona aproximada, agente, WhatsApp, agenda de visitas y propiedades parecidas.
+Ficha de propiedad para el cliente: galería, datos, servicios, mapa de zona aproximada, agente, contacto con el anunciante (interesado, pregunta, visita y WhatsApp) y propiedades parecidas.
 
 ## Qué contiene
 
@@ -17,8 +17,10 @@ properties/
   hooks/                   # lógica de cada pantalla (estado, datos de ejemplo, handlers)
 ```
 
-- `hooks/usePropertyScreen.ts` — estado y datos de ejemplo de `PropertyScreen`.
-- `hooks/usePropertyMobileScreen.ts` — estado y datos de ejemplo de `PropertyMobileScreen`.
+- `hooks/usePropertyBooking.ts` — carga la propiedad del API, favoritos y propiedades parecidas (lo comparten escritorio y móvil).
+- `hooks/usePropertyContact.ts` — escribirle al anunciante: qué se puede hacer según el estado de la propiedad, el mensaje y su envío. Las opciones están en `hooks/contact-options.ts`.
+- `hooks/usePropertyScreen.ts` y `hooks/usePropertyMobileScreen.ts` — lo propio de cada pantalla.
+- `components/ContactPanel/` — los botones **Estoy interesado**, **Tengo una pregunta**, **Pedir una visita**, WhatsApp y Apartar, y la ventana para escribir. El cliente nunca elige fecha: el anunciante propone y el cliente acepta (ver `modules/inbox`).
 
 ## Cómo funciona
 

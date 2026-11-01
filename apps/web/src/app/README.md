@@ -9,6 +9,9 @@ App Router. Cada `page.tsx` solo importa la página de su módulo (`@/modules/<m
 | `/filtros`           | `map`              | Filtros avanzados                                                   |
 | `/registro`          | `auth`             | Registro de cuenta                                                  |
 | `/publicar`          | `publish`          | Publicar propiedad (6 pasos)                                        |
+| `/mensajes`          | `inbox`            | Bandeja de mensajes (enviados y recibidos)                          |
+| `/mensajes/[id]`     | `inbox`            | Una conversación (responder, proponer y aceptar fechas)             |
+| `/mensajes/respuestas` | `inbox`          | Respuestas guardadas (privadas o del equipo)                        |
 | `/panel`             | `dashboard-agency` | Resumen de la inmobiliaria                                          |
 | `/panel/propiedades` | `dashboard-agency` | Inventario                                                          |
 | `/panel/importar`    | `dashboard-agency` | Importar desde Excel                                                |

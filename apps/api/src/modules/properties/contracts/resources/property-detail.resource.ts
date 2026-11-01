@@ -19,6 +19,10 @@ export interface PropertyDetailResource extends PropertyCardResource {
   publishedBy: PropertyPublisherResource;
   /** La tiene en favoritos quien consulta (false si no hay sesión). */
   isFavorite: boolean;
+  /** Tiene una visita ya acordada (no se dice el dia: solo que alguien ya la va a ver). */
+  hasScheduledVisit: boolean;
+  /** WhatsApp del anunciante para escribirle directo; solo se entrega a quien tiene sesion (null si no la hay o no tiene). */
+  whatsapp: string | null;
   /** Quien consulta puede editarla o gestionarla. */
   canManage: boolean;
   createdAt: Date;

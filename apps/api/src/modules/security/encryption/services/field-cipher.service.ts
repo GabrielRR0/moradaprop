@@ -5,32 +5,37 @@ import { KeyRingService } from './key-ring.service';
 
 const PREFIX = /^v\d+\./;
 
+/** Dato autenticado del cifrado: el campo y, si hay, la fila a la que pertenece el valor. */
+const aad = (field: string, context?: string) => Buffer.from(context ? `${field}|${context}` : field);
+
 /**
  * Cifra y descifra valores de columnas (AES-256-GCM).
  * Formato guardado: `v<N>.iv.tag.dato` (base64url). La version permite rotar claves;
  * el campo ("User.email") va como AAD: un valor copiado a otra columna no descifra.
+ * Con `context` (el id de la fila) tambien va como AAD: un texto copiado a OTRA fila de la misma columna
+ * tampoco descifra. El contexto solo autentica; no cambia la clave (el llavero no guarda una clave por fila).
  */
 @Injectable()
 export class FieldCipher {
   constructor(private readonly keys: KeyRingService) {}
 
-  encrypt(field: EncryptedField, plain: string): string {
+  encrypt(field: EncryptedField, plain: string, context?: string): string {
     const version = this.keys.activeVersion;
     const iv = randomBytes(12);
     const cipher = createCipheriv('aes-256-gcm', this.keys.key(version, 'enc', field), iv);
-    cipher.setAAD(Buffer.from(field));
+    cipher.setAAD(aad(field, context));
     const data = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
     return `${version}.${[iv, cipher.getAuthTag(), data].map((b) => b.toString('base64url')).join('.')}`;
   }
 
-  decrypt(field: EncryptedField, payload: string): string {
+  decrypt(field: EncryptedField, payload: string, context?: string): string {
     const [version, ...parts] = payload.split('.');
     if (!PREFIX.test(`${version}.`) || parts.length !== 3 || !this.keys.has(version)) {
       throw new Error(`Valor cifrado invalido en ${field}`);
     }
     const [iv, tag, data] = parts.map((p) => Buffer.from(p, 'base64url'));
     const decipher = createDecipheriv('aes-256-gcm', this.keys.key(version, 'enc', field), iv);
-    decipher.setAAD(Buffer.from(field));
+    decipher.setAAD(aad(field, context));
     decipher.setAuthTag(tag);
     return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
   }

@@ -5,9 +5,11 @@ import './propertyscreen.css';
 import { usePropertyScreen } from '../../hooks/usePropertyScreen';
 import { PropertyBooking } from './PropertyBooking';
 import { Icon } from '@/components/icons';
+import { useSession } from '@/modules/auth';
 
 export function PropertyScreen() {
   const v = usePropertyScreen();
+  const { status } = useSession();
   return (
     <div
       className="ds-propertyscreen"
@@ -57,10 +59,18 @@ export function PropertyScreen() {
           </span>
           {` ${brand.name} `}
         </Link>
-        <Link href="/mapa" className="btn2">
-          <Icon name="chevron-left" size={16} strokeWidth={2.6} />
-          {' Volver al mapa'}
-        </Link>
+        <span style={{ display: 'flex', gap: '8px' }}>
+          {status === 'authed' && (
+            <Link href="/mensajes" className="btn2">
+              <Icon name="message" size={16} />
+              {' Mensajes'}
+            </Link>
+          )}
+          <Link href="/mapa" className="btn2">
+            <Icon name="chevron-left" size={16} strokeWidth={2.6} />
+            {' Volver al mapa'}
+          </Link>
+        </span>
       </header>
       {v.property ? (
         <PropertyBooking v={v} p={v.property} />

@@ -41,6 +41,9 @@ export const setAccessToken = (token: string | null) => {
 };
 export const hasAccessToken = () => accessToken !== null;
 
+/** Cabecera de sesion para las pocas rutas publicas que responden distinto con sesion (ficha de propiedad); vacia si no hay. */
+export const authHeader = (): Record<string, string> => (accessToken ? { authorization: `Bearer ${accessToken}` } : {});
+
 type RequestOptions = Omit<RequestInit, 'body'> & { json?: unknown };
 
 async function raw<T>(path: string, { json, headers, ...init }: RequestOptions = {}): Promise<T> {

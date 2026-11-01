@@ -14,10 +14,12 @@ export {
   FootprintKind,
   ImportStatus,
   InvitationStatus,
+  MessageKind,
   PasskeyChallengeKind,
   PropertyStatus,
   PropertyType,
   Role,
+  SlotStatus,
   UserStatus,
   VerificationType,
 } from '@prisma/client';

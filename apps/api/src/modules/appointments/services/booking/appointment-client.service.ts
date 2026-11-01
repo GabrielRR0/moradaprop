@@ -5,6 +5,7 @@ import { AuditService } from '@/modules/audit';
 import { OwnershipService } from '@/modules/security';
 import type { ListAppointmentsDto } from '../../contracts/dto/list-appointments.dto';
 import type { AppointmentClientListResource, AppointmentClientResource } from '../../contracts/resources';
+import { OPEN_STATUSES } from '../../utils/conversation';
 import { AppointmentPolicy } from '../access/appointment.policy';
 import { AppointmentReaderService } from '../reader/appointment-reader.service';
 
@@ -26,18 +27,18 @@ export class AppointmentClientService {
   /** El cliente cancela su solicitud. Si cancela un apartado confirmado, la propiedad vuelve a publicarse. */
   async cancel(user: AuthUserContext, id: string, context: RequestContext): Promise<AppointmentClientResource> {
     const appointment = await this.ownership.require(this.access, user, id, 'cancel', context);
-    if (!['PENDIENTE', 'CONFIRMADA'].includes(appointment.status)) {
+    if (!OPEN_STATUSES.includes(appointment.status)) {
       throw new BadRequestException('Esta solicitud ya no se puede cancelar');
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.appointment.update({ where: { id }, data: { status: 'CANCELADA' } });
+      await tx.appointment.update({ where: { id }, data: { status: 'CANCELADA', clientSeenAt: new Date(), lastMessageAt: new Date() } });
       if (appointment.type === 'RESERVA' && appointment.status === 'CONFIRMADA') {
         const otherActive = await tx.appointment.count({
           where: { propertyId: appointment.propertyId, type: 'RESERVA', status: 'CONFIRMADA', id: { not: id } },
         });
         if (otherActive === 0) {
-          await tx.property.updateMany({ where: { id: appointment.propertyId, status: 'RESERVADA' }, data: { status: 'PUBLICADA' } });
+          await tx.property.updateMany({ where: { id: appointment.propertyId, status: 'RESERVADA' }, data: { status: 'PUBLICADA', acceptsVisits: true } });
         }
       }
     });

@@ -63,16 +63,29 @@ export class PropertyWriteService {
     return updated;
   }
 
-  async changeStatus(user: AuthUserContext, id: string, status: DbSupport.PropertyStatus, context: RequestContext): Promise<DbSupport.Property> {
+  async changeStatus(
+    user: AuthUserContext,
+    id: string,
+    status: DbSupport.PropertyStatus,
+    acceptsVisits: boolean | undefined,
+    context: RequestContext,
+  ): Promise<DbSupport.Property> {
     const property = await this.findManaged(user, id, context);
-    if (!TRANSITIONS[property.status].includes(status)) {
+    // Reservada -> reservada solo cambia si aun se aceptan citas (reservada con citas <-> reservada del todo).
+    const retune = property.status === 'RESERVADA' && status === 'RESERVADA';
+    if (!retune && !TRANSITIONS[property.status].includes(status)) {
       throw new BadRequestException(`No se puede pasar de ${property.status} a ${status}`);
     }
     const updated = await this.prisma.property.update({
       where: { id },
-      data: { status, publishedAt: status === 'PUBLICADA' ? (property.publishedAt ?? new Date()) : undefined },
+      data: {
+        status,
+        publishedAt: status === 'PUBLICADA' ? (property.publishedAt ?? new Date()) : undefined,
+        // Disponible siempre acepta citas; al reservarla el dueno elige si aun se pueden pedir.
+        acceptsVisits: status === 'PUBLICADA' ? true : acceptsVisits,
+      },
     });
-    await this.log('properties.status.changed', user, id, context, { from: property.status, to: status });
+    await this.log('properties.status.changed', user, id, context, { from: property.status, to: status, acceptsVisits });
     return updated;
   }
 

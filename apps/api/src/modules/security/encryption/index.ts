@@ -7,4 +7,6 @@ export { UserVault, type UserPersonalData } from './vaults/user.vault';
 export { SocialAccountVault } from './vaults/social-account.vault';
 export { SessionVault } from './vaults/session.vault';
 export { AppointmentVault } from './vaults/appointment.vault';
+export { AppointmentMessageVault } from './vaults/appointment-message.vault';
+export { ReplyTemplateVault } from './vaults/reply-template.vault';
 export { AgencyVault } from './vaults/agency.vault';

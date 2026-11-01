@@ -1,5 +1,4 @@
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
 import {
   amenityTags,
   formatPrice,
@@ -11,10 +10,8 @@ import {
   useFavorites,
   type PropertyDetail,
 } from '@/lib/properties';
-import { toast } from '@/lib/toast';
 import { useSession } from '@/modules/auth';
 import { QuerySupport } from '@/support/query';
-import { VISIT_DAYS } from './property-data';
 
 const STATUS_LABEL: Record<string, string> = {
   PUBLICADA: 'Disponible',
@@ -32,6 +29,12 @@ function describe(p: PropertyDetail) {
     id: p.id,
     title: p.title,
     status: STATUS_LABEL[p.status] ?? p.status,
+    rawStatus: p.status,
+    // Lo que decide que se puede hacer desde la ficha (escribir, apartar, ver el WhatsApp).
+    acceptsVisits: p.acceptsVisits !== false,
+    hasScheduledVisit: p.hasScheduledVisit === true,
+    whatsapp: p.whatsapp ?? null,
+    canManage: p.canManage === true,
     price: formatPrice(p.priceAmount, p.currency),
     place: placeOf(p),
     bedrooms: p.bedrooms,
@@ -46,17 +49,17 @@ function describe(p: PropertyDetail) {
 
 /**
  * Lo que se puede hacer en la ficha, compartido por escritorio y teléfono:
- * cargar la propiedad del API, guardarla en favoritos, elegir el día de la visita y pedirla.
- * `dayClass` es la clase base de los botones de día ("chip" en escritorio, "day" en teléfono).
+ * cargar la propiedad del API, guardarla en favoritos y listar las parecidas.
+ * (Escribirle al anunciante vive en `usePropertyContact`.)
  */
-export function usePropertyBooking(dayClass: string) {
+export function usePropertyBooking() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { status } = useSession();
-  const [dayIndex, setDayIndex] = useState(1);
 
   const query = QuerySupport.useQuery({
-    queryKey: ['property', id],
+    // La ficha cambia segun la sesion (WhatsApp, favorito, si es suya): al iniciar sesion se vuelve a pedir.
+    queryKey: ['property', id, status === 'authed'],
     queryFn: ({ signal }) => propertyService.detail(id, signal),
     staleTime: 60_000,
   });
@@ -100,14 +103,6 @@ export function usePropertyBooking(dayClass: string) {
     isFavorite,
     toggleFavorite: () => favorites.toggle(id),
 
-    visitDays: VISIT_DAYS.map((day, index) => ({
-      name: day.name,
-      number: day.number,
-      className: index === dayIndex ? `${dayClass} on` : dayClass,
-      choose: () => setDayIndex(index),
-    })),
-    selectedDayName: VISIT_DAYS[dayIndex].name,
-    requestVisit: () => toast('Solicitud de visita enviada. El agente te confirmará.'),
   };
 }
 

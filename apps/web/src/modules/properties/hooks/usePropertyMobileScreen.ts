@@ -4,7 +4,7 @@ import { usePropertyBooking } from './usePropertyBooking';
 
 /** Ficha en el teléfono: lo común más el carrusel de fotos (o una foto de reemplazo si no hay). */
 export function usePropertyMobileScreen() {
-  const booking = usePropertyBooking('day');
+  const booking = usePropertyBooking();
   const photos = booking.property?.photos ?? [];
 
   return {

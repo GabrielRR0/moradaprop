@@ -110,7 +110,7 @@ export function PropertyMobileScreen() {
             ))}
         </span>
         {v.property ? (
-          <PropertyMobileDetails v={v} p={v.property} />
+          <PropertyMobileDetails p={v.property} />
         ) : (
           <p style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--muted)' }}>
             {v.loading ? 'Cargando propiedad…' : 'No pudimos cargar esta propiedad.'}

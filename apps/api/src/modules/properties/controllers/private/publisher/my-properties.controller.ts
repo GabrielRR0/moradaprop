@@ -56,7 +56,7 @@ export class MyPropertiesController {
     @CurrentUser() user: AuthUserContext,
     @RequestInfo() ctx: RequestContext,
   ): Promise<PropertyDetailResource> {
-    return this.propertiesService.changeStatus(user, id, dto.status, ctx);
+    return this.propertiesService.changeStatus(user, id, dto.status, dto.acceptsVisits, ctx);
   }
 
   // Excepcion: solo agencia y admin asignan agentes.

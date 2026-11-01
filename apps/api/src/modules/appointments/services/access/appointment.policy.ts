@@ -9,8 +9,9 @@ export type AppointmentWithProperty = DbSupport.Prisma.AppointmentGetPayload<{ i
 
 /**
  * Pertenencia de una cita para OwnershipService.
- *   cancel            -> el cliente que la pidio
- *   respond, complete -> quien gestiona la propiedad
+ *   cancel, accept                    -> el cliente que la pidio
+ *   view, write                       -> el cliente o quien gestiona la propiedad (la conversacion)
+ *   respond, complete, propose, close -> quien gestiona la propiedad
  * Quien no cumple recibe 404: el id de una cita no es publico y no se confirma que existe.
  */
 @Injectable()
@@ -27,12 +28,19 @@ export class AppointmentPolicy implements ResourcePolicy<AppointmentWithProperty
     return this.prisma.appointment.findUnique({ where: { id }, include: { property: true } });
   }
 
-  can(user: AuthUserContext, appointment: AppointmentWithProperty, action: string) {
+  can(user: AuthUserContext, appointment: AppointmentWithProperty, action: string): boolean | Promise<boolean> {
+    const isClient = appointment.clientId === user.id;
     switch (action) {
       case 'cancel':
-        return appointment.clientId === user.id;
+      case 'accept':
+        return isClient;
+      case 'view':
+      case 'write':
+        return isClient || this.properties.canManage(user, appointment.property);
       case 'respond':
       case 'complete':
+      case 'propose':
+      case 'close':
         return this.properties.canManage(user, appointment.property);
       default:
         return false;

@@ -4,13 +4,15 @@ import { BlindIndexService } from './services/blind-index.service';
 import { FieldCipher } from './services/field-cipher.service';
 import { KeyRingService } from './services/key-ring.service';
 import { AgencyVault } from './vaults/agency.vault';
+import { AppointmentMessageVault } from './vaults/appointment-message.vault';
 import { AppointmentVault } from './vaults/appointment.vault';
+import { ReplyTemplateVault } from './vaults/reply-template.vault';
 import { SessionVault } from './vaults/session.vault';
 import { SocialAccountVault } from './vaults/social-account.vault';
 import { UserVault } from './vaults/user.vault';
 
 /** Un vault por entidad: para cifrar otra, crear vaults/<entidad>.vault.ts y sumarlo a VAULTS. */
-const VAULTS = [UserVault, SocialAccountVault, SessionVault, AppointmentVault, AgencyVault];
+const VAULTS = [UserVault, SocialAccountVault, SessionVault, AppointmentVault, AppointmentMessageVault, ReplyTemplateVault, AgencyVault];
 
 /** Le da a auditoria el hash de la IP de cada evento (para filtrar el visor por IP). */
 const auditIpIndex = {

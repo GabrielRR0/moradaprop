@@ -58,9 +58,10 @@ export class PropertiesService {
     user: AuthUserContext,
     id: string,
     status: DbSupport.PropertyStatus,
+    acceptsVisits: boolean | undefined,
     ctx: RequestContext,
   ): Promise<PropertyDetailResource> {
-    await this.writer.changeStatus(user, id, status, ctx);
+    await this.writer.changeStatus(user, id, status, acceptsVisits, ctx);
     return this.details.detail(id, user);
   }
   async assignAgent(

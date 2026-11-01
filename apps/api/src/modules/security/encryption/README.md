@@ -3,7 +3,7 @@ Mini módulo de `security`: guarda los datos personales **cifrados** en la DB pa
 
 **Piezas**
 - `services/key-ring.service.ts` — carga `ENCRYPTION_KEYS` (`v1:clave,v2:clave`) y deriva con HKDF una clave distinta por propósito (`enc` cifrar, `idx` indexar) y por campo.
-- `services/field-cipher.service.ts` — `FieldCipher`: `encrypt/decrypt(campo, valor)` (AES-256-GCM). Se guarda `v<N>.iv.tag.dato`; el campo (`User.email`) va como AAD, así un valor copiado a otra columna no descifra. También `encryptJson/decryptJson`, `decryptOrPlain` (migración) y `needsRotation`.
+- `services/field-cipher.service.ts` — `FieldCipher`: `encrypt/decrypt(campo, valor)` (AES-256-GCM). Se guarda `v<N>.iv.tag.dato`; el campo (`User.email`) va como AAD, así un valor copiado a otra columna no descifra. `encrypt/decrypt` aceptan además un `context` (el id de la fila) que también va como AAD y **no** cambia la clave: así un texto copiado a OTRA fila de la misma columna tampoco descifra, sin que el llavero guarde una clave por fila. También `encryptJson/decryptJson`, `decryptOrPlain` (migración) y `needsRotation`.
 - `services/blind-index.service.ts` — `BlindIndexService.hash(campo, valor, normalizador)`: HMAC determinista para buscar por igualdad y mantener `@unique` (`emailHash`, `rifHash`...) sin el valor en claro.
 - `vaults/` — un archivo por entidad (`user.vault.ts`): sabe qué campos de ese modelo se cifran, arma `encode` (datos para guardar), `decode` (descifrar) y los filtros de búsqueda. Usa el núcleo de arriba, que no conoce ningún modelo. Para cifrar otra entidad se crea `vaults/<entidad>.vault.ts` y se suma a `VAULTS` en `encryption.module.ts`.
 
@@ -12,6 +12,8 @@ Mini módulo de `security`: guarda los datos personales **cifrados** en la DB pa
 2. Al buscar por correo exacto: `where: { emailHash: vault.emailHash(email) }` (en auth, `UserAccountService.findByEmail`).
 3. Al buscar texto parcial (panel admin): `where: { ...vault.searchWhere(q) }`. `searchTokens` guarda HMAC de los prefijos (3 a 12 letras) de cada palabra del nombre y del correo; "ana.gonz" o "usuar" encuentran al usuario sin texto en claro. Todas las palabras escritas deben coincidir.
 4. Al leer: `vault.decode(row)`. También en las relaciones (`owner`, `client`, `user` de auditoría): una relación a User sale cifrada hasta pasarla por `decode`.
+
+**Ligado a la fila (mensajes y textos reutilizables).** Estos vaults piden el `id` de la fila al cifrar y al descifrar (`encode({ id: randomUUID(), body })`, `decode(row)`). Por eso el `id` se genera antes de guardar. Quien tenga acceso de escritura a la base no puede mover el texto de un mensaje a otro, ni de una conversación a otra: no descifra.
 
 **Qué NO se puede hacer con datos cifrados:** `contains`/`startsWith`/ordenar por `email`, `name` o `phone` en SQL. Se busca con los tokens; el orden va por fecha u otro campo no sensible.
 
@@ -22,6 +24,8 @@ Mini módulo de `security`: guarda los datos personales **cifrados** en la DB pa
 | SocialAccount (`social-account.vault.ts`) | email; `providerId` solo como HMAC | `providerId` (hash) |
 | Session (`session.vault.ts`) | ip, userAgent | — |
 | Appointment (`appointment.vault.ts`) | contactName, contactPhone, message, responseNote | — |
+| AppointmentMessage (`appointment-message.vault.ts`) | body (el texto de cada mensaje), **ligado a su fila** | — |
+| ReplyTemplate (`reply-template.vault.ts`) | title y body de cada texto reutilizable, ligados a su fila | — |
 | AgencyProfile / AgencyMember (`agency.vault.ts`) | legalName, rif, phone, whatsapp, invitedEmail | `rifHash`, `invitedEmailHash` |
 | AuditLog (directo con `FieldCipher`) | ip, userAgent, metadata (`{ enc }`) | — |
 | VerificationCode | payload guarda el HMAC del providerId, no el valor | — |

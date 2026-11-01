@@ -17,6 +17,7 @@ import { AuthModule } from './modules/auth';
 import { HealthModule } from './modules/health/health.module';
 import { ImportsModule } from './modules/imports';
 import { PropertiesModule } from './modules/properties';
+import { ReplyTemplatesModule } from './modules/reply-templates';
 import { SecurityModule } from './modules/security';
 import { SettingsModule } from './modules/settings';
 import { UsersModule } from './modules/users';
@@ -43,6 +44,7 @@ import { appRoutes } from './routes';
     PropertiesModule,
     AgenciesModule,
     AppointmentsModule,
+    ReplyTemplatesModule,
     ImportsModule,
     HealthModule,
     // Guards globales y rutas

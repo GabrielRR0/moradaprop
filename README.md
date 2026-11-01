@@ -1,122 +1,188 @@
 # Portal de Alquileres Venezuela
 
-Plataforma web y app móvil para publicar y buscar inmuebles en alquiler en Venezuela. Incluye búsqueda con mapa interactivo, filtros adaptados al mercado local, citas y reservas, y paneles para dueños, agencias y administración.
+Plataforma web para publicar y buscar inmuebles en alquiler en Venezuela. Está formada por una **API** (NestJS + PostgreSQL) y una **web** (Next.js). Los clientes buscan en un mapa interactivo, guardan favoritos y le escriben al anunciante desde la ficha; los dueños y las inmobiliarias reciben esos mensajes, proponen fechas de visita y gestionan su inventario; un administrador modera y audita.
 
-Este documento resume el alcance, la arquitectura y las decisiones técnicas del proyecto.
-
-## Nombre de la plataforma
-
-**Pendiente de definir.** "Portal de Alquileres Venezuela" y `proyectoAlquiler` son nombres provisionales. No hardcodear el nombre en el código: usar una variable en la config (`APP_NAME`) y un solo archivo de marca en el frontend, para cambiarlo fácilmente cuando se decida. El dominio y el branding (logo, paleta) también están pendientes y se definen junto con el diseño del frontend.
+> **Nombre pendiente.** "Portal de Alquileres Venezuela" y `proyectoAlquiler` son provisionales. El nombre sale de `NEXT_PUBLIC_APP_NAME` (web) y `APP_NAME` (API); los textos de marca están en `apps/web/src/config/brand.ts`. No lo escribas a mano en el código.
 
 ## Estado actual
 
-| Fase | Estado |
+| Parte | Estado |
 |---|---|
-| Planeación y arquitectura | Hecha (este documento) |
-| Fase 0 – Fundación | **Hecha** (monorepo, config, Docker, scripts, lint, tests) |
-| **Fase 1 – Backend (NestJS)** | **Hecha** (auth + 2FA + Google, seguridad, propiedades + mapa + imágenes, agencias, citas, importación Excel/CSV, GraphQL de lectura, caché; verificada con pruebas automáticas) |
-| Fase 2 – Web + diseño del frontend | **Pantallas listas con datos de ejemplo** (diseño en `docs/diseno/`, rutas en `apps/web/src/app/README.md`); falta conectar el API |
-| Fase 3 – App móvil (Expo) | Pendiente |
-| Fase 4 – Pulido | Pendiente |
+| **API** (`apps/api`) | **Completa y probada.** Autenticación (contraseña, passkeys, 2FA, Google), seguridad, propiedades con mapa e imágenes, agencias, citas con conversación, textos reutilizables, importación Excel/CSV, ajustes del panel, auditoría, GraphQL de lectura y caché. |
+| **Web conectada a la API** | Inicio, mapa y filtros, ficha de propiedad, favoritos, **mensajes** (bandeja, conversación y respuestas guardadas), registro, ingreso, recuperación de contraseña, verificación de correo y pantallas de seguridad de la cuenta. |
+| **Web con datos de ejemplo** (falta conectar) | Panel de inmobiliaria (`/panel/*`), publicar propiedad (`/publicar`) y moderación de anuncios (`/admin`). La pantalla existe y se ve completa, pero sus datos viven dentro del hook y no llaman a la API. Para publicar y para el panel la API ya tiene las rutas; **la moderación de anuncios todavía no existe en la API** (solo la gestión de usuarios, bloqueos, ajustes y auditoría). |
+| **App móvil** | No iniciada (no existe `apps/mobile`). La API ya acepta clientes móviles (`X-App-Client: mobile`). |
 
-**Frontend (Fase 2, avance):** las 22 pantallas del diseño (web + móvil + modo noche + color de marca variable) ya existen como React en `apps/web/src/modules/*`, con animaciones, avisos y navegación entre ellas. Los datos son de ejemplo (viven dentro de cada hook) y se reemplazarán por `services/` + TanStack Query al conectar la API. Diseño de origen y decisiones: `docs/diseno/README.md`. Cómo leer el código: `docs/GUIA-FRONTEND.md`.
-
-La Fase 0 está lista y verificada: `docker compose up` levanta db, redis, mailpit, api y web; la API responde en `/api/health`; los tests, el lint y el build pasan. El backend de la Fase 1 ya existe y está documentado en `docs/`. Pendiente en el backend: cola de trabajos (BullMQ), y probar Google y Supabase Storage con credenciales reales.
+**Pendiente en el backend:** cola de trabajos (los correos hoy se envían dentro de la misma petición), probar Google y Supabase con credenciales reales, y la tasa del dólar (el botón "Ver en Bs." de la web todavía no convierte).
 
 ---
 
 ## Cómo levantar el proyecto
 
-Requisitos: Docker y pnpm (Node 22). No hace falta crear `.env`.
+Requisitos: **Docker** y **pnpm** (Node 22 o superior). No hace falta crear `.env`: todo trae valores de desarrollo que ya funcionan.
 
 ```bash
-pnpm install        # una vez, para editor/lint/tests locales
+pnpm install        # una vez, para editor, lint y tests locales
 pnpm dev            # = docker compose up
 ```
+
+Al arrancar, la API aplica las migraciones y siembra datos de ejemplo (~120 propiedades por Venezuela con 3 fotos cada una y 4 cuentas).
 
 | Servicio | URL |
 |---|---|
 | Web | http://localhost:3000 |
-| API | http://localhost:3001/api/health |
-| Swagger | http://localhost:3001/docs |
+| API (salud) | http://localhost:3001/api/health |
+| Swagger (solo en desarrollo) | http://localhost:3001/docs |
 | Correos (Mailpit) | http://localhost:8026 |
 
-Si un puerto está ocupado, copia `.env.example` a `.env` y define `WEB_PORT`, `API_PORT`, `DB_PORT`, `REDIS_PORT` o `MAILPIT_UI_PORT`. Tienes más opciones en `scripts/dev.ps1` / `dev.sh` (todo, solo api, solo web, solo db) y `scripts/test.ps1` / `test.sh`. Las reglas de arquitectura están en [docs/CONVENCIONES.md](docs/CONVENCIONES.md).
+**Cuentas de ejemplo** (solo desarrollo, clave `Demo12345`; el seed se niega a correr en producción o contra una base remota):
+
+| Cuenta | Rol |
+|---|---|
+| `cliente@demo.local` | `CLIENT` |
+| `dueno@demo.local` | `OWNER` |
+| `agencia@demo.local` | `AGENCY` (administrador de "Inmuebles Demo") |
+| `admin@demo.local` | `ADMIN` (para entrar al panel activa primero el 2FA) |
+
+**Servicios de `docker-compose.yml`:** `db` (PostgreSQL 17 con imagen `postgis`), `redis` (caché y límites de uso), `mailpit` (bandeja de correos local: aquí aparecen los códigos de verificación), `install` (instala dependencias y genera Prisma, una vez), `shared` (compila `packages/shared` en modo watch), `api` (NestJS en modo watch) y `web` (Next.js en modo dev).
+
+- **Windows:** el volumen no avisa de los cambios de la web. Si editas la web y no se refleja (CSS, rutas, `support/`), reinicia solo ese servicio con `docker compose restart web` y espera la primera compilación.
+- **Puertos ocupados:** copia `.env.example` a `.env` y define `WEB_PORT`, `API_PORT`, `DB_PORT`, `REDIS_PORT` o `MAILPIT_UI_PORT`.
+
+| Script | Qué hace |
+|---|---|
+| `pnpm dev`, `pnpm dev:build` | Levanta todo (con `--build` la segunda) |
+| `pnpm dev:api`, `dev:web`, `dev:db` | Solo una parte (`dev:db` = db + redis + mailpit) |
+| `pnpm stop`, `pnpm logs` | Detiene todo / sigue los registros |
+| `pnpm db:migrate`, `db:deploy`, `db:status`, `db:seed`, `db:reset`, `db:create` | Base de datos (`db:reset` y `push` están bloqueados en producción o contra bases remotas) |
+| `pnpm test`, `test:api`, `test:web`, `test:module <nombre>`, `test:watch`, `test:e2e` | Pruebas |
+| `pnpm lint`, `lint:fix`, `format`, `build` | Calidad y compilación |
+
+También hay `scripts/dev.ps1` / `dev.sh` y `scripts/test.ps1` / `test.sh` con más opciones.
 
 > **Documentación para colaboradores** (empieza por aquí): [docs/README.md](docs/README.md) → [guía de colaboradores](docs/GUIA-COLABORADORES.md), [**seguridad**](docs/SEGURIDAD.md), [mapa de la API](docs/API.md) y [rendimiento](docs/RENDIMIENTO.md). Si vas a tocar el backend, lee la de seguridad antes de escribir código.
 
-## 1. Contexto del producto
+---
 
-- Todo el entorno de desarrollo debe levantar con un solo comando, sin configuraciones complejas.
-- Mercado venezolano: precios en USD y VES, WhatsApp como canal de contacto habitual y conexión móvil a veces lenta (imágenes livianas y paginación).
+## Qué hace la app
 
-## 2. Perfiles de usuario
+### Perfiles
 
-| Rol | Descripción |
+| Rol | Qué puede hacer |
 |---|---|
-| `CLIENT` | Busca alquiler: mapa, favoritos, alertas, solicita citas o apartado. |
-| `OWNER` | Dueño directo: publica pocas propiedades con formulario guiado paso a paso. |
-| `AGENCY` | Inmobiliaria **con subcuentas**: importación masiva por Excel/CSV, gestión de inventario. |
-| `ADMIN` | Moderación de anuncios, gestión de usuarios, métricas, bloqueos y auditoría. |
+| `CLIENT` | Busca en el mapa y la lista, guarda favoritos, le escribe al anunciante y conversa con él. |
+| `OWNER` | Dueño directo. Publica propiedades, recibe y responde mensajes, propone fechas de visita y cambia el estado de la propiedad. Un `CLIENT` suma este rol sin crear otra cuenta (`POST /api/users/me/become-owner`); los roles son una lista. |
+| `AGENCY` | Inmobiliaria **con subcuentas**: perfil y equipo, importación masiva, inventario. Sus agentes reciben este mismo rol al aceptar la invitación. |
+| `ADMIN` | Gestiona usuarios (suspender o reactivar), bloqueos, ajustes de la plataforma y consulta la auditoría. Siempre con 2FA. No se crea por la API pública. |
 
-**Modelo de agencia con subcuentas**
-- `User` (cuenta personal con su login) + `AgencyProfile` (la organización) + `AgencyMember` (user, agency, rol `AGENCY_ADMIN` | `AGENT`, estado de invitación).
-- El admin de la agencia invita agentes por email. Cada agente tiene su propio login y gestiona sus propiedades asignadas (el admin ve todas).
-- `Property.ownerUserId`, `Property.agencyId`, `Property.assignedAgentId`.
-- Límites por plan (cantidad de propiedades y de agentes). Permisos en Policies/guards centralizados.
-- Un mismo usuario puede pasar de `CLIENT` a `OWNER` sin crear otra cuenta (roles como lista).
+**Agencias con subcuentas:** `User` (cuenta personal con su login) + `AgencyProfile` (la organización) + `AgencyMember` (usuario, agencia, rol `AGENCY_ADMIN` o `AGENT`, estado de la invitación). El administrador de la agencia invita agentes por correo (enlace de un solo uso); cada agente tiene su propio login y ve las propiedades que se le asignan, el administrador ve todas. Hay límites por plan: `maxProperties` (100) y `maxAgents` (5) por defecto, que la agencia no puede cambiar.
 
-## 3. Stack aprobado
+### Buscar
 
-| Tema | Decisión |
+- **Mapa y lista** con filtros: ubicación (estado, municipio, urbanización), precio por moneda, habitaciones, baños, estacionamiento y los servicios que importan en Venezuela: **planta eléctrica**, **tanque de agua**, **fibra óptica** y **vigilancia**. Los filtros viajan en la URL.
+- **Pines agrupados:** la API devuelve los pines agrupados (clusters) según la caja visible del mapa y el nivel de zoom; al acercar aparecen los pines sueltos y un popup con la tarjeta de la propiedad. El mapa se dibuja con MapLibre.
+- **Precio en USD o VES:** cada propiedad guarda su monto y su moneda. Todavía no hay conversión entre ambas.
+- **Favoritos** reales de la cuenta (con sesión; sin sesión el corazón pide ingresar).
+
+### Contactar al anunciante
+
+El cliente **nunca elige una fecha**. Desde la ficha toca **Estoy interesado**, **Tengo una pregunta** o **Pedir una visita** (o **Apartar**) y escribe un mensaje; también puede ir a WhatsApp.
+
+1. El mensaje abre una **conversación** con quien gestiona la propiedad (dueño, agencia o agente asignado), que recibe un correo con el enlace (nunca con el texto).
+2. Quien gestiona responde (la solicitud pasa de `PENDIENTE` a `ABIERTA`) y, si es una visita, **propone de 1 a 5 fechas**. El cliente acepta una y queda registrada (`CONFIRMADA`). La ficha pública solo dice "Ya tiene una visita programada", **nunca el día**.
+3. Quien gestiona deja la propiedad **Disponible**, **Reservada** (aún acepta citas) o **Reservada del todo** (ya no recibe solicitudes), y puede cerrar la conversación.
+4. Un **apartado** confirmado pasa la propiedad a `RESERVADA` (el primero gana); si el cliente lo cancela, vuelve a `PUBLICADA`.
+
+Detalles que conviene saber:
+- **No es en tiempo real.** Las respuestas suelen tardar: la conversación se carga al abrirla y se actualiza con el botón **Recargar**; el aviso llega por correo.
+- Cada quien puede **editar sus mensajes hasta 3 minutos** después de enviarlos. Lo valida el servidor (la web solo muestra la cuenta regresiva con la hora del servidor).
+- **WhatsApp:** el número del anunciante solo se entrega a quien tiene sesión (es un dato personal).
+- Cada conversación guarda hasta 200 mensajes. La bandeja marca lo no leído.
+
+### Respuestas guardadas
+
+Quien responde guarda los textos que repite (horarios, requisitos, "sigue disponible") como **privados** o **compartidos con todo el equipo de su inmobiliaria**, y los usa con un toque dentro de la conversación. `{nombre}` y `{propiedad}` se completan solos. Títulos y textos van cifrados. Límites: 50 privados por persona y 100 compartidos por inmobiliaria. Solo el autor o el administrador de la agencia edita un texto compartido; los privados de otra persona no los ve nadie, ni un administrador.
+
+### Publicar y administrar
+
+- **Publicar** (API): crear, editar, cambiar estado, asignar agente, borrar y subir hasta 20 fotos por propiedad. La web tiene el formulario guiado de 6 pasos, pero todavía con datos de ejemplo.
+- **Importación masiva** (solo agencias): plantilla `.xlsx` o `.csv`, hasta 5 MB y 500 filas; cada fila se valida con las mismas reglas que publicar a mano y se inserta por lotes. Rechaza macros y fórmulas, y neutraliza textos que empiezan con `=`, `+`, `-` o `@`.
+- **Administración:** usuarios, bloqueos (IP, rango, país, usuario, correo o dominio), visor de auditoría y **ajustes que el admin cambia desde el panel** (hoy, el correo con Resend: la clave queda cifrada).
+
+---
+
+## Cómo funciona por dentro
+
+**Una petición** (REST o GraphQL) atraviesa estas capas, declaradas en `common/security/global-guards.module.ts`: origen de la app (`Origin` + `X-App-Client` + `X-App-Key`) → bloqueos → límite de uso → sesión (JWT) → roles y 2FA → validación del cuerpo → permisos sobre el dato concreto (`OwnershipService`) → riesgo del inicio de sesión → revisión de archivos → detector de abuso. Detalle en [docs/SEGURIDAD.md](docs/SEGURIDAD.md).
+
+- **Sesión:** access token JWT de 15 minutos y refresh token de un solo uso (7 días) que rota en cada renovación; en la web va en una cookie `httpOnly` y el access token vive solo en memoria. Si llega un refresh ya usado, se cierran todas las sesiones de la cuenta.
+- **Entrar:** correo y contraseña (argon2id), **passkey** (huella, Face ID, Windows Hello) o Google. Segundo factor con app autenticadora (TOTP), códigos de respaldo o passkey; es **obligatorio** para admin, dueños y agencias (`SECOND_FACTOR_MODE`).
+- **Riesgo del inicio de sesión:** se compara país, red y dispositivo con lo habitual de la cuenta; si es muy raro exige segundo factor. Cuenta bloqueada 15 minutos tras 5 contraseñas incorrectas.
+- **El usuario siempre sale del token.** Ningún DTO acepta `userId`, `role`, `ownerId` ni `agencyId`; un campo desconocido responde 400. Un recurso ajeno responde 404 y queda auditado.
+- **Datos cifrados en la base** (AES-256-GCM con claves versionadas `ENCRYPTION_KEYS`): datos personales del usuario, contacto y mensajes de las citas, textos reutilizables, datos de agencias, sesiones y auditoría. Los mensajes y los textos reutilizables además quedan **atados a su fila**: copiar el texto cifrado a otra fila no lo descifra. Las búsquedas por igualdad usan un índice ciego (HMAC). No es cifrado de extremo a extremo: el servidor descifra para mostrar.
+- **Imágenes:** la subida pasa por el backend, que identifica el formato por sus primeros bytes, la decodifica y la vuelve a codificar con `sharp` (quita EXIF y GPS) y guarda tres variantes `.webp` (300×200, hasta 800×600 y hasta 1920×1440). El original va a un bucket **privado**; solo las variantes son públicas.
+- **Almacenamiento:** interfaz `StorageProvider` con disco local o Supabase (`STORAGE_PROVIDER`).
+- **Caché:** las respuestas del mapa y las búsquedas se guardan unos segundos (en memoria o en Redis con `CACHE_DRIVER`) y 1.000 clientes pidiendo el mismo mapa hacen una sola consulta. Una propiedad nueva puede tardar hasta unos 15 s en aparecer en el mapa público ([docs/RENDIMIENTO.md](docs/RENDIMIENTO.md)).
+- **GraphQL** (`/api/graphql`) es **solo lectura** (búsqueda, ficha, mapa), con profundidad máxima 6 e introspección apagada en producción. Escribir es siempre REST.
+- **Correo:** SMTP (Mailpit en local) o Resend guardado desde el panel de ajustes. Un fallo de envío se registra pero no rompe la operación.
+- **Producción:** el servidor se niega a arrancar con secretos de desarrollo, claves cortas, orígenes `localhost` o un prefijo de admin obvio (`apps/api/src/config/production-guard.ts`).
+
+---
+
+## Stack
+
+| Tema | Tecnología |
 |---|---|
-| Backend | **NestJS 11** (TypeScript 5.9, CommonJS). Se descartó Python para compartir tipos con web/móvil. Nest 12 es solo ESM, se migra más adelante. |
-| Base de datos | **PostgreSQL**. En local, imagen `postgis/postgis` en Docker. **Supabase solo como DB** (sin Supabase Auth ni RLS), para poder migrar cambiando únicamente `DATABASE_URL`. |
-| ORM | **Prisma** (esquema y migraciones; sin lógica en el modelo, la lógica va en services). |
-| API | **Híbrido**: REST (auth, subidas, importación Excel, webhooks) + **GraphQL solo en sectores necesarios** (búsqueda/listado con filtros, ficha de propiedad, dashboards). Controller y resolver son delgados y llaman al mismo service. `graphql-codegen` para tipos. |
-| Web | **Next.js (App Router) + TypeScript**, SSR para SEO. |
-| Móvil | **React Native con Expo**, comparte `packages/shared` con la web. |
-| Estilos | **Tailwind CSS** + componentes UI en carpetas; tokens de diseño en un solo archivo. |
-| Animaciones | **Framer Motion (`motion`)** en web, **Reanimated** en móvil. |
-| Datos / estado | **TanStack Query** (servidor) + **Zustand** (UI mínima). |
-| Formularios | **React Hook Form + Zod** (esquemas compartidos). |
-| Mapas | MapLibre GL / Mapbox GL con clustering de pines. |
-| Imágenes | **`sharp`** en un `ImagesService` (hace lo que haría Cloudinary): genera `.webp` thumb 300x200, medium 800x600 y HD. |
-| Almacenamiento | **Supabase Storage** detrás de una interfaz `StorageProvider` (cambiable a S3/R2 sin tocar los módulos). |
-| Monorepo | **pnpm workspaces**. |
+| Monorepo | pnpm workspaces (`apps/api`, `apps/web`, `packages/shared`) |
+| API | NestJS 11, TypeScript, REST + GraphQL de lectura (Apollo), Swagger |
+| Base de datos | PostgreSQL 17 con Prisma 6 (esquema y migraciones). Se usa la imagen `postgis`, pero hoy **no** se usa ningún tipo geográfico: la posición son `latitude` y `longitude` y el mapa filtra por caja visible. Supabase es opcional (solo como base de datos y almacenamiento) |
+| Validación | `class-validator` en los DTO; Zod valida las variables de entorno |
+| Seguridad | argon2, JWT, `helmet`, `@nestjs/throttler` (con Redis), `otplib` (TOTP), WebAuthn propio, `google-auth-library` |
+| Archivos | `sharp` (imágenes), `exceljs` (importación) |
+| Caché y límites | Redis (`ioredis`) o memoria |
+| Web | Next.js 16 (App Router) y React 19, TypeScript |
+| Datos en la web | TanStack Query |
+| Estilos y animación | Tailwind 4 solo para el tema y utilidades; cada pantalla tiene su CSS acotado. Animaciones con `motion` |
+| Mapa | MapLibre GL (estilo configurable con `NEXT_PUBLIC_MAP_STYLE_URL`) |
+| Pruebas | Jest + Supertest (API), Vitest (web) |
 
-### Decisión sobre geolocalización: simple primero
+---
 
-Se guardan `latitude` y `longitude` como números normales. Las búsquedas del mapa filtran por **bounding box** con Prisma normal, sin SQL a mano.
-
-**PostGIS se activa después**, cuando haya muchos pines. Prisma no soporta el tipo `geography` de forma nativa, así que entonces se agrega una migración SQL única (columna `geography` + índice espacial calculados desde lat/lng) y **todo el SQL crudo de mapas vive en un solo archivo**, `PropertyGeoService`, dentro del módulo `properties`. El resto del código no se entera y no hay que reescribir nada.
-
-## 4. Estructura del repositorio
+## Estructura del repositorio
 
 ```
 proyectoAlquiler/
   apps/
-    api/          # NestJS
-    web/          # Next.js
-    mobile/       # Expo (fase 3)
+    api/            # NestJS: prisma/ (esquema, migraciones, seed), src/, test/ (e2e)
+    web/            # Next.js
   packages/
-    shared/       # tipos, enums (PropertyStatus, Role), esquemas Zod, tipos GraphQL generados
-  scripts/        # .ps1 y .sh equivalentes a los scripts de pnpm
-  docs/
-    CONVENCIONES.md
+    shared/         # enums compartidos (Role, PropertyStatus, AgencyMemberRole)
+  scripts/          # .ps1 y .sh equivalentes a los scripts de pnpm
+  docs/             # guías, seguridad, mapa de la API y diseño de origen
+  docker/           # Dockerfile.dev
+  eslint-rules/     # reglas propias del lint (límites entre módulos)
   docker-compose.yml
   .env.example
-  pnpm-workspace.yaml
   README.md
 ```
 
-## 5. Regla de oro: arquitectura 100% modular
+### API: `apps/api/src/`
 
-Cada lógica tiene su carpeta y un **archivo padre** que importa a los hijos. Nadie importa los archivos hijos directamente, solo el padre. Componentes con poca lógica y **máximo 600 líneas por archivo**; si hay mucha lógica, va en su carpeta de módulo como mini funciones.
+```
+main.ts · app.module.ts
+bootstrap/        # configuración común de la app (la usan main y las pruebas e2e)
+config/           # ÚNICA capa que lee process.env (validada con Zod al arrancar)
+common/           # infraestructura transversal: security, prisma, storage, files, crypto, graphql
+support/          # envoltorios de paquetes de terceros: nadie importa el paquete directo
+routes/           # un archivo de rutas por módulo, agrupadas bajo /api
+modules/          # la lógica de negocio, un módulo por carpeta
+```
+
+Módulos: `auth`, `users`, `properties`, `agencies`, `appointments`, `reply-templates`, `imports`, `admin-users`, `settings`, `audit`, `security` y `health`.
 
 ### Backend: `apps/api/src/modules/<modulo>/`
 
-> **Este es el sistema de trabajo del backend y debe reutilizarse tal cual en cualquier backend nuevo.** La guía completa para montarlo desde cero está en [docs/BACKEND-MODULAR.md](docs/BACKEND-MODULAR.md); las reglas detalladas, en [docs/CONVENCIONES.md](docs/CONVENCIONES.md); y la referencia viva es el módulo `apps/api/src/modules/properties` (cada carpeta tiene su README).
+> **Este es el sistema de trabajo del backend y debe reutilizarse tal cual en cualquier backend nuevo.** La guía para montarlo desde cero está en [docs/BACKEND-MODULAR.md](docs/BACKEND-MODULAR.md); las reglas detalladas, en [docs/CONVENCIONES.md](docs/CONVENCIONES.md); y la referencia viva es el módulo `apps/api/src/modules/properties` (cada carpeta tiene su README).
 
 ```
 properties/
@@ -138,171 +204,115 @@ properties/
 ```
 
 - **Controller** sin lógica: recibe, llama a la fachada y devuelve su `Resource`. El grupo de acceso va en la clase y la carpeta debe coincidir (lo comprueba una prueba).
-- **Validación** solo en `contracts/dto/`. **Lógica** solo en `services/`. **Respuestas** descritas en `contracts/resources/`, y los e2e comprueban que lo que sale las cumple.
+- **Validación** solo en `contracts/dto/`. **Lógica** solo en `services/`. **Respuestas** descritas en `contracts/resources/`, y las pruebas e2e comprueban que lo que sale las cumple (y rechazan campos que el Resource no declara).
 - **Services** por tema y caso de uso (no por verbo); más de ~150 líneas se divide, y la fachada mantiene su API.
-- **Imports:** `@/` = `src/` y `@test/` = `test/`; sin `../../..` (lo hace cumplir el lint).
-- Un job o command = una llamada a un service. Cada carpeta lleva su `README.md`.
-- **Rutas agrupadas**: `routes/index` → `routes/api.routes` → `routes/<modulo>.routes`, agrupadas con prefijos (RouterModule de Nest).
+- **Permisos sobre datos:** cada módulo declara una política (`*.policy.ts`) y `OwnershipService.require` la aplica; quien no cumple recibe 404.
+- **Paquetes de terceros solo vía `support/`** (`password`, `cache`, `mail`, `images`, `jwt`, `google-identity`, `totp`, `spreadsheet`, `db`): el lint falla si importas el paquete directo.
+- **Imports:** `@/` = `src/` y `@test/` = `test/`; sin `../../..` (lo hace cumplir el lint). De otro módulo solo se importa su `index.ts`.
+- **Rutas agrupadas:** `routes/api.routes` → `routes/<modulo>.routes`, con prefijos (`RouterModule` de Nest). Las rutas fijas (`mine`, `received`) se registran antes que `GET :id`.
+- Cada carpeta lleva su `README.md`.
 
-### Frontend: `apps/web/src/modules/<modulo>/`
+### Frontend: `apps/web/src/`
 
 ```
-auth/
-  index.ts        # PADRE: único punto de importación del módulo
-  components/     # LoginForm, RegisterForm ... (poca lógica, <600 líneas)
-  hooks/          # useLogin ... (lógica de UI)
-  services/       # login.ts, register.ts, twoFactor.ts, reset.ts + index.ts (llamadas al API)
-  schemas/        # Zod
-  types/
+app/              # rutas de Next: cada page.tsx solo importa la página de su módulo
+modules/          # una carpeta por tema (auth, home, map, properties, inbox, security, dashboard-agency, publish, admin, design)
+lib/              # lo que comparten varios módulos: cliente HTTP (api.ts), properties/, appointments/, reply-templates/
+support/          # envoltorios de paquetes: MotionSupport, QuerySupport, MapLibreSupport
+components/       # piezas comunes: ui/ (Button, Field, Sheet...), icons/, Responsive
+config/           # ÚNICA capa que lee process.env en la web, y la marca
 ```
 
-- Las `pages` de `app/` solo importan desde `modules/<x>`, nunca archivos internos.
-- ESLint fuerza esto con `no-restricted-imports` / `eslint-plugin-boundaries` y `max-lines: 600`.
-- Rutas tipadas agrupadas en `routes/` (index → grupos → archivos hijos).
+```
+inbox/                         # ejemplo: el módulo de mensajes
+  index.ts                     # PADRE: único punto de importación del módulo
+  README.md
+  components/
+    <Pagina>.tsx               # (si hay dos versiones) elige escritorio o móvil con <Responsive>
+    <Pantalla>/                # el componente, sus partes con nombre y su .css
+  hooks/                       # use<Pantalla>.ts: la lógica de cada pantalla
+```
 
-## 6. Configuración centralizada de variables de entorno
+- Las páginas de `app/` solo importan desde `modules/<x>` (su `index.ts`), nunca archivos internos.
+- Los componentes llevan poca lógica; la lógica va en `hooks/` y en `lib/`. **Máximo 600 líneas por archivo.**
+- Escritorio y móvil se alternan por CSS con `<Responsive>`; hay pantallas que tienen una versión para cada uno y otras, como `inbox`, que son una sola adaptable.
+- El cliente HTTP único es `lib/api.ts`: pone las cabeceras `x-app-*`, guarda el access token solo en memoria, hace **una** renovación a la vez y reintenta una vez.
+- El color de marca y el modo noche viven en `app/globals.css` como variables CSS. El diseño de origen está en `docs/diseno/`; cómo leer el código, en [docs/GUIA-FRONTEND.md](docs/GUIA-FRONTEND.md).
 
-**Nadie lee `process.env` fuera de la capa `config/`** (regla ESLint `no-process-env`, con excepción solo en `config/`).
+### Variables de entorno
 
-- API: `apps/api/src/config/`
-  - `env.schema.ts`: valida con Zod al arrancar; falla rápido y con mensaje claro si falta algo.
-  - `env.ts`: **único** archivo que lee `process.env` y mapea nombres.
-  - Archivos hijos por área: `database.config.ts`, `auth.config.ts`, `mail.config.ts`, `storage.config.ts`, `security.config.ts`, `google.config.ts`, agrupados por `config/index.ts`.
-  - Los services reciben la config tipada por inyección y piden `config.auth.jwtExpiresIn`; **nunca** el nombre de la variable.
-- Web: `apps/web/src/config/` igual (`env.ts` + `index.ts`), separando variables públicas (`NEXT_PUBLIC_*`) de las de servidor.
-- Móvil: `apps/mobile/src/config/`.
-- Renombrar una variable de entorno = editar solo `env.ts`.
-- `.env.example` documenta cada variable y trae valores por defecto que ya funcionan.
+**Nadie lee `process.env` fuera de la capa `config/`** (regla de ESLint). La API la valida con Zod al arrancar y falla rápido con un mensaje claro si falta algo; los servicios reciben la configuración tipada por inyección y nunca el nombre de la variable. Renombrar una variable es editar solo `env.ts`. `.env.example` (raíz, `apps/api` y `apps/web`) documenta cada una y trae valores que ya funcionan. Las únicas variables que llegan al navegador son las `NEXT_PUBLIC_*`.
 
-## 7. Docker y arranque (simple, un comando)
+---
 
-Un solo `docker-compose.yml` en la raíz. El usuario copia `.env.example` a `.env` y corre `docker compose up`:
+## Modelo de datos
 
-- `db`: imagen `postgis/postgis`, con volumen persistente.
-- `api`: NestJS en modo watch (código montado), corre `prisma migrate deploy` + seed con datos de ejemplo al iniciar.
-- `web`: Next.js en modo dev con hot reload. **En Windows el volumen no avisa de los cambios**: si editas la web y no se refleja (CSS, rutas, `support/`), reinicia solo ese servicio con `docker compose restart web` y espera la primera compilación.
-- `redis`: rate limit y colas.
-- `mailpit`: ver correos (códigos de verificación) en local sin configurar nada.
-- Supabase es **opcional**: se descomenta `DATABASE_URL` para apuntar a él.
-- Sin Nginx, sin redes personalizadas, Dockerfiles mínimos de un solo stage. Expo (fase 3) corre fuera de Docker.
+`apps/api/prisma/schema.prisma` (22 modelos; el esquema no lleva lógica):
 
-**Scripts en el `package.json` raíz** (más equivalentes `.ps1` y `.sh` en `scripts/`):
-
-| Script | Qué hace |
+| Tema | Modelos |
 |---|---|
-| `pnpm dev` | Levanta todo |
-| `pnpm dev:api`, `dev:web`, `dev:db`, `dev:mobile` | Levanta solo una parte |
-| `pnpm stop` | Detiene todo |
-| `pnpm db:reset`, `db:seed`, `db:migrate` | Gestión de la base de datos |
+| Cuentas y sesión | `User`, `SocialAccount`, `Session`, `TrustedDevice`, `LoginFootprint`, `VerificationCode`, `TwoFactorBackupCode`, `PasskeyCredential`, `PasskeyChallenge` |
+| Agencias | `AgencyProfile`, `AgencyMember` |
+| Propiedades | `Property`, `PropertyImage`, `Favorite` |
+| Citas y mensajes | `Appointment`, `AppointmentMessage`, `AppointmentSlot`, `ReplyTemplate` |
+| Importación | `ImportJob` |
+| Seguridad y sistema | `BlockRule`, `AuditLog`, `PlatformSetting` |
 
-## 8. Tests modulares y legibles
+`Property` guarda tipo (apartamento, casa, townhouse, habitación, local, oficina, galpón, terreno), estado, precio y moneda (USD o VES), habitaciones, baños, estacionamientos, área, amoblado, mascotas, ubicación (estado, municipio, urbanización, dirección, latitud y longitud), los cuatro servicios locales, `ownerUserId`, `agencyId`, `assignedAgentId` y `acceptsVisits`.
 
-| Script | Qué corre |
-|---|---|
-| `pnpm test` | Todos |
-| `pnpm test:api`, `pnpm test:web` | Solo API o solo web |
-| `pnpm test:module auth` | Solo un módulo |
-| `pnpm test:watch`, `pnpm test:e2e` | Modo watch y end-to-end |
+---
 
-- Jest + Supertest en API (tests en la carpeta `tests/` de cada módulo), Vitest en web.
-- Cada test explica **qué prueba, qué espera y qué obtuvo**: nombres descriptivos en español (`debe rechazar login con contraseña incorrecta`), un helper `describeCase({ que, espera })` y un reporter propio que imprime "Esperado: X / Obtenido: Y" por caso, con resumen por módulo.
+## Reglas de negocio
 
-## 9. Seguridad
+- **`PropertyStatus`:** `PUBLICADA`, `RESERVADA`, `ALQUILADA`, `PAUSADA`. Las transiciones se validan (por ejemplo, una pausada solo vuelve a `PUBLICADA`).
+- Una propiedad **reservada no desaparece**: sigue en la búsqueda con la insignia "En proceso de reserva". Una pausada no existe para quien no la gestiona; una alquilada deja de aparecer en la búsqueda pero su ficha sigue abierta.
+- Un apartado solo se pide sobre una propiedad `PUBLICADA`; una visita, pregunta o interés también sobre una `RESERVADA` si acepta citas.
+- No se aceptan solicitudes duplicadas del mismo tipo sobre la misma propiedad mientras la anterior siga abierta, ni más de 10 pendientes por persona. Nadie puede escribirle a su propia propiedad.
+- Una cuenta puede tener varios roles (`CLIENT` + `OWNER`).
 
-### 9.1 Middlewares agrupables
-- Grupos de rutas declarados en un solo archivo `routes/groups.ts`: `public`, `guest`, `auth`, `verified`, `2fa`, `role:<rol>`, `admin`.
-- Agregar un middleware a un grupo = una línea. Cada middleware es un guard/interceptor pequeño en `common/security/middleware/`.
-- **Rate limit** con `@nestjs/throttler` por grupo; estricto en login, registro, reset y códigos (por IP y por email). Redis en compose, memoria en dev.
-- Base: `helmet`, CORS por entorno, validación global con whitelist, hash `argon2`, JWT de acceso corto + refresh rotativo en cookie httpOnly.
+---
 
-### 9.2 Bloqueos
-Módulo `security` con tabla `BlockRule` (tipo IP | CIDR | país/región | usuario | email o dominio, motivo, expiración). Un middleware global consulta las reglas (con caché) antes de login y registro. GeoIP con MaxMind GeoLite2. Panel admin para crear y quitar bloqueos. Bloqueo automático tras N intentos fallidos o abuso.
+## Pruebas
 
-### 9.3 Auth profesional
-- Registro con **verificación por correo**: enlace y/o **código de 6 dígitos** con expiración, intentos limitados y reenvío con cooldown.
-- **2FA**: TOTP con app autenticadora + códigos de respaldo (opcional código por email).
-- Reset de contraseña por código o enlace. Cierre de sesiones y lista de dispositivos.
-- **Google OAuth**: iniciar sesión con Google y **asociar/desasociar** Google a una cuenta existente (tabla `SocialAccount`: provider, providerId, userId; vinculación por email verificado). Sin duplicados y con confirmación al enlazar.
-- **Email**: `MailService` detrás de una interfaz (SMTP/Resend/SES), plantillas en su carpeta, envío por job de BullMQ que solo llama al service.
+- **API:** pruebas unitarias junto a su código (`tests/` de cada módulo, 32 archivos) y **27 suites e2e** en `apps/api/test/e2e` (Supertest sobre una base real `alquiler_test`, creada y migrada sola; se niega a usar una base cuyo nombre no termine en `_test`). Necesitan solo PostgreSQL: `pnpm dev:db` y `pnpm test:e2e`.
+- **Contrato de respuestas:** en las pruebas e2e, un interceptor lee el tipo de retorno de cada ruta y comprueba que la respuesta real lo cumple; una propiedad de más (por ejemplo una clave interna) hace fallar la prueba.
+- **Web:** Vitest (`pnpm test:web`).
+- Cada prueba e2e dice **qué prueba, qué espera y qué obtuvo** (`describeCase`), y el reporte lo imprime por módulo.
+- El lint falla si hay `process.env` fuera de `config/`, archivos de más de 600 líneas, imports a archivos internos de otro módulo o paquetes de terceros fuera de `support/`.
 
-### 9.4 Solo nuestra app puede llamar al backend
-- CORS con lista blanca de orígenes (dominio web; en dev, mismo host/IP/localhost) en `security.config.ts`.
-- `AppOriginGuard`: valida `Origin`/`Referer` y una cabecera de cliente (`X-App-Client` + firma por app: web, mobile). En producción, API tras el mismo dominio/proxy con `trust proxy` bien configurado. IPs y dominios permitidos editables por env.
-- **Aclaración honesta:** ninguna cabecera es infalsificable (la app móvil no puede guardar secretos), por eso es una capa más junto a JWT, rate limit y bloqueos, no la única.
+---
 
-### 9.5 Nunca confiar en IDs del cliente
-- El usuario sale **siempre del token** (`@CurrentUser()`).
-- Los DTO no aceptan `userId`, `role`, `ownerId`, `agencyId` ni campos internos (whitelist + `forbidNonWhitelisted`, campos sensibles prohibidos explícitamente).
-- La propiedad de recursos se verifica en el service con Policies (contra IDOR). IDs públicos UUID.
+## Seguridad
 
-### 9.6 Anti-hacks en datos
-Validación estricta en DTO/Zod, límite de tamaño de body, sanitización de strings (XSS), consultas parametrizadas (`$queryRaw` solo con parámetros), GraphQL con depth limit y query cost e introspección apagada en producción, protección contra mass assignment, paginación con tope.
+Resumen en "Cómo funciona por dentro"; el detalle, los límites conocidos y la lista previa a desplegar están en [docs/SEGURIDAD.md](docs/SEGURIDAD.md) y, para quien construye la web, en [docs/FRONTEND-SEGURIDAD.md](docs/FRONTEND-SEGURIDAD.md). Decisiones del proyecto: **sin servicios de terceros en la seguridad** (no hay CAPTCHA ni antivirus; los archivos pasan por revisiones propias). **No ha pasado una auditoría externa ni pruebas de penetración.**
 
-### 9.7 Anti-hacks en archivos
-- MIME real por **magic bytes** (no extensión ni Content-Type), lista blanca de tipos, tope de tamaño y de cantidad.
-- Re-encodeo de imágenes con `sharp` (destruye payloads, polyglots y EXIF/GPS), nombres UUID, nunca servir desde el directorio de la app.
-- Excel/CSV: límite de filas y tamaño, bloqueo de macros (`.xlsm`), neutralización de fórmulas (`=`, `+`, `-`, `@` → CSV injection), parseo en job aislado.
+---
 
-### 9.8 Auditoría
-Módulo `audit` con tabla `AuditLog` (quién, acción, recurso, IP, user-agent, antes/después, fecha), alimentada por un interceptor global y eventos explícitos (login, 2FA, cambios de rol, bloqueos, publicar/reservar propiedad, importaciones, borrados). Visor con filtros en el panel admin. **Nunca** registra contraseñas, tokens ni códigos. Retención configurable.
+## Documentación
 
-## 10. Almacenamiento de imágenes (orden de carpetas)
+| Documento | Para quién | Contenido |
+|---|---|---|
+| [docs/README.md](docs/README.md) | Todos | Índice de la documentación |
+| [docs/GUIA-COLABORADORES.md](docs/GUIA-COLABORADORES.md) | Quien va a trabajar en el proyecto | Cómo levantarlo, comandos, estructura, migraciones y pruebas |
+| [docs/SEGURIDAD.md](docs/SEGURIDAD.md) | Quien toque el backend | Capas de defensa, autenticación, datos, producción y límites |
+| [docs/FRONTEND-SEGURIDAD.md](docs/FRONTEND-SEGURIDAD.md) | Quien construye la web o la app | Login, passkeys, segundo factor, errores por `code` |
+| [docs/API.md](docs/API.md) | Frontend, móvil y revisores | Todas las rutas y quién puede usarlas |
+| [docs/RENDIMIENTO.md](docs/RENDIMIENTO.md) | Quien optimiza | Caché, límites y sus límites honestos |
+| [docs/BACKEND-MODULAR.md](docs/BACKEND-MODULAR.md) | Quien monta un backend | El sistema modular y cómo repetirlo |
+| [docs/CONVENCIONES.md](docs/CONVENCIONES.md) | Todos | Reglas de arquitectura y estilo |
+| [docs/GUIA-FRONTEND.md](docs/GUIA-FRONTEND.md) | Frontend | De la URL a la pantalla |
+| [docs/diseno/README.md](docs/diseno/README.md) | Frontend | Diseño de origen y decisiones |
 
-Originales privados, variantes públicas:
+Cada módulo y carpeta de código tiene además su propio `README.md`. **Regla:** si cambias algo documentado, actualiza el documento en el mismo cambio.
 
-```
-properties/{propertyId}/original/{uuid}.jpg    # privado, solo backend
-properties/{propertyId}/thumb/{uuid}.webp
-properties/{propertyId}/medium/{uuid}.webp
-properties/{propertyId}/hd/{uuid}.webp
-avatars/{userId}/...
-agencies/{agencyId}/logo|banner/...
-imports/{agencyId}/{fecha}/archivo.xlsx        # privado
-```
+---
 
-La subida siempre pasa por el backend: valida MIME real, tamaño y límite por plan, elimina EXIF/GPS, usa nombres UUID (nunca el original). Las claves de Supabase solo viven en el servidor. URLs firmadas para lo privado. Un job limpia archivos huérfanos.
+## Siguientes pasos
 
-## 11. Reglas de negocio clave
-
-- **`PropertyStatus`:** `PUBLICADA`, `RESERVADA`, `ALQUILADA`, `PAUSADA`.
-- El cliente solicita una cita o apartado desde la ficha. El dueño o la agencia recibe el *lead* y puede marcar la propiedad como `RESERVADA`.
-- Una propiedad reservada **no desaparece**: muestra una insignia "En Proceso de Reserva".
-- Filtros: ubicación (estado, municipio, urbanización), precio (USD/VES), habitaciones, baños, estacionamiento y *amenities* locales: **planta eléctrica**, **tanque de agua / hidroneumático**, **fibra óptica**, **vigilancia**.
-- Mapa interactivo con clustering de pines que al hacer zoom muestra pines individuales y un popup con tarjeta flotante del inmueble.
-- Importación masiva (agencias): plantilla `.xlsx`/`.csv`, validación fila por fila e inserción por lotes (`exceljs`).
-- `Lead` debe contemplar WhatsApp como canal de contacto.
-
-## 12. Plan por fases
-
-### Fase 0 – Fundación (HECHA)
-Monorepo pnpm, `packages/shared`, config de entorno, Docker compose, scripts, ESLint/Prettier con reglas (`max-lines`, límites entre módulos, `no-process-env`), `docs/CONVENCIONES.md`, `.env.example`, infraestructura de tests.
-
-### Fase 1 – Backend (SIGUIENTE)
-- `prisma/schema.prisma` con: `User`, `AgencyProfile`, `AgencyMember`, `SocialAccount`, `BlockRule`, `AuditLog`, `Property` (lat/lng, precio USD/VES, amenities locales, estado), `PropertyImage` (thumb/medium/hd), `Appointment`/`Lead`, enum `PropertyStatus`.
-- Módulos Nest: `auth`, `users`, `security`, `audit`, `properties`, `imports`, `appointments`, y `common/` (storage, images, mail, prisma, graphql).
-- `.env.example` con `DATABASE_URL` (pooler de Supabase) y `DIRECT_URL` para migraciones.
-
-### Fase 2 – Web
-Next + Tailwind + Motion. Módulos: `auth`, `properties` (listado, ficha, filtros), `map`, `appointments`, `dashboard-owner`, `dashboard-agency` (importación Excel), `admin`. Pendiente definir: sistema de diseño, paleta, tipografía, animaciones y pantallas.
-
-### Fase 3 – App móvil
-Expo reutilizando `packages/shared`.
-
-### Fase 4 – Pulido
-SEO, animaciones, rendimiento, moderación admin, activar PostGIS si hace falta.
-
-## 13. Verificación esperada (criterios de "terminado")
-
-- `pnpm dev` levanta db + api + web + redis + mailpit sin pasos extra. Swagger en `/docs` y GraphQL playground responden. El arranque falla con mensaje claro si falta una variable.
-- `pnpm test` y `pnpm test:module auth` pasan mostrando qué se probó, qué se esperaba y qué se obtuvo.
-- Rate limit devuelve 429; IP, país u origen bloqueado recibe 403; un body con `userId` o `role` es rechazado; archivos con extensión falsa o polyglot son rechazados; Excel con fórmulas maliciosas se neutraliza.
-- El código de registro se ve en Mailpit; 2FA y vincular/desvincular Google funcionan; las acciones sensibles quedan en `AuditLog`.
-- El lint falla si hay `process.env` fuera de `config/`, archivos de más de 600 líneas o imports a archivos internos de otro módulo.
-- Se puede importar un `.xlsx` de ejemplo, subir una imagen y ver sus 3 variantes en las carpetas correctas, y consultar propiedades por bounding box.
-
-## 14. Siguientes pasos
-
-0. Definir el nombre, dominio y branding de la plataforma (pendiente, no bloquea las fases 0 y 1).
-1. ~~Fase 0 (fundación del monorepo)~~ — hecha.
-2. Ejecutar la **Fase 1** (backend), empezando por `schema.prisma` y el módulo `auth`.
-3. Conectar el frontend con el API y completar las pantallas pendientes.
+1. **Conectar a la API** el panel de inmobiliaria (`/panel/*`) y publicar (`/publicar`), que hoy usan datos de ejemplo; y decidir si la moderación de anuncios de `/admin` se construye en la API o se retira de la pantalla.
+2. Cola de trabajos para los correos y tareas pesadas.
+3. Tasa del dólar y conversión a bolívares.
+4. App móvil (Expo), reutilizando `packages/shared`.
+5. Probar Google y Supabase con credenciales reales y activar PostGIS si el volumen de pines lo pide.
+6. Auditoría externa de seguridad antes del lanzamiento público.
+7. Definir nombre, dominio y marca de la plataforma.

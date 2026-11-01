@@ -1,8 +1,7 @@
 'use client';
-import { Fragment } from 'react';
 import { Icon, type IconName } from '@/components/icons';
+import { ContactPanel } from '../ContactPanel';
 import type { PropertyInfo } from '../../hooks/usePropertyBooking';
-import type { PropertyMobileScreenView } from '../../hooks/usePropertyMobileScreen';
 
 const AMENITY_ICON: Record<string, IconName> = {
   'Planta eléctrica': 'bolt',
@@ -11,7 +10,7 @@ const AMENITY_ICON: Record<string, IconName> = {
   Vigilancia: 'shield',
 };
 
-export function PropertyMobileDetails({ v, p }: { v: PropertyMobileScreenView; p: PropertyInfo }) {
+export function PropertyMobileDetails({ p }: { p: PropertyInfo }) {
   return (
     <div
       style={{
@@ -122,27 +121,7 @@ export function PropertyMobileDetails({ v, p }: { v: PropertyMobileScreenView; p
           </div>
         </div>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <span style={{ fontWeight: '800', fontSize: '18px' }}>Agenda una visita</span>
-        <div
-          style={{
-            display: 'flex',
-            gap: '8px',
-            overflowX: 'auto',
-            margin: '0 -16px',
-            padding: '0 16px 2px',
-          }}
-        >
-          {v.visitDays.map((d, $index) => (
-            <Fragment key={$index}>
-              <button className={d.className} onClick={d.choose} type="button">
-                <span style={{ fontSize: '11px', opacity: '.85' }}>{`${d.name}`}</span>
-                <span style={{ fontSize: '18px', fontWeight: '800' }}>{`${d.number}`}</span>
-              </button>
-            </Fragment>
-          ))}
-        </div>
-      </div>
+      <ContactPanel property={p} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <span style={{ fontWeight: '800', fontSize: '18px' }}>Descripción</span>
         <p style={{ margin: '0', fontSize: '15px', lineHeight: '1.65', color: 'var(--muted)' }}>

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Fragment } from 'react';
 import { css } from '@/lib/dc';
-import { whatsappUrl } from '@/lib/whatsapp';
+import { ContactPanel } from '../ContactPanel';
 import { PropertyDetails } from './PropertyDetails';
 import { Icon } from '@/components/icons';
 import type { PropertyInfo } from '../../hooks/usePropertyBooking';
@@ -126,79 +126,7 @@ export function PropertyBooking({ v, p }: { v: PropertyScreenView; p: PropertyIn
               Ver en Bs.
             </span>
           </div>
-          <a
-            href={whatsappUrl()}
-            target="_blank"
-            rel="noreferrer"
-            className="btn"
-            style={{ background: '#1F9D55' }}
-          >
-            <Icon name="whatsapp" size={22} />
-            {' Escribir por WhatsApp'}
-          </a>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              color: 'var(--muted)',
-              fontSize: '13px',
-              fontWeight: '700',
-            }}
-          >
-            <span style={{ flex: '1', height: '1px', background: 'var(--line)' }} />
-            o agenda una visita
-            <span style={{ flex: '1', height: '1px', background: 'var(--line)' }} />
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {v.visitDays.map((d, $index) => (
-              <Fragment key={$index}>
-                <button className={d.className} onClick={d.choose} type="button">
-                  <span style={{ fontSize: '11px', opacity: '.85' }}>{`${d.name}`}</span>
-                  <span style={{ fontSize: '18px', fontWeight: '800' }}>{`${d.number}`}</span>
-                </button>
-              </Fragment>
-            ))}
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {v.visitSlots.map((t, $index) => (
-              <Fragment key={$index}>
-                <button
-                  className={t.className}
-                  onClick={t.choose}
-                  type="button"
-                >{`${t.label}`}</button>
-              </Fragment>
-            ))}
-          </div>
-          <button
-            className="btn"
-            style={{
-              background: 'var(--surf)',
-              color: 'var(--ac-ink)',
-              border: '2px solid var(--ac)',
-            }}
-            type="button"
-            onClick={v.requestVisit}
-          >{`Solicitar visita · ${v.visitSummary}`}</button>
-          <Link
-            href="/propiedad/ejemplo"
-            className="btn"
-            style={{ minHeight: '52px' }}
-            onClick={v.reserve}
-          >
-            Apartar esta propiedad
-          </Link>
-          <span
-            style={{
-              fontSize: '12px',
-              lineHeight: '1.5',
-              color: 'var(--muted)',
-              textAlign: 'center',
-            }}
-          >
-            Apartar no te compromete: el agente confirma contigo antes de reservarla.
-          </span>
+          <ContactPanel property={p} />
         </aside>
       </div>
       {/* Sin data-reveal: este bloque aparece al terminar de cargar la propiedad y RevealObserver solo mira al cambiar de ruta. */}

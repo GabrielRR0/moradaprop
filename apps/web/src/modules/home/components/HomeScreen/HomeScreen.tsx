@@ -121,6 +121,11 @@ export function HomeScreen() {
           >
             <Icon name="moon" size={20} strokeWidth={2} />
           </button>
+          {status === 'authed' && (
+            <Link href="/mensajes" className="btn2">
+              Mensajes
+            </Link>
+          )}
           <Link href={status === 'authed' ? '/seguridad' : '/ingresar'} className="btn2">
             {status === 'authed' ? 'Mi cuenta' : 'Ingresar'}
           </Link>

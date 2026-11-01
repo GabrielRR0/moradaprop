@@ -1,4 +1,5 @@
 import { publicEnv } from '@/config';
+import { authHeader } from '@/lib/api';
 import { boundsToParams, filtersToParams, type PropertyFilters } from './filters';
 import type {
   Bounds,
@@ -23,15 +24,19 @@ export class ApiError extends Error {
 
 const BASE = `${publicEnv.apiUrl}/api/properties`;
 
-/** Llama al API y devuelve el JSON. Si no hay red el error trae status 0. */
-async function request(path: string, params: URLSearchParams, signal?: AbortSignal) {
+/**
+ * Llama al API y devuelve el JSON. Si no hay red el error trae status 0.
+ * `withSession` agrega el token (solo la ficha lo necesita: trae WhatsApp, favorito y si es suya); si el servidor
+ * lo rechaza (vencido), se repite sin el para que la ficha publica siga abriendo.
+ */
+async function request(path: string, params: URLSearchParams, signal?: AbortSignal, withSession = false) {
   const query = params.toString();
+  const url = `${BASE}${path}${query ? `?${query}` : ''}`;
+  const headers = { 'X-App-Client': 'web', 'X-App-Key': publicEnv.appClientKey };
   let response: Response;
   try {
-    response = await fetch(`${BASE}${path}${query ? `?${query}` : ''}`, {
-      signal,
-      headers: { 'X-App-Client': 'web', 'X-App-Key': publicEnv.appClientKey },
-    });
+    response = await fetch(url, { signal, headers: withSession ? { ...headers, ...authHeader() } : headers });
+    if (withSession && response.status === 401) response = await fetch(url, { signal, headers });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
     throw new ApiError(0, 'No se pudo conectar con el servidor');
@@ -95,6 +100,6 @@ export const propertyApi = {
   },
 
   detail(id: string, signal?: AbortSignal): Promise<PropertyDetail> {
-    return request(`/${encodeURIComponent(id)}`, new URLSearchParams(), signal);
+    return request(`/${encodeURIComponent(id)}`, new URLSearchParams(), signal, true);
   },
 };
