@@ -198,7 +198,7 @@ Reglas de protección:
 
 Para que una versión mayor futura de un paquete no obligue a tocar medio proyecto, la API usa **módulos propios** en `apps/api/src/support/<modulo>/` y nunca el paquete directo.
 
-- Hoy: `password` (argon2), `cache` (ioredis), `mail` (nodemailer), `images` (sharp), `jwt` (@nestjs/jwt), `google-identity` (google-auth-library), `totp` (otplib + qrcode), `spreadsheet` (exceljs), `db` (@prisma/client). Lista y cómo agregar uno: `apps/api/src/support/README.md`.
+- Hoy: `password` (argon2), `cache` (ioredis), `mail` (nodemailer), `images` (sharp), `jwt` (@nestjs/jwt), `google-identity` (google-auth-library), `totp` (otplib + qrcode), `spreadsheet` (exceljs), `db` (@prisma/client) y `turnstile` (servicio web de Cloudflare, con `fetch`). Lista y cómo agregar uno: `apps/api/src/support/README.md`.
 - ESLint falla si importas uno de esos paquetes fuera de su carpeta, o un archivo interno de `support/<modulo>` en vez de su `index`.
 - `support/tests/support-modules.spec.ts` exige `index.ts` + `README.md` por módulo y que todo lo exportado esté documentado.
 - Todo se usa con el prefijo del módulo, también los providers de Nest: `SpreadsheetSupport.buildXlsx()`, `PasswordSupport.hash()`, `TotpSupport.check()`, `ImagesSupport.render()`, `MailSupport.Service`, `CacheSupport.HttpCache`, `JwtSupport.Signer`, `GoogleIdentitySupport.Verifier`; los tipos y enums de Prisma salen de `DbSupport` (`DbSupport.Role`, `DbSupport.User`). Así se ve de dónde viene en cada llamada.

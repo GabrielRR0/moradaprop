@@ -1,4 +1,6 @@
-import { createParamDecorator, SetMetadata, type ExecutionContext } from '@nestjs/common';
+import { applyDecorators, createParamDecorator, SetMetadata, UseGuards, type ExecutionContext } from '@nestjs/common';
+import { ApiHeader } from '@nestjs/swagger';
+import { HUMAN_CHECK_HEADER, HumanCheckGuard } from '../guards/human-check.guard';
 import { requestOf } from '../request-of';
 import type { AppRequest, AuthUserContext, RequestContext } from '../types';
 import { DbSupport } from '@/support/db';
@@ -28,6 +30,16 @@ export const RecentTwoFactor = () => SetMetadata(RECENT_TWO_FACTOR_KEY, true);
 export const AllowWithoutSecondFactor = () => SetMetadata(ALLOW_WITHOUT_SECOND_FACTOR_KEY, true);
 /** La ruta no exige cabeceras de cliente (solo health). */
 export const SkipAppCheck = () => SetMetadata(SKIP_APP_CHECK_KEY, true);
+
+/**
+ * La ruta exige la verificacion "no soy un robot" (Cloudflare Turnstile) cuando TURNSTILE_ENABLED=true; con false no hace nada.
+ * La respuesta del widget viaja en la cabecera x-turnstile-token. Se pone en las rutas que mandan correos o prueban credenciales.
+ */
+export const RequireHumanCheck = () =>
+  applyDecorators(
+    UseGuards(HumanCheckGuard),
+    ApiHeader({ name: HUMAN_CHECK_HEADER, required: false, description: 'Respuesta del widget Turnstile (obligatoria si TURNSTILE_ENABLED=true)' }),
+  );
 
 /** Usuario del token. Usalo en vez de recibir `userId` por body o URL. */
 export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): AuthUserContext => {

@@ -6,6 +6,7 @@ import { Button, CodeInput, Field, Notice, PasswordStrength, StepSwitcher, Succe
 import { clock } from '../../hooks/useCooldown';
 import { FORGOT_DONE, FORGOT_RESET, useForgotFlow, type ForgotFlow } from '../../hooks/useForgotFlow';
 import { AuthLayout } from '../shared/AuthLayout';
+import { HumanCheck } from '../shared/HumanCheck';
 
 function EmailStep({ flow }: { flow: ForgotFlow }) {
   function onSubmit(event: FormEvent) {
@@ -32,7 +33,8 @@ function EmailStep({ flow }: { flow: ForgotFlow }) {
         error={flow.emailError}
         autoFocus
       />
-      <Button type="submit" block loading={flow.pending}>
+      <HumanCheck check={flow.humanCheck} />
+      <Button type="submit" block loading={flow.pending} disabled={!flow.humanCheck.ready}>
         Enviar código
       </Button>
       <Link href="/ingresar" className="ui-link" style={{ textAlign: 'center' }}>
@@ -68,10 +70,11 @@ function ResetStep({ flow }: { flow: ForgotFlow }) {
       />
       <div className="au-between" style={{ marginTop: -6 }}>
         <span>¿No te llegó?</span>
-        <button type="button" className="ui-link" disabled={flow.cooldown.active} onClick={flow.resend}>
+        <button type="button" className="ui-link" disabled={flow.cooldown.active || !flow.humanCheck.ready} onClick={flow.resend}>
           {flow.cooldown.active ? `Reenviar en ${clock(flow.cooldown.left)}` : 'Reenviar código'}
         </button>
       </div>
+      <HumanCheck check={flow.humanCheck} quiet />
       <div className="au-col" style={{ gap: 10 }}>
         <Field
           label="Contraseña nueva"

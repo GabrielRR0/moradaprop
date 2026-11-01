@@ -24,6 +24,13 @@ export const securityConfig = (env: Env) => ({
     keys: env.encryptionKeys || `v1:${env.encryptionKey}`,
     activeVersion: env.encryptionActiveVersion,
   },
+  /** "No soy un robot" (Cloudflare Turnstile). Un solo interruptor: la web lee `enabled` y `siteKey` por GET /auth/human-check. */
+  turnstile: {
+    enabled: env.turnstileEnabled,
+    siteKey: env.turnstileSiteKey,
+    /** Solo para el servidor: valida cada respuesta. */
+    secretKey: env.turnstileSecretKey,
+  },
   clientKeys: {
     web: env.appClientKeyWeb,
     mobile: env.appClientKeyMobile,

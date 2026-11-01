@@ -6,6 +6,7 @@ import { Icon } from '@/components/icons';
 import { Button, Field, Notice } from '@/components/ui';
 import { clock } from '../../hooks/useCooldown';
 import type { LoginFlow } from '../../hooks/useLoginFlow';
+import { HumanCheck } from '../shared/HumanCheck';
 
 /** Paso 1 del login: correo y clave, o entrar directo con huella / Face ID. */
 export function LoginCredentials({ flow }: { flow: LoginFlow }) {
@@ -54,7 +55,9 @@ export function LoginCredentials({ flow }: { flow: LoginFlow }) {
         </Link>
       </div>
 
-      <Button type="submit" block loading={pending} disabled={cooldown.active}>
+      <HumanCheck check={flow.humanCheck} />
+
+      <Button type="submit" block loading={pending} disabled={cooldown.active || !flow.humanCheck.ready}>
         {cooldown.active ? `Espera ${clock(cooldown.left)}` : 'Ingresar'}
       </Button>
 

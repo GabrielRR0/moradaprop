@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { RequestInfo } from '@/common/security/decorators';
+import { RequestInfo, RequireHumanCheck } from '@/common/security/decorators';
 import { GuestGroup } from '@/common/security/groups';
 import { EmailDto } from '../../contracts/dto/email-code.dto';
 import { ResetPasswordDto } from '../../contracts/dto/reset-password.dto';
@@ -15,6 +15,7 @@ import type { RequestContext } from '../../utils/auth-context';
 export class PasswordRecoveryController {
   constructor(private readonly authService: AuthService) {}
 
+  @RequireHumanCheck()
   @HttpCode(200)
   @Post('forgot')
   forgotPassword(@Body() dto: EmailDto, @RequestInfo() ctx: RequestContext): Promise<MessageResource> {

@@ -9,7 +9,7 @@ import { PasskeyError, passkeyMessages } from './webauthn';
 export interface Problem {
   text: string;
   /** Que debe hacer la pantalla ademas de mostrar el texto. */
-  kind: 'generic' | 'credentials' | 'verify-email' | 'no-factor' | 'rate-limit' | 'locked' | 'network';
+  kind: 'generic' | 'credentials' | 'verify-email' | 'no-factor' | 'rate-limit' | 'locked' | 'network' | 'human-check';
   /** Mensajes de validacion del API (400), para marcar campos. */
   fields?: string[];
 }
@@ -29,6 +29,13 @@ export function describeError(error: unknown, fallback: string): Problem {
   if (!(error instanceof ApiError)) return { text: fallback, kind: 'generic' };
   if (error.status === 0) return { text: TEXTS.network, kind: 'network' };
   if (error.status === 429) return { text: TEXTS.rate, kind: 'rate-limit' };
+  // Verificacion "no soy un robot": la pantalla pide un token nuevo y vuelve a preguntar si sigue activa.
+  if (error.code === 'HUMAN_CHECK_REQUIRED' || error.code === 'HUMAN_CHECK_FAILED') {
+    return { text: 'No pudimos comprobar que eres una persona. Inténtalo de nuevo.', kind: 'human-check' };
+  }
+  if (error.code === 'HUMAN_CHECK_UNAVAILABLE') {
+    return { text: 'La verificación no responde ahora. Inténtalo de nuevo en un momento.', kind: 'human-check' };
+  }
   if (error.status === 400) {
     return { text: error.messages[0] ?? fallback, kind: 'generic', fields: error.messages };
   }

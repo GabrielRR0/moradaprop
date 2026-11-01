@@ -5,6 +5,7 @@ import { CryptoModule } from './common/crypto';
 import { AppGraphqlModule } from './common/graphql/app-graphql.module';
 import { ImagesSupport } from './support/images';
 import { MailSupport } from './support/mail';
+import { TurnstileSupport } from './support/turnstile';
 import { PrismaModule } from './common/prisma';
 import { GlobalGuardsModule } from './common/security/global-guards.module';
 import { StorageModule } from './common/storage';
@@ -31,6 +32,7 @@ import { appRoutes } from './routes';
     CryptoModule,
     CacheSupport.Module,
     MailSupport.Module,
+    TurnstileSupport.Module,
     StorageModule,
     ImagesSupport.Module,
     AppGraphqlModule,

@@ -3,6 +3,7 @@
 import type { FormEvent } from 'react';
 import { Button, Field, Notice, PasswordStrength } from '@/components/ui';
 import { clock } from '../../hooks/useCooldown';
+import { HumanCheck } from '../shared/HumanCheck';
 import type { RegisterFlow } from '../../hooks/useRegisterFlow';
 
 /** Paso 2: datos de la cuenta. Los errores salen junto a cada campo; los del servidor, arriba. */
@@ -82,13 +83,14 @@ export function RegisterDataStep({ flow }: { flow: RegisterFlow }) {
         />
         <PasswordStrength password={form.password} />
       </div>
+      <HumanCheck check={flow.humanCheck} />
       <div className="au-row">
         <div style={{ flex: '0 0 auto' }}>
           <Button variant="secondary" onClick={flow.goBack} disabled={flow.pending}>
             Atrás
           </Button>
         </div>
-        <Button type="submit" block loading={flow.pending} disabled={flow.cooldown.active}>
+        <Button type="submit" block loading={flow.pending} disabled={flow.cooldown.active || !flow.humanCheck.ready}>
           {flow.cooldown.active ? `Espera ${clock(flow.cooldown.left)}` : 'Crear cuenta'}
         </Button>
       </div>

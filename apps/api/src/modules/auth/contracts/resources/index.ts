@@ -6,6 +6,7 @@ export type {
   LoginResponseResource,
   TwoFactorRequiredResource,
 } from './auth-session.resource';
+export type { HumanCheckResource } from './human-check.resource';
 export type { MessageResource } from './message.resource';
 export type { SessionResource } from './session.resource';
 export type { BackupCodesResource, TwoFactorEnabledResource, TwoFactorSetupResource } from './two-factor.resource';

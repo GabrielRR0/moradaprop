@@ -12,7 +12,7 @@ import { useSession } from '@/modules/auth';
 
 export function HomeScreen() {
   const v = useHomeScreen();
-  const { status } = useSession();
+  const { status, user } = useSession();
   const { toggleDark } = useTheme();
   return (
     <div
@@ -121,6 +121,11 @@ export function HomeScreen() {
           >
             <Icon name="moon" size={20} strokeWidth={2} />
           </button>
+          {user?.roles.includes('ADMIN') && (
+            <Link href="/admin/ajustes" className="btn2">
+              Ajustes
+            </Link>
+          )}
           {status === 'authed' && (
             <Link href="/mensajes" className="btn2">
               Mensajes

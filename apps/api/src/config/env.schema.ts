@@ -67,6 +67,17 @@ export const envSchema = z.object({
   APP_CLIENT_KEY_WEB: z.string().default('dev-web-client-key'),
   APP_CLIENT_KEY_MOBILE: z.string().default('dev-mobile-client-key'),
 
+  /**
+   * Verificacion "no soy un robot" (Cloudflare Turnstile) en registro, login, recuperar clave y reenvio de codigos.
+   * UN SOLO INTERRUPTOR para API y web: la web le pregunta a la API si esta activo y con que clave publica (GET /auth/human-check).
+   * Con 'true' hacen falta las dos claves (el arranque falla si faltan).
+   */
+  TURNSTILE_ENABLED: z.enum(['true', 'false']).default('false'),
+  /** Clave PUBLICA del widget (la ve el navegador). */
+  TURNSTILE_SITE_KEY: z.string().default(''),
+  /** Clave SECRETA con la que la API valida cada respuesta. Nunca viaja a la web. */
+  TURNSTILE_SECRET_KEY: z.string().default(''),
+
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_CALLBACK_URL: z.string().optional(),

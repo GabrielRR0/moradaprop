@@ -195,6 +195,18 @@ Qué hacer:
 - Esta primera entrada deja al navegador como **dispositivo de confianza** (cookie `device_token`). Es lo que más adelante permite activar passkeys y usar VPN sin fricción.
 - **Límite:** si una misma IP crea muchas cuentas en una hora, el API (en modo estricto, `THREAT_MODE=enforce`) la bloquea unas horas: `403 "Acceso restringido"`.
 
+### "No soy un robot" (Cloudflare Turnstile), opcional
+
+El interruptor es **de la API** (`TURNSTILE_ENABLED`); la web no tiene una variable propia:
+1. Al abrir un formulario, `GET /auth/human-check` → `{ enabled, siteKey }`. Con `enabled: false` no hagas nada más: el formulario funciona como siempre.
+2. Con `enabled: true`, dibuja el widget de Cloudflare con `siteKey` y guarda el token que entrega. Hasta que haya token, el botón de enviar queda desactivado.
+3. Manda el token en la cabecera **`x-turnstile-token`** en `POST /auth/register`, `/auth/login`, `/auth/resend-code` y `/auth/password/forgot` (en el cuerpo no: los DTO rechazan campos desconocidos).
+4. **Cada token sirve una sola vez:** después de cada envío (salga bien o mal) pide uno nuevo (`turnstile.reset()`).
+5. Errores: `403 HUMAN_CHECK_REQUIRED` o `HUMAN_CHECK_FAILED` → pide un token nuevo, vuelve a consultar `/auth/human-check` y deja reintentar; `503 HUMAN_CHECK_UNAVAILABLE` → Cloudflare no responde, "inténtalo en un momento".
+6. Si el widget no carga (bloqueador de contenido, red), avísalo con un botón "Reintentar": sin token no se puede enviar.
+
+En esta web: `useHumanCheck` y `HumanCheck` (`modules/auth`), sobre `support/turnstile`.
+
 ---
 
 ## 6. Login: una máquina de estados
@@ -236,6 +248,8 @@ Guarda el token en memoria, revisa `enrollment` (§8) y carga los avisos de segu
 | Status | `code` | Significado | Qué mostrar |
 |---|---|---|---|
 | 403 | `EMAIL_NOT_VERIFIED` | La cuenta existe pero no verificó el correo | Llevarlo a la pantalla del código (con "reenviar") |
+| 403 | `HUMAN_CHECK_REQUIRED` / `HUMAN_CHECK_FAILED` | Falta la verificación "no soy un robot", o es falsa, vencida o ya usada | Pedir un token nuevo y dejar reintentar (ver "No soy un robot" en §5) |
+| 503 | `HUMAN_CHECK_UNAVAILABLE` | Cloudflare no respondió | "Inténtalo en un momento"; no es culpa del usuario |
 | 403 | `SECOND_FACTOR_REQUIRED` | Inicio **muy raro** y la cuenta **no tiene** passkey ni 2FA | *"Por seguridad, entra desde tu dispositivo habitual y activa huella/Face ID o la verificación en dos pasos para poder entrar desde otros lugares."* No hay forma de seguir desde aquí |
 | 403 | — (`"Cuenta bloqueada temporalmente…"`) | Bloqueo por fallos de clave o de segundo factor | Mostrar el mensaje y que pruebe más tarde (o entre con su passkey, que no se bloquea por esto) |
 | 403 | — (`"Acceso restringido"`) | Su IP, país o cuenta está bloqueado | Mensaje genérico; no dar detalles ni forma de evadirlo |
@@ -389,6 +403,7 @@ if (e instanceof ApiError && e.code === 'RECENT_TWO_FACTOR_REQUIRED') {
 - **Con passkey:** `POST /api/auth/reverify/passkey/options` (sin cuerpo) → `navigator.credentials.get()` → `POST /api/auth/reverify/passkey` con `{ credential }` (misma forma que en el login con passkey).
 - Respuesta: `{ validUntil }` (ISO). Un código incorrecto da `401 "Codigo invalido"`.
 - **No ofrezcas el código por correo** en este panel: el API no lo acepta.
+- En esta web: `withRecentSecondFactor` (`src/lib/admin`) hace "ejecuta, si pide el factor lo confirma y repite una vez", y `ConfirmIdentitySheet` (`modules/auth`) es el panel. Los usa `/admin/ajustes`.
 
 ## 9. Advertencias y avisos de seguridad
 

@@ -1,6 +1,18 @@
 import { envSchema } from './env.schema';
 import { assertProductionSafe } from './production-guard';
 
+/** Con TURNSTILE_ENABLED=true faltan las claves: mejor no arrancar que dejar la verificacion rota (todos los formularios fallarian). */
+function assertTurnstileConfigured(raw: { TURNSTILE_ENABLED: string; TURNSTILE_SITE_KEY: string; TURNSTILE_SECRET_KEY: string }) {
+  if (raw.TURNSTILE_ENABLED !== 'true') return;
+  const missing = [
+    !raw.TURNSTILE_SITE_KEY && 'TURNSTILE_SITE_KEY',
+    !raw.TURNSTILE_SECRET_KEY && 'TURNSTILE_SECRET_KEY',
+  ].filter(Boolean);
+  if (missing.length > 0) {
+    throw new Error(`TURNSTILE_ENABLED=true exige estas variables: ${missing.join(', ')}`);
+  }
+}
+
 /** Valida y devuelve el entorno ya mapeado a nombres internos. */
 export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
   const parsed = envSchema.safeParse(source);
@@ -14,6 +26,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
 
   const raw = parsed.data;
   assertProductionSafe(raw); // en produccion no arranca con claves de desarrollo
+  assertTurnstileConfigured(raw);
 
   // Si una variable cambia de nombre, solo se edita este mapeo.
   return {
@@ -58,6 +71,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env) {
     corsAllowedOrigins: raw.CORS_ALLOWED_ORIGINS,
     appClientKeyWeb: raw.APP_CLIENT_KEY_WEB,
     appClientKeyMobile: raw.APP_CLIENT_KEY_MOBILE,
+
+    turnstileEnabled: raw.TURNSTILE_ENABLED === 'true',
+    turnstileSiteKey: raw.TURNSTILE_SITE_KEY,
+    turnstileSecretKey: raw.TURNSTILE_SECRET_KEY,
 
     googleClientId: raw.GOOGLE_CLIENT_ID,
     googleClientSecret: raw.GOOGLE_CLIENT_SECRET,

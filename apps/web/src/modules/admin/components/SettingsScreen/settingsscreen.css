@@ -1,0 +1,143 @@
+/* Ajustes de la plataforma (admin). Prefijo as-. Solo usa los tokens de globals.css (modo noche incluido). */
+
+.as-page {
+  min-height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+.as-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.as-bar h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.as-bar small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.as-back {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surf);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  transition: border-color 0.18s, background-color 0.18s;
+}
+.as-back:hover {
+  border-color: var(--ac);
+  background: var(--surf2);
+}
+.as-main {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.as-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1.5px solid var(--line);
+  background: var(--surf);
+}
+.as-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.as-card-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.as-card-head p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.as-ico {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--ac-soft);
+  color: var(--ac-ink);
+}
+
+/* Origen actual del correo */
+.as-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--surf2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.as-chip.on {
+  background: color-mix(in srgb, #1f9d55 15%, var(--surf));
+  color: color-mix(in srgb, #137a40 85%, var(--text));
+}
+.as-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.as-help {
+  margin: -6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.as-lock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.as-lock svg {
+  flex: none;
+}
+
+.as-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.as-actions > * {
+  flex: 1 1 200px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-back {
+    transition: none;
+  }
+}

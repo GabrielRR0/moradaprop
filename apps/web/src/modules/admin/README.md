@@ -1,6 +1,9 @@
 # Módulo `admin`
 
-Moderación de anuncios para el administrador: cola de revisión, revisión automática, aprobar / pedir cambios / rechazar y auditoría reciente. Solo escritorio (en el teléfono muestra un aviso).
+Administración. Hoy tiene dos pantallas: **Ajustes de la plataforma** (`/admin/ajustes`, conectada a la API) y la **moderación de anuncios** (`/admin`, con datos de ejemplo: cola de revisión, aprobar / pedir cambios / rechazar y auditoría reciente; solo escritorio, en el teléfono muestra un aviso).
+
+## Ajustes de la plataforma (`/admin/ajustes`)
+El admin configura el **correo con Resend** (API key, correo y nombre del remitente) sin tocar variables de entorno, y puede enviar un correo de prueba. La pantalla dice de dónde sale hoy el correo: de la clave guardada o de las variables `MAIL_*` del servidor. Todo se guarda cifrado en la base y, si hay algo guardado, manda sobre las variables. Guardar o quitar pide confirmar el segundo factor (`ConfirmIdentitySheet`, de `modules/auth`). Las rutas cuelgan de `NEXT_PUBLIC_ADMIN_API_PREFIX` (igual a `ADMIN_API_PREFIX` de la API). Si la cuenta no tiene 2FA activo, la pantalla lo explica y lleva a activarlo. Llamadas y reintento tras confirmar: `src/lib/admin`.
 
 ## Qué contiene
 

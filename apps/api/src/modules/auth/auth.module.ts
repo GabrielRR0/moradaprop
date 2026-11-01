@@ -3,6 +3,7 @@ import { GoogleIdentitySupport } from '@/support/google-identity';
 import { JwtSupport } from '@/support/jwt';
 import { SecurityModule } from '@/modules/security';
 import { GoogleLoginController } from './controllers/public/google-login.controller';
+import { HumanCheckController } from './controllers/public/human-check.controller';
 import { LoginController } from './controllers/public/login.controller';
 import { PasskeyLoginController } from './controllers/public/passkey-login.controller';
 import { PasswordRecoveryController } from './controllers/public/password-recovery.controller';
@@ -14,6 +15,7 @@ import { TwoFactorController } from './controllers/private/user/two-factor.contr
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthService } from './services/auth.service';
 import { GoogleAuthService } from './services/google/google-auth.service';
+import { HumanCheckService } from './services/human-check/human-check.service';
 import { LoginService } from './services/sign-in/login.service';
 import { PasskeyLoginService } from './services/sign-in/passkey-login.service';
 import { PasswordResetService } from './services/password/password-reset.service';
@@ -34,6 +36,7 @@ import { VerifyEmailService } from './services/registration/verify-email.service
   controllers: [
     RegistrationController,
     LoginController,
+    HumanCheckController,
     PasswordRecoveryController,
     GoogleLoginController,
     PasskeyLoginController,
@@ -57,6 +60,7 @@ import { VerifyEmailService } from './services/registration/verify-email.service
     PasswordResetService,
     GoogleAuthService,
     GoogleIdentitySupport.Verifier,
+    HumanCheckService,
     UserAccountService,
     VerificationCodeService,
     JwtAuthGuard,

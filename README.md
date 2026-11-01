@@ -60,6 +60,8 @@ Al arrancar, la API aplica las migraciones y siembra datos de ejemplo (~120 prop
 
 También hay `scripts/dev.ps1` / `dev.sh` y `scripts/test.ps1` / `test.sh` con más opciones.
 
+**Despliegue:** `vercel.json` define la web y la API como dos servicios de un solo proyecto de Vercel (Services, Beta) bajo el mismo dominio. Aún no se ha desplegado; ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
+
 > **Documentación para colaboradores** (empieza por aquí): [docs/README.md](docs/README.md) → [guía de colaboradores](docs/GUIA-COLABORADORES.md), [**seguridad**](docs/SEGURIDAD.md), [mapa de la API](docs/API.md) y [rendimiento](docs/RENDIMIENTO.md). Si vas a tocar el backend, lee la de seguridad antes de escribir código.
 
 ---
@@ -107,7 +109,7 @@ Quien responde guarda los textos que repite (horarios, requisitos, "sigue dispon
 
 - **Publicar** (API): crear, editar, cambiar estado, asignar agente, borrar y subir hasta 20 fotos por propiedad. La web tiene el formulario guiado de 6 pasos, pero todavía con datos de ejemplo.
 - **Importación masiva** (solo agencias): plantilla `.xlsx` o `.csv`, hasta 5 MB y 500 filas; cada fila se valida con las mismas reglas que publicar a mano y se inserta por lotes. Rechaza macros y fórmulas, y neutraliza textos que empiezan con `=`, `+`, `-` o `@`.
-- **Administración:** usuarios, bloqueos (IP, rango, país, usuario, correo o dominio), visor de auditoría y **ajustes que el admin cambia desde el panel** (hoy, el correo con Resend: la clave queda cifrada).
+- **Administración:** usuarios, bloqueos (IP, rango, país, usuario, correo o dominio), visor de auditoría y **ajustes que el admin cambia desde la web** (`/admin/ajustes`: hoy, el correo con Resend; todo queda cifrado en la base y, si hay algo guardado, manda sobre las variables `MAIL_*`). El administrador **no** se crea por la web: se registra como una persona normal y se le cambia el rol en la base (ver [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md)).
 
 ---
 
@@ -116,6 +118,7 @@ Quien responde guarda los textos que repite (horarios, requisitos, "sigue dispon
 **Una petición** (REST o GraphQL) atraviesa estas capas, declaradas en `common/security/global-guards.module.ts`: origen de la app (`Origin` + `X-App-Client` + `X-App-Key`) → bloqueos → límite de uso → sesión (JWT) → roles y 2FA → validación del cuerpo → permisos sobre el dato concreto (`OwnershipService`) → riesgo del inicio de sesión → revisión de archivos → detector de abuso. Detalle en [docs/SEGURIDAD.md](docs/SEGURIDAD.md).
 
 - **Sesión:** access token JWT de 15 minutos y refresh token de un solo uso (7 días) que rota en cada renovación; en la web va en una cookie `httpOnly` y el access token vive solo en memoria. Si llega un refresh ya usado, se cierran todas las sesiones de la cuenta.
+- **"No soy un robot" (opcional):** con `TURNSTILE_ENABLED=true` en la API, el registro, el login con contraseña, recuperar contraseña y el reenvío de códigos exigen la verificación de Cloudflare Turnstile. Es **un solo interruptor**: la web le pregunta a la API si está activo y con qué clave pública, así nunca se desincronizan. Cada token sirve una vez y, si Cloudflare no responde, se niega el acceso. Hacen falta `TURNSTILE_SITE_KEY` y `TURNSTILE_SECRET_KEY` (el arranque falla si faltan). Apagado (por defecto) no cambia nada.
 - **Entrar:** correo y contraseña (argon2id), **passkey** (huella, Face ID, Windows Hello) o Google. Segundo factor con app autenticadora (TOTP), códigos de respaldo o passkey; es **obligatorio** para admin, dueños y agencias (`SECOND_FACTOR_MODE`).
 - **Riesgo del inicio de sesión:** se compara país, red y dispositivo con lo habitual de la cuenta; si es muy raro exige segundo factor. Cuenta bloqueada 15 minutos tras 5 contraseñas incorrectas.
 - **El usuario siempre sale del token.** Ningún DTO acepta `userId`, `role`, `ownerId` ni `agencyId`; un campo desconocido responde 400. Un recurso ajeno responde 404 y queda auditado.
@@ -207,7 +210,7 @@ properties/
 - **Validación** solo en `contracts/dto/`. **Lógica** solo en `services/`. **Respuestas** descritas en `contracts/resources/`, y las pruebas e2e comprueban que lo que sale las cumple (y rechazan campos que el Resource no declara).
 - **Services** por tema y caso de uso (no por verbo); más de ~150 líneas se divide, y la fachada mantiene su API.
 - **Permisos sobre datos:** cada módulo declara una política (`*.policy.ts`) y `OwnershipService.require` la aplica; quien no cumple recibe 404.
-- **Paquetes de terceros solo vía `support/`** (`password`, `cache`, `mail`, `images`, `jwt`, `google-identity`, `totp`, `spreadsheet`, `db`): el lint falla si importas el paquete directo.
+- **Paquetes de terceros solo vía `support/`** (`password`, `cache`, `mail`, `images`, `jwt`, `google-identity`, `totp`, `spreadsheet`, `db`, `turnstile`): el lint falla si importas el paquete directo.
 - **Imports:** `@/` = `src/` y `@test/` = `test/`; sin `../../..` (lo hace cumplir el lint). De otro módulo solo se importa su `index.ts`.
 - **Rutas agrupadas:** `routes/api.routes` → `routes/<modulo>.routes`, con prefijos (`RouterModule` de Nest). Las rutas fijas (`mine`, `received`) se registran antes que `GET :id`.
 - Cada carpeta lleva su `README.md`.
@@ -218,7 +221,7 @@ properties/
 app/              # rutas de Next: cada page.tsx solo importa la página de su módulo
 modules/          # una carpeta por tema (auth, home, map, properties, inbox, security, dashboard-agency, publish, admin, design)
 lib/              # lo que comparten varios módulos: cliente HTTP (api.ts), properties/, appointments/, reply-templates/
-support/          # envoltorios de paquetes: MotionSupport, QuerySupport, MapLibreSupport
+support/          # envoltorios de paquetes: MotionSupport, QuerySupport, MapLibreSupport, TurnstileSupport
 components/       # piezas comunes: ui/ (Button, Field, Sheet...), icons/, Responsive
 config/           # ÚNICA capa que lee process.env en la web, y la marca
 ```
@@ -284,7 +287,7 @@ inbox/                         # ejemplo: el módulo de mensajes
 
 ## Seguridad
 
-Resumen en "Cómo funciona por dentro"; el detalle, los límites conocidos y la lista previa a desplegar están en [docs/SEGURIDAD.md](docs/SEGURIDAD.md) y, para quien construye la web, en [docs/FRONTEND-SEGURIDAD.md](docs/FRONTEND-SEGURIDAD.md). Decisiones del proyecto: **sin servicios de terceros en la seguridad** (no hay CAPTCHA ni antivirus; los archivos pasan por revisiones propias). **No ha pasado una auditoría externa ni pruebas de penetración.**
+Resumen en "Cómo funciona por dentro"; el detalle, los límites conocidos y la lista previa a desplegar están en [docs/SEGURIDAD.md](docs/SEGURIDAD.md) y, para quien construye la web, en [docs/FRONTEND-SEGURIDAD.md](docs/FRONTEND-SEGURIDAD.md). Decisiones del proyecto: **sin servicios de terceros en la seguridad**, con una excepción **opcional**: el "no soy un robot" de Cloudflare Turnstile, apagado por defecto (ver abajo). No hay antivirus; los archivos pasan por revisiones propias. **No ha pasado una auditoría externa ni pruebas de penetración.**
 
 ---
 

@@ -22,6 +22,8 @@ services/
     two-factor-verifier.service.ts comprueba los códigos (app autenticadora, respaldo, correo) y crea los de respaldo
   google/
     google-auth.service.ts         entrar con Google, vincular y desvincular
+  human-check/
+    human-check.service.ts         le dice a la web si el "no soy un robot" está activo y con qué clave pública (nunca la secreta)
   account/
     user-account.service.ts        buscar usuarios por correo o id (lo usan varios services)
 ```

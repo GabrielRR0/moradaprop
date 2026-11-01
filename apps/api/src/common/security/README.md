@@ -1,6 +1,6 @@
 # security (común)
 Piezas de seguridad transversales:
-- guards/: app-origin (solo nuestras apps, por Origin + clave) y roles (@Roles, @RequireTwoFactor). app-throttler.guard = rate limit.
+- guards/: app-origin (solo nuestras apps, por Origin + clave), roles (@Roles, @RequireTwoFactor) y human-check (@RequireHumanCheck: el "no soy un robot" de Cloudflare Turnstile en registro, login, recuperar clave y reenvio de codigos; solo actua con TURNSTILE_ENABLED=true). app-throttler.guard = rate limit.
 - decorators/: @Public, @Roles, @CurrentUser, @RequestInfo, @Client...
 - groups/: grupos de rutas: PublicGroup, GuestGroup, AuthGroup, TwoFactorGroup, RoleGroup, PublisherGroup, AgencyGroup, AdminGroup. Se edita solo ahí para cambiar el comportamiento de un grupo. La carpeta de cada controller debe coincidir con su grupo (lo comprueba tests/controller-layout.spec.ts).
 - types/: un archivo por tipo (AuthUserContext, RequestContext, AppRequest, y los Payload de los tokens).

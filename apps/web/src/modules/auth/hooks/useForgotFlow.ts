@@ -4,6 +4,7 @@ import { toast } from '@/lib/toast';
 import { codeProblem, describeError, type Problem } from '../services/auth-errors';
 import { authService } from '../services/auth.service';
 import { useCooldown } from './useCooldown';
+import { useHumanCheck } from './useHumanCheck';
 
 export const FORGOT_EMAIL = 1;
 export const FORGOT_RESET = 2;
@@ -21,31 +22,40 @@ export function useForgotFlow() {
   const [pending, setPending] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
   const cooldown = useCooldown();
+  const humanCheck = useHumanCheck();
 
   async function sendCode() {
     if (!isEmail(email)) return setEmailError('Escribe un correo válido.');
+    if (!humanCheck.ready) return;
     setEmailError(null);
     setPending(true);
     setProblem(null);
     try {
-      await authService.forgotPassword(email.trim());
+      await authService.forgotPassword(email.trim(), humanCheck.headers());
       cooldown.start(60);
       setStep(FORGOT_RESET);
     } catch (error) {
-      setProblem(describeError(error, 'No pudimos enviar el código. Inténtalo de nuevo.'));
+      const found = describeError(error, 'No pudimos enviar el código. Inténtalo de nuevo.');
+      if (found.kind === 'human-check') humanCheck.refresh();
+      setProblem(found);
     } finally {
+      humanCheck.reset(); // cada token sirve una sola vez
       setPending(false);
     }
   }
 
   async function resend() {
-    if (cooldown.active) return;
+    if (cooldown.active || !humanCheck.ready) return;
     cooldown.start(60);
     try {
-      await authService.forgotPassword(email.trim());
+      await authService.forgotPassword(email.trim(), humanCheck.headers());
       toast('Te enviamos un código nuevo', 'info');
     } catch (error) {
-      setProblem(describeError(error, 'No pudimos reenviar el código.'));
+      const found = describeError(error, 'No pudimos reenviar el código.');
+      if (found.kind === 'human-check') humanCheck.refresh();
+      setProblem(found);
+    } finally {
+      humanCheck.reset(); // cada token sirve una sola vez
     }
   }
 
@@ -88,6 +98,7 @@ export function useForgotFlow() {
     pending,
     shakeKey,
     cooldown,
+    humanCheck,
     sendCode,
     resend,
     reset,

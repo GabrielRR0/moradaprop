@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import type { AuthSession, LoginResult } from '@/lib/api-types';
+import type { AuthSession, HumanCheckConfig, LoginResult } from '@/lib/api-types';
 import { isChallenge } from '@/lib/api-types';
 import { endSession, startSession } from '../session/session.store';
 import { createPasskey, getPasskey } from './webauthn';
@@ -21,10 +21,14 @@ function adopt(result: LoginResult): LoginResult {
   return result;
 }
 
-const post = <T>(path: string, json: unknown) => api<T>(path, { method: 'POST', json });
+/** `headers` lleva la respuesta del widget "no soy un robot" en las rutas que la exigen (ver useHumanCheck). */
+const post = <T>(path: string, json: unknown, headers?: Record<string, string>) => api<T>(path, { method: 'POST', json, headers });
 
 export const authService = {
-  register: (input: RegisterInput) => post<{ message: string }>('/auth/register', input),
+  /** ¿Esta activa la verificacion "no soy un robot"? La API es la unica que lo decide. */
+  humanCheck: () => api<HumanCheckConfig>('/auth/human-check'),
+
+  register: (input: RegisterInput, proof?: Record<string, string>) => post<{ message: string }>('/auth/register', input, proof),
 
   async verifyEmail(email: string, code: string): Promise<AuthSession> {
     const session = await post<AuthSession>('/auth/verify-email', { email, code });
@@ -32,10 +36,10 @@ export const authService = {
     return session;
   },
 
-  resendCode: (email: string) => post<unknown>('/auth/resend-code', { email }),
+  resendCode: (email: string, proof?: Record<string, string>) => post<unknown>('/auth/resend-code', { email }, proof),
 
-  async login(email: string, password: string): Promise<LoginResult> {
-    return adopt(await post<LoginResult>('/auth/login', { email, password }));
+  async login(email: string, password: string, proof?: Record<string, string>): Promise<LoginResult> {
+    return adopt(await post<LoginResult>('/auth/login', { email, password }, proof));
   },
 
   /** Segundo paso con app autenticadora, codigo de respaldo o codigo por correo. */
@@ -69,7 +73,7 @@ export const authService = {
     return session;
   },
 
-  forgotPassword: (email: string) => post<unknown>('/auth/password/forgot', { email }),
+  forgotPassword: (email: string, proof?: Record<string, string>) => post<unknown>('/auth/password/forgot', { email }, proof),
 
   resetPassword: (email: string, code: string, newPassword: string) =>
     post<unknown>('/auth/password/reset', { email, code, newPassword }),
@@ -79,6 +83,16 @@ export const authService = {
     const options = await post<unknown>('/auth/passkeys/register/options', { password });
     const credential = await createPasskey(options);
     await post<unknown>('/auth/passkeys/register/verify', { credential, label });
+  },
+
+  /** Vuelve a comprobar el segundo factor con un codigo (app autenticadora o de respaldo; nunca el del correo). */
+  reverifyWithCode: (code: string) => post<{ validUntil: string }>('/auth/reverify/code', { code }),
+
+  /** Vuelve a comprobar el segundo factor con una passkey. */
+  async reverifyWithPasskey(): Promise<void> {
+    const options = await post<unknown>('/auth/reverify/passkey/options', {});
+    const credential = await getPasskey(options);
+    await post<unknown>('/auth/reverify/passkey', { credential });
   },
 
   async logout(): Promise<void> {

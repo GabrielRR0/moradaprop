@@ -14,6 +14,12 @@ export interface PublicUser {
   hasPassword: boolean;
 }
 
+/** Si la verificacion "no soy un robot" (Turnstile) esta activa en la API y con que clave publica dibujar el widget. */
+export interface HumanCheckConfig {
+  enabled: boolean;
+  siteKey: string | null;
+}
+
 /** Estado del segundo factor. Llega en login, refresh, verify-email y GET /auth/second-factor. */
 export interface Enrollment {
   mode: 'off' | 'monitor' | 'enforce';

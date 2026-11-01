@@ -87,12 +87,19 @@ describe('Ajustes de la plataforma (e2e)', () => {
   });
 
   describeCase('ajustes (e2e)', {
-    que: 'los ajustes que no son secretos se muestran tal cual',
-    espera: 'el correo remitente vuelve en "value"',
-    ejecutar: () => admin('put')('/api/admin/settings/mail.fromAddress').send({ value: 'no-reply@midominio.com' }),
-    verificar: (res) => {
+    que: 'los ajustes que no son secretos se muestran tal cual, pero tambien se guardan cifrados en la base',
+    espera: 'el correo remitente vuelve en "value"; en la base no se lee y el codigo lo descifra',
+    ejecutar: async () => {
+      const res = await admin('put')('/api/admin/settings/mail.fromAddress').send({ value: 'no-reply@midominio.com' });
+      const fila = await t.prisma.platformSetting.findUniqueOrThrow({ where: { key: 'mail.fromAddress' } });
+      return { res, fila, leida: await t.app.get(SettingsService).get('mail.fromAddress') };
+    },
+    verificar: ({ res, fila, leida }) => {
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ secret: false, value: 'no-reply@midominio.com', preview: null });
+      expect(fila.value).not.toContain('midominio');
+      expect(fila.value.startsWith('v1.')).toBe(true);
+      expect(leida).toBe('no-reply@midominio.com');
     },
   });
 

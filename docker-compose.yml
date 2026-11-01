@@ -79,6 +79,9 @@ services:
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-dev-encryption-key-change-me-0123456789abcdef}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-false}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       # Base de los enlaces a /uploads (fotos); con un tunel debe ser la URL publica del API
       API_PUBLIC_URL: ${API_PUBLIC_URL:-http://localhost:3001}
       CHOKIDAR_USEPOLLING: "true"

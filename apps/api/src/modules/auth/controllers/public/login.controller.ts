@@ -2,7 +2,7 @@ import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AppConfig } from '@/config';
-import { Client, RequestInfo } from '@/common/security/decorators';
+import { Client, RequestInfo, RequireHumanCheck } from '@/common/security/decorators';
 import { GuestGroup } from '@/common/security/groups';
 import type { AppClient } from '@/common/security/types';
 import { LoginDto } from '../../contracts/dto/login.dto';
@@ -27,6 +27,7 @@ export class LoginController {
     this.cookie = cookieSettings(config);
   }
 
+  @RequireHumanCheck()
   @HttpCode(200)
   @Post('login')
   async login(

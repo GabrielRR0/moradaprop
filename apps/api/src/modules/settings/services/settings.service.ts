@@ -14,8 +14,9 @@ type Row = { key: string; value: string; secret: boolean; updatedAt: Date };
 export const maskSecret = (value: string): string => (value.length <= 8 ? '••••' : `${value.slice(0, 3)}••••${value.slice(-4)}`);
 
 /**
- * Ajustes de la plataforma que el admin cambia sin tocar variables de entorno. Los secretos se guardan cifrados
- * (AES-256-GCM, con la clave de cifrado del servidor) y solo se descifran aqui, para quien los usa (get).
+ * Ajustes de la plataforma que el admin cambia sin tocar variables de entorno. TODOS se guardan cifrados en la base
+ * (AES-256-GCM, con la clave de cifrado del servidor) y solo se descifran aqui; `secret` solo decide si el valor se muestra
+ * (un secreto sale enmascarado y nunca completo).
  */
 @Injectable()
 export class SettingsService {
@@ -31,7 +32,7 @@ export class SettingsService {
   async get(key: SettingKey): Promise<string | undefined> {
     const row = (await this.rows()).get(key);
     if (!row) return undefined;
-    return row.secret ? this.cipher.decrypt(this.field(key), row.value) : row.value;
+    return this.plainOf(key, row);
   }
 
   async list(): Promise<SettingResource[]> {
@@ -46,7 +47,7 @@ export class SettingsService {
     if (problem) throw new BadRequestException(problem);
 
     const secret = SETTING_KEYS[key].secret;
-    const stored = secret ? this.cipher.encrypt(this.field(key), clean) : clean;
+    const stored = this.cipher.encrypt(this.field(key), clean);
     await this.prisma.platformSetting.upsert({
       where: { key },
       create: { key, value: stored, secret, updatedBy: adminId },
@@ -71,6 +72,11 @@ export class SettingsService {
     return key;
   }
 
+  /** El valor descifrado. Un ajuste no secreto guardado antes de que se cifrara todo (en claro) se sigue leyendo bien. */
+  private plainOf(key: SettingKey, row: Row): string {
+    return row.secret ? this.cipher.decrypt(this.field(key), row.value) : this.cipher.decryptOrPlain(this.field(key), row.value);
+  }
+
   /** Va como contexto del cifrado: un valor copiado a otra clave no descifra. */
   private field(key: SettingKey) {
     return `PlatformSetting.${key}` as const;
@@ -78,7 +84,7 @@ export class SettingsService {
 
   private toResource(key: SettingKey, row: Row | undefined): SettingResource {
     const { label, secret } = SETTING_KEYS[key];
-    const plain = row ? (secret ? this.cipher.decrypt(this.field(key), row.value) : row.value) : null;
+    const plain = row ? this.plainOf(key, row) : null;
     return {
       key,
       label,

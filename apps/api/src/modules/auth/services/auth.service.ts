@@ -4,6 +4,7 @@ import type { RegisterDto } from '../contracts/dto/register.dto';
 import type { ResetPasswordDto } from '../contracts/dto/reset-password.dto';
 import type {
   BackupCodesResource,
+  HumanCheckResource,
   MessageResource,
   ReverifyResource,
   SessionResource,
@@ -14,6 +15,7 @@ import type { AuthUserContext } from '@/common/security/types';
 import type { AuthenticationCredentialDto, PasskeyAuthenticationOptionsResource } from '@/modules/security';
 import type { AuthTokens, LoginResult, RequestContext } from '../utils/auth-context';
 import { GoogleAuthService, type GoogleLoginResult } from './google/google-auth.service';
+import { HumanCheckService } from './human-check/human-check.service';
 import { LoginService } from './sign-in/login.service';
 import { PasswordResetService } from './password/password-reset.service';
 import { RegisterService } from './registration/register.service';
@@ -36,7 +38,13 @@ export class AuthService {
     private readonly twoFactorSetupService: TwoFactorSetupService,
     private readonly passwordReset: PasswordResetService,
     private readonly google: GoogleAuthService,
+    private readonly humanCheckService: HumanCheckService,
   ) {}
+
+  // Verificacion "no soy un robot": le dice a la web si esta activa
+  humanCheck(): HumanCheckResource {
+    return this.humanCheckService.describe();
+  }
 
   // Registro y verificacion
   register(dto: RegisterDto, context: RequestContext): Promise<MessageResource> {

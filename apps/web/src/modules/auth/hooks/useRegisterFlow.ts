@@ -7,6 +7,7 @@ import { describeError, type Problem } from '../services/auth-errors';
 import { mustEnrollNow, routeAfterAuth } from '../services/auth-routing';
 import { authService, type AccountType } from '../services/auth.service';
 import { useCooldown } from './useCooldown';
+import { useHumanCheck } from './useHumanCheck';
 import { ROLES, STEP_CODE, STEP_DATA, STEP_DONE, STEP_ROLE } from './register-data';
 
 type FieldName = 'agencyName' | 'firstName' | 'lastName' | 'email' | 'phone' | 'password';
@@ -42,6 +43,7 @@ export function useRegisterFlow() {
   const [pending, setPending] = useState(false);
   const [session, setSession] = useState<AuthSession | null>(null);
   const cooldown = useCooldown();
+  const humanCheck = useHumanCheck();
 
   const role = ROLES.find((r) => r.id === roleId) ?? ROLES[0];
   const isAgency = role.id === 'agency';
@@ -67,7 +69,7 @@ export function useRegisterFlow() {
   async function createAccount() {
     const found = validate();
     setErrors(found);
-    if (Object.keys(found).length > 0 || pending || cooldown.active) return;
+    if (Object.keys(found).length > 0 || pending || cooldown.active || !humanCheck.ready) return;
     setPending(true);
     setProblem(null);
     try {
@@ -78,13 +80,15 @@ export function useRegisterFlow() {
         accountType: ACCOUNT_TYPE[role.id],
         phone: toInternationalPhone(form.phone),
         agencyName: isAgency ? form.agencyName.trim() : undefined,
-      });
+      }, humanCheck.headers());
       setStep(STEP_CODE);
     } catch (error) {
       const found = describeError(error, 'No pudimos crear la cuenta. Inténtalo de nuevo.');
       if (found.kind === 'rate-limit') cooldown.start(10);
+      if (found.kind === 'human-check') humanCheck.refresh();
       setProblem(found);
     } finally {
+      humanCheck.reset(); // cada token sirve una sola vez
       setPending(false);
     }
   }
@@ -113,6 +117,7 @@ export function useRegisterFlow() {
     problem,
     pending,
     cooldown,
+    humanCheck,
     mustProtect,
     goData: () => setStep(STEP_DATA),
     goBack: () => setStep((s) => Math.max(STEP_ROLE, s - 1)),

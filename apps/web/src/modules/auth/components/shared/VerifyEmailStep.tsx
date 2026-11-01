@@ -5,6 +5,7 @@ import { Button, CodeInput, Notice } from '@/components/ui';
 import type { AuthSession } from '@/lib/api-types';
 import { clock } from '../../hooks/useCooldown';
 import { useVerifyEmail } from '../../hooks/useVerifyEmail';
+import { HumanCheck } from './HumanCheck';
 
 /** Pide el codigo de 6 digitos que llego al correo. Verifica solo al completar la sexta casilla. */
 export function VerifyEmailStep({
@@ -46,10 +47,12 @@ export function VerifyEmailStep({
       />
       <div className="au-between">
         <span>¿No te llegó?</span>
-        <button type="button" className="ui-link" disabled={v.cooldown.active} onClick={v.resend}>
+        <button type="button" className="ui-link" disabled={v.cooldown.active || !v.humanCheck.ready} onClick={v.resend}>
           {v.cooldown.active ? `Reenviar en ${clock(v.cooldown.left)}` : 'Reenviar código'}
         </button>
       </div>
+      {/* Si el codigo se envia solo al abrir el paso, el widget se muestra completo; si no, solo aparece si hace falta o falla. */}
+      <HumanCheck check={v.humanCheck} quiet={!sendOnMount} />
       <div className="au-row">
         {onBack && (
           <div style={{ flex: '0 0 auto' }}>

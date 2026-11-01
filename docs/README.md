@@ -9,6 +9,7 @@
 | [RENDIMIENTO.md](RENDIMIENTO.md) | Quien optimiza o escala | Caché, límites de peticiones, qué se cambia dónde, límites honestos |
 | [BACKEND-MODULAR.md](BACKEND-MODULAR.md) | **Quien monta o amplía un backend** | El sistema modular completo y cómo repetirlo en un proyecto nuevo: estructura, reglas, qué hace cumplir el código, qué copiar y lista para crear un módulo |
 | [CONVENCIONES.md](CONVENCIONES.md) | Todos | Reglas de arquitectura (las impone el lint), estilo, migraciones |
+| [DESPLIEGUE.md](DESPLIEGUE.md) | Quien publica el proyecto | Vercel con Services (web y API en un solo proyecto y dominio), variables de entorno, límites de las funciones y qué revisar si falla |
 | [diseno/README.md](diseno/README.md) | Frontend | Diseño de origen y decisiones |
 
 Cada módulo y carpeta de código tiene además su propio `README.md` que explica qué contiene y cómo funciona.

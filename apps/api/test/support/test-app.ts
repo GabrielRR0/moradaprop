@@ -4,6 +4,7 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/bootstrap/configure-app';
 import { MailSupport } from '../../src/support/mail';
+import { TurnstileSupport } from '../../src/support/turnstile';
 import { TotpSupport } from '../../src/support/totp';
 import { PrismaService } from '../../src/common/prisma';
 import { ResourceContractInterceptor } from './resource-contract';
@@ -51,12 +52,16 @@ export interface TestApp {
   close: () => Promise<void>;
 }
 
-export async function createTestApp(): Promise<TestApp> {
+/** Verificador falso de Turnstile para las pruebas (no se llama a Cloudflare). */
+export interface FakeTurnstile {
+  verify: (token: string, ip?: string) => Promise<TurnstileSupport.Result>;
+}
+
+export async function createTestApp(options: { turnstile?: FakeTurnstile } = {}): Promise<TestApp> {
   const mail = new FakeMail();
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
-    .overrideProvider(MailSupport.Service)
-    .useValue(mail)
-    .compile();
+  let builder = Test.createTestingModule({ imports: [AppModule] }).overrideProvider(MailSupport.Service).useValue(mail);
+  if (options.turnstile) builder = builder.overrideProvider(TurnstileSupport.Service).useValue(options.turnstile);
+  const moduleRef = await builder.compile();
 
   const app = moduleRef.createNestApplication();
   configureApp(app);

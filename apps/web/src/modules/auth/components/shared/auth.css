@@ -382,3 +382,47 @@
     gap: 12px;
   }
 }
+/* ---------- Verificacion "no soy un robot" (Turnstile) ---------- */
+.au-human {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.au-human-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.au-human-note svg {
+  flex: none;
+}
+.au-human-note.ok {
+  color: color-mix(in srgb, #137a40 85%, var(--text));
+}
+.au-human-note.bad {
+  color: #d23b3b;
+  align-items: flex-start;
+}
+.au-human-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ac);
+  animation: au-human-pulse 1.2s ease-in-out infinite;
+}
+@keyframes au-human-pulse {
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .au-human-dot {
+    animation: none;
+  }
+}

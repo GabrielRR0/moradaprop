@@ -4,6 +4,7 @@ import { toast } from '@/lib/toast';
 import { codeProblem, describeError, type Problem } from '../services/auth-errors';
 import { authService } from '../services/auth.service';
 import { useCooldown } from './useCooldown';
+import { useHumanCheck } from './useHumanCheck';
 
 /** Segundos de espera entre un envio del codigo y el siguiente (el API permite 1 por minuto). */
 const RESEND_SECONDS = 60;
@@ -19,16 +20,22 @@ export function useVerifyEmail(
   const [problem, setProblem] = useState<Problem | null>(null);
   const [shakeKey, setShakeKey] = useState(0);
   const cooldown = useCooldown(RESEND_SECONDS);
+  const humanCheck = useHumanCheck();
+  const { ready, headers, reset } = humanCheck;
   const sent = useRef(false);
 
   // Quien llega desde el login con el correo sin verificar aun no recibio un codigo nuevo.
+  // Con la verificacion "no soy un robot" activa, espera a que el widget de su token antes de enviar.
   useEffect(() => {
-    if (!sendOnMount || sent.current) return;
+    if (!sendOnMount || sent.current || !ready) return;
     sent.current = true;
-    authService.resendCode(email).catch((error) => {
-      setProblem(describeError(error, 'No pudimos enviar el código.'));
-    });
-  }, [sendOnMount, email]);
+    authService
+      .resendCode(email, headers())
+      .catch((error) => {
+        setProblem(describeError(error, 'No pudimos enviar el código.'));
+      })
+      .finally(reset);
+  }, [sendOnMount, email, ready, headers, reset]);
 
   async function verify(value: string) {
     if (pending || value.length < 6) return;
@@ -46,15 +53,19 @@ export function useVerifyEmail(
   }
 
   async function resend() {
-    if (cooldown.active) return;
+    if (cooldown.active || !ready) return;
     cooldown.start(RESEND_SECONDS);
     try {
-      await authService.resendCode(email);
+      await authService.resendCode(email, headers());
       toast('Te enviamos un código nuevo', 'info');
     } catch (error) {
-      setProblem(describeError(error, 'No pudimos reenviar el código.'));
+      const found = describeError(error, 'No pudimos reenviar el código.');
+      if (found.kind === 'human-check') humanCheck.refresh();
+      setProblem(found);
+    } finally {
+      reset(); // cada token sirve una sola vez
     }
   }
 
-  return { code, setCode, pending, problem, shakeKey, cooldown, verify, resend };
+  return { code, setCode, pending, problem, shakeKey, cooldown, humanCheck, verify, resend };
 }

@@ -2,7 +2,7 @@ import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AppConfig } from '@/config';
-import { Client, RequestInfo } from '@/common/security/decorators';
+import { Client, RequestInfo, RequireHumanCheck } from '@/common/security/decorators';
 import { GuestGroup } from '@/common/security/groups';
 import type { AppClient } from '@/common/security/types';
 import { EmailCodeDto, EmailDto } from '../../contracts/dto/email-code.dto';
@@ -26,6 +26,7 @@ export class RegistrationController {
     this.cookie = cookieSettings(config);
   }
 
+  @RequireHumanCheck()
   @Post('register')
   register(@Body() dto: RegisterDto, @RequestInfo() ctx: RequestContext): Promise<MessageResource> {
     return this.authService.register(dto, ctx);
@@ -42,6 +43,7 @@ export class RegistrationController {
     return respondWithLogin(res, client, await this.authService.verifyEmail(dto.email, dto.code, ctx), this.cookie);
   }
 
+  @RequireHumanCheck()
   @HttpCode(200)
   @Post('resend-code')
   resendCode(@Body() dto: EmailDto): Promise<MessageResource> {

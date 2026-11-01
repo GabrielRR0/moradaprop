@@ -145,4 +145,36 @@ describe('config', () => {
     verificar: (r) => expect(r).toEqual(['rechazo', 'rechazo', 'rechazo', 'rechazo']),
   });
 
+
+  describeCase('config', {
+    que: 'Turnstile viene apagado por defecto y, encendido, exige sus dos claves (no arranca a medias)',
+    espera: 'por defecto apagado; con TURNSTILE_ENABLED=true sin claves falla nombrando las que faltan; con claves arranca',
+    ejecutar: () => {
+      const intentar = (extra: Record<string, string>) => {
+        try {
+          return loadEnv({ ...entornoValido, ...extra });
+        } catch (error) {
+          return (error as Error).message;
+        }
+      };
+      return {
+        porDefecto: intentar({}),
+        sinClaves: intentar({ TURNSTILE_ENABLED: 'true' }),
+        soloPublica: intentar({ TURNSTILE_ENABLED: 'true', TURNSTILE_SITE_KEY: 'pub' }),
+        completo: intentar({ TURNSTILE_ENABLED: 'true', TURNSTILE_SITE_KEY: 'pub', TURNSTILE_SECRET_KEY: 'sec' }),
+        apagadoConClaves: intentar({ TURNSTILE_SITE_KEY: 'pub', TURNSTILE_SECRET_KEY: 'sec' }),
+      };
+    },
+    verificar: (r) => {
+      expect(typeof r.porDefecto === 'object' && r.porDefecto.turnstileEnabled).toBe(false);
+      expect(r.sinClaves).toContain('TURNSTILE_SITE_KEY');
+      expect(r.sinClaves).toContain('TURNSTILE_SECRET_KEY');
+      expect(r.soloPublica).toContain('TURNSTILE_SECRET_KEY');
+      expect(r.soloPublica).not.toContain('TURNSTILE_SITE_KEY');
+      expect(typeof r.completo === 'object' && r.completo.turnstileEnabled).toBe(true);
+      expect(typeof r.apagadoConClaves === 'object' && r.apagadoConClaves.turnstileEnabled).toBe(false);
+    },
+    describirObtenido: (r) => `sin claves: ${String(typeof r.sinClaves === 'string' ? r.sinClaves : 'arranco').slice(0, 90)}`,
+  });
+
 });

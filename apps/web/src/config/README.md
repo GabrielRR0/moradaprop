@@ -7,6 +7,6 @@
 - `index.ts` — archivo padre.
 - `tests/` — pruebas de la config.
 
-Variables de la web (documentadas en `.env.example`): `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_API_URL`,
-`NEXT_PUBLIC_APP_CLIENT_KEY`, `NEXT_PUBLIC_SHOW_THEME_PICKER` (selector flotante de tema),
+Variables de la web (documentadas en `.env.example`): `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_API_URL` (sin ella: `localhost:3001` en desarrollo y **el mismo dominio** en producción, que es como se despliega en Vercel; ver `docs/DESPLIEGUE.md`),
+`NEXT_PUBLIC_APP_CLIENT_KEY`, `NEXT_PUBLIC_ADMIN_API_PREFIX` (igual a `ADMIN_API_PREFIX` de la API: la pantalla de ajustes del admin lo usa para las rutas), `NEXT_PUBLIC_SHOW_THEME_PICKER` (selector flotante de tema),
 `NEXT_PUBLIC_WHATSAPP_NUMBER` (contacto de ejemplo).

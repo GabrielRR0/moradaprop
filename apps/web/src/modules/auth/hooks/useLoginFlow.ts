@@ -9,6 +9,7 @@ import { routeAfterAuth } from '../services/auth-routing';
 import { authService } from '../services/auth.service';
 import { passkeysSupported } from '../services/webauthn';
 import { useCooldown } from './useCooldown';
+import { useHumanCheck } from './useHumanCheck';
 
 /** Los cuatro metodos de segundo paso, en el orden en que se ofrecen. */
 const METHOD_ORDER: SecondFactorMethod[] = ['passkey', 'totp', 'backup', 'email'];
@@ -38,6 +39,7 @@ export function useLoginFlow(next: string | null) {
   const [emailSent, setEmailSent] = useState(false);
   const [canPasskey, setCanPasskey] = useState(false);
   const cooldown = useCooldown();
+  const humanCheck = useHumanCheck();
 
   useEffect(() => setCanPasskey(passkeysSupported()), []);
 
@@ -80,11 +82,11 @@ export function useLoginFlow(next: string | null) {
       password: password ? undefined : 'Escribe tu contraseña.',
     };
     setFieldErrors(errors);
-    if (errors.email || errors.password) return;
+    if (errors.email || errors.password || !humanCheck.ready) return;
     setPending(true);
     setProblem(null);
     try {
-      const result = await authService.login(email.trim(), password);
+      const result = await authService.login(email.trim(), password, humanCheck.headers());
       if (isChallenge(result)) {
         const methods = available(result.methods);
         setChallenge(result);
@@ -97,12 +99,14 @@ export function useLoginFlow(next: string | null) {
       }
     } catch (error) {
       const found = loginProblem(error);
+      if (found.kind === 'human-check') humanCheck.refresh();
       if (found.kind === 'verify-email') {
         router.push(`/verificar?email=${encodeURIComponent(email.trim())}`);
         return;
       }
       fail(found);
     } finally {
+      humanCheck.reset(); // cada token sirve una sola vez
       setPending(false);
     }
   }
@@ -188,6 +192,7 @@ export function useLoginFlow(next: string | null) {
     shakeKey,
     canPasskey,
     cooldown,
+    humanCheck,
     // segundo paso
     challenge,
     modes: challenge ? available(challenge.methods) : [],
