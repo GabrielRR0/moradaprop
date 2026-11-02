@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { AllExceptionsFilter } from '@/common/errors';
 import { LocalStorageProvider, STORAGE_PROVIDER } from '@/common/storage';
 import { AppConfig } from '@/config';
 import { GeoService, geoLocate, ThreatModelService, threatObserver } from '@/modules/security';
@@ -34,6 +35,7 @@ export function configureApp(app: INestApplication) {
       setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'),
     });
   }
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

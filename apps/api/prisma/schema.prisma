@@ -3,7 +3,8 @@
 // PostGIS: se activa despues (ver README, "simple primero"); por ahora lat/lng normales.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
